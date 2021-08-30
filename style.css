@@ -1,0 +1,166 @@
+html, body {
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+#kanwa {
+    float: none;
+    clear:both;
+    background-color: #ccf;
+    width:100%;
+    height:100%;
+    margin: 0;
+}
+
+#renderCanvas {
+    position:relative;
+    height: 100%;
+    width: 100%;
+    object-fit:cover;
+    touch-action: none;
+}
+
+.okienko {
+    position:fixed;
+    left:0;
+    top:0;
+    z-index:100;
+    background-color: #cfc;
+    height: auto;
+    width: auto;
+    padding:1px;
+    display: block;
+}
+
+.content {
+    padding: 4px;
+    background-color: #fff;
+    height: auto;
+    width: auto;
+}
+
+.title {
+    background-color: #00f;
+    color: #fff;
+    text-align: center;
+    font-family:sans-serif;
+    font-weight:bold;
+}
+
+.hidebutton {
+    float: right;
+    background-color: #fff;
+    color: #00f;
+    font-weight:normal;
+    font-size: 10px;
+    border: solid 1px #000;
+}
+
+.delbutton {
+    width: 100%;
+    margin-top: 15px;
+    background-color: #f00;
+    color: #fff;
+    border: solid 1px #000;
+}
+
+.actionbutton {
+    width: 50%;
+    margin-top: 15px;
+    margin-left: 25%;
+    background-color: #00f;
+    color: #fff;
+    border: solid 1px #000;
+}
+
+.setvaluebutton {
+    background-color: #080;
+    color: #fff;
+}
+
+#sterowanie {
+    min-width: 200px;
+    left:70px;
+    top:10px;
+}
+
+#missing {
+    min-width: 200px;
+    left:70px;
+    top:150px;
+    display: none;
+}
+
+
+#wykresy {
+    /*position:relative;
+    float:right;
+    margin-right:20px;*/
+    left:1000px;
+    top:20px;
+    background-color: #fcc;
+    width: 400px;
+    display: none;
+}
+
+#konsola {
+    min-width: 200px;
+    /*position:relative;
+    float:right;
+    margin-right:20px;*/
+    left:70px;
+    top:300px;
+    background-color: #fcc;
+    width: 768px;
+    height: 200px;
+    display: none;
+}
+
+#history {
+   width: 753px;
+   height: 140px;
+   resize: none;
+}
+
+#commandline {
+   width: 753px;
+}
+
+#okienkoE {
+    display: none;
+}
+
+#okienkoN {
+    display: none;
+}
+
+
+
+
+.transparentButton {
+    position:fixed;
+    left:0;
+    top:0;
+    z-index:100;
+    background-color: rgba(0.8,1.0,0.8,0.5);
+    color: white;
+    height: 48px;
+    width: 48px;
+    padding:1px;
+    border-width: 1px;
+    border-radius: 15px;
+}
+
+#panelSwitch {
+    left:10px;
+    top:10px;
+}
+
+#consoleSwitch {
+    left:10px;
+    top:70px;
+}
+
