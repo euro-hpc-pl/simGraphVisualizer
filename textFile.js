@@ -1,10 +1,4 @@
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-
+"use strict";
 /* global URL, scene */
 
 var download = function(text, name, type) {
@@ -88,26 +82,18 @@ var fromTXT = function(string) {
         lines.shift();
     }
       
-    // graphType==='chimera'
-    //var nowyGraf = new Chimera(scene);
-    graf = new Chimera(scene);
+    if (graphType==='chimera') {
+        graf = new Chimera(scene);
+    } else {
+        graf = new Pegasus(scene);
+    }
     
     if (graphSize[0]===0){
-        //nowyGraf.setSizeFromWindow();
         graf.setSizeFromWindow();
     }
     else {
-        //nowyGraf.setSize(graphSize[0],graphSize[1],graphSize[2],graphSize[3]);
         graf.setSize(graphSize[0],graphSize[1],graphSize[2],graphSize[3]);
     }
     
-    //nowyGraf.fromDef(res);
     graf.fromDef(res);
-
-    //graf.rescale(res);
-    //console.log(res);
-            
-    //console.log(nowyGraf);
-    
-    //return nowyGraf;
 };

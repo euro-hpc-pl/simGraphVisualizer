@@ -1,4 +1,5 @@
-/* global BABYLON */
+"use strict";
+/* global BABYLON, displayMode */
 
 class Chimera extends Graph {
     constructor(scene) {
@@ -8,6 +9,7 @@ class Chimera extends Graph {
 
         this.setSize(4,4,4,4);
     }
+    
 
     setSizeFromWindow() {
         this.cols = parseInt(document.getElementById("graphCols").value, 10);
@@ -33,11 +35,17 @@ class Chimera extends Graph {
         this.size = this.nbModules * this.modSize;
     }
     
+    maxNodeId() {
+        return this.cols * this.rows * (this.KL + this.KR);
+    }
 
     createNew() {
+        //const start = performance.now();
         for (let m = 0; m<this.nbModules; m++) {
             this.createModule( m );
         }
+        //const end = performance.now();
+        //console.log(end - start);
         
         for (let x=0; x<this.nbModules; x+=this.rows)
             for (let y=1; y<this.rows; y++) {
@@ -48,6 +56,8 @@ class Chimera extends Graph {
             for (let x=this.rows; x<this.nbModules; x+=this.rows) {
                 this.connectColModules( (x-this.rows)+y, x+y );
             }    
+    
+        super.showLabels(true);
     }
     
 
@@ -153,25 +163,43 @@ class Chimera extends Graph {
     getNodeOffset(nodeId) {
         //console.log(nodeId);
         
-        let nodeOffset = [
-            new BABYLON.Vector3(  15, -3, -10),
-            new BABYLON.Vector3(   5, -1, -10),
-            new BABYLON.Vector3(  -5,  1, -10),
-            new BABYLON.Vector3( -15,  3, -10),
-            new BABYLON.Vector3(  15,  3,  10),
-            new BABYLON.Vector3(   5,  1,  10),
-            new BABYLON.Vector3(  -5, -1,  10),
-            new BABYLON.Vector3( -15, -3,  10)
-        ];
+        let nodeOffset = {
+            'classic': [    new BABYLON.Vector3(  15, -3, -10),
+                            new BABYLON.Vector3(   5, -1, -10),
+                            new BABYLON.Vector3(  -5,  1, -10),
+                            new BABYLON.Vector3( -15,  3, -10),
+                            new BABYLON.Vector3(  15,  3,  10),
+                            new BABYLON.Vector3(   5,  1,  10),
+                            new BABYLON.Vector3(  -5, -1,  10),
+                            new BABYLON.Vector3( -15, -3,  10)],
+
+            'diamond': [    new BABYLON.Vector3(   0, -3,   9),
+                            new BABYLON.Vector3(   0, -1,   3),
+                            new BABYLON.Vector3(   0,  1,  -3),
+                            new BABYLON.Vector3(   0,  3,  -9),
+                            new BABYLON.Vector3(   9,  3,   0),
+                            new BABYLON.Vector3(   3,  1,   0),
+                            new BABYLON.Vector3(  -3, -1,   0),
+                            new BABYLON.Vector3(  -9, -3,   0)],
+
+            'triangle': [   new BABYLON.Vector3(  -15, -3,   9),
+                            new BABYLON.Vector3(  -15, -1,   3),
+                            new BABYLON.Vector3(  -15,  1,  -3),
+                            new BABYLON.Vector3(  -15,  3,  -9),
+                            new BABYLON.Vector3(   9,  3, 15),
+                            new BABYLON.Vector3(   3,  1, 15),
+                            new BABYLON.Vector3(  -3, -1, 15),
+                            new BABYLON.Vector3(  -9, -3, 15)]
+        };
         
         let idx = nodeId;
         if (idx<this.KL) {
-            return nodeOffset[idx];
+            return nodeOffset[displayMode][idx];
         }
         else {
             idx -= this.KL;
             idx += 4;
-            return nodeOffset[idx];
+            return nodeOffset[displayMode][idx];
         }
     }
     
@@ -191,6 +219,8 @@ class Chimera extends Graph {
         return newPos;
     };
     
+    
+   
     fromDef = function(def) {
         for (let i = 0; i<def.length; i++) {
             if (def[i].n1 === def[i].n2) {

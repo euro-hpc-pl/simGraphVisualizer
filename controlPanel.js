@@ -1,9 +1,4 @@
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
+"use strict";
 /* global scene, graf */
 
 var switchPanel = function() {
@@ -41,22 +36,34 @@ var createGraph = function() {
     if (graf!==null) {
         removeGraph();
     }
-    graf = new Chimera(scene);
-    graf.setSizeFromWindow();
-    graf.createNew();
-    
-    setModeDescription();
-    //toTXT(graf);
+
+    let type = document.getElementById("graphType").value;
+
+    switch (type) {
+        case "chimera" :
+            graf = new Chimera(scene);
+            graf.setSizeFromWindow();
+            graf.createNew();
+            setModeDescription();
+            break;
+        case "pegasus" :
+            graf = new Pegasus(scene);
+            graf.setSizeFromWindow();
+            graf.createNew();
+            setModeDescription();
+            break;
+    }
 };
 
 
 var removeGraph = function() {
     if (graf!==null) {
-        graf.clear();
-        delete graf;
+        graf.dispose();
+        //delete graf;
         graf = null;
     }
     
+    delMissing();
     setModeSelection();
 };
 

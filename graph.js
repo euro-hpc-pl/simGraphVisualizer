@@ -1,4 +1,46 @@
-/* global BABYLON */
+"use strict";
+/* global BABYLON, scene, labelsVisible */
+
+
+var graphVisualiser = ( function () {
+    var addNodesPart = function(size) {
+        var nodeModel = BABYLON.MeshBuilder.CreateBox(name, {size: 3}, scene);//BABYLON.MeshBuilder.CreatePolyhedron("m", {}, scene);
+        this.nodesSPS.addShape(nodeModel, size);
+        const nodeMesh = this.nodesSPS.buildMesh();
+        nodeModel.dispose();
+    };
+    
+    return {
+        initialize : function() {
+            this.nodesSPS = new BABYLON.SolidParticleSystem('nodes_SPS', scene, {isPickable: true});
+            //    var edgesSPS = new BABYLON.SolidParticleSystem('edges_SPS', scene, {isPickable: true});
+            //    var labelsSPS = new BABYLON.SolidParticleSystem('labels_SPS', scene, {isPickable: true});
+
+            addNodesPart(100);
+            this.nextNodeId = 0;
+
+            //    var labelModel = BABYLON.MeshBuilder.CreateBox(name, {size: 3}, scene);//BABYLON.MeshBuilder.CreatePolyhedron("m", {}, scene);
+            //    nodesSPS.addShape(nodeModel, nb);
+            //    const nodeMesh = nodesSPS.buildMesh();
+            //    nodeModel.dispose();
+        },
+        
+        dispose : function() {
+            
+        },
+        
+        getNodeModelId : function () {
+            if (this.nextNodeId>=this.nodesSPS.nbParticles) {
+                this.addNodesPart(100);
+            }
+            result = this.nextNodeId;
+            this.nextNodeId++;
+            
+            return result;
+        }
+    };
+});
+
 
 class Graph {
     constructor(scene) {
@@ -12,8 +54,26 @@ class Graph {
         this.type = 'generic';
     }
 
-    addNode(nodeId, x, y, z, val) {
-        this.nodes[nodeId] = new Node(nodeId, x, y, z, val);
+    dispose() {
+        for (const key in this.edges) {
+            this.edges[key].instance.dispose();
+            delete this.edges[key];
+        }
+        for (const key in this.nodes) {
+            this.nodes[key].clear();
+            delete this.nodes[key];
+        }
+        for (const key in this.missing) {
+            
+        }
+    }
+
+    clear() {
+        this.dispose();
+    }
+
+    maxNodeId() {
+        return Object.keys(this.nodes).length;
     }
 
     addNode(nodeId, pos, val) {
@@ -45,25 +105,14 @@ class Graph {
             document.getElementById("missing").style.display = "none";
     }
 
-//    addEdge(node1, node2) {
-//        if (node1<node2) {
-//            var strId = "" + node1 + "," + node2;
-//            this.edges[strId] = new Edge(this, node1, node2, 0.5);
-//        }
-//        else {
-//            var strId = "" + node2 + "," + node1;
-//            this.edges[strId] = new Edge(this, node2, node1, 0.5);
-//        }
-//    }
-
     addEdge(node1, node2, val) {
         if (node1<node2) {
             var strId = "" + node1 + "," + node2;
-            this.edges[strId] = new Edge(this, node1, node2, val);
+            this.edges[strId] = new Edge(this, node1, node2);//, val);
         }
         else {
             var strId = "" + node2 + "," + node1;
-            this.edges[strId] = new Edge(this, node2, node1, val);
+            this.edges[strId] = new Edge(this, node2, node1);//, val);
         }
     }
 
@@ -75,6 +124,8 @@ class Graph {
     findAndDeleteEdges(nodeId)
     {
         var removedEdges = {};
+
+        console.log("graf.findAndDeleteEdges", nodeId);
         
         for (const key in this.edges) {
             if ( this.edges[key].begin.toString() === nodeId ) {
@@ -108,16 +159,6 @@ class Graph {
         addToMissing(nodeId);
     }
 
-    clear() {
-        for (const key in this.edges) {
-            this.edges[key].instance.dispose();
-            delete this.edges[key];
-        }
-        for (const key in this.nodes) {
-            this.nodes[key].mesh.dispose();
-            delete this.nodes[key];
-        }
-    }
 
     findAndUpdateEdges(nodeId)
     {
@@ -128,12 +169,35 @@ class Graph {
         }
     }
 
-    updateNodeLabels() {
-        for (let i = 0; i < this.nodes.length; i++)
-        {
-            this.nodes[i].updateLabel();
+    showLabels(b) {
+        if (labelsVisible) {
+            for (const key in this.nodes) {
+                this.nodes[key].showLabel(b);
+            }
         }
     }
+    
+    displayValues(valId) {
+        let firstKey = Object.keys(this.nodes)[0];
+        
+        let prefix = '';
+        
+        if ( (valId === undefined) || !(valId in this.nodes[firstKey].values) ) {
+            valId = 'value';
+            prefix = "[incorrect, setting default] ";
+        }
+        
+        for (const key in this.nodes) {
+            this.nodes[key].displayValue(valId);
+        }
+        return prefix + valId;
+    }
+    
+//    updateNodeLabels(show) {
+//        for (const key in this.nodes) {
+//            this.nodes[key].updateLabel(show);
+//        }
+//    }
 
     nodePosition(nodeId) {
         return this.nodes[nodeId].position;
@@ -169,7 +233,7 @@ class Graph {
     }
 
     nodeValue(nodeId) {
-        return this.nodes[nodeId].value;
+        return this.nodes[nodeId].getValue();
     }
     
     getMinMaxVal() {
@@ -199,9 +263,26 @@ class Graph {
         
         return result;
     }
+    
+    calcPosition(key){
+        // override in derrived class
+        return new BABYLON.Vector3();
+    }
+    
+    changeDisplayMode() {
+        for (const key in this.nodes) {
+            let pos = this.calcPosition(key);
+            this.nodes[key].position.copyFrom( pos );
+            this.nodes[key].label.plane.position.copyFrom( pos ).addInPlaceFromFloats(0.0, 5.0, 0.0);
+        }
+        
+        for (const key in this.edges) {
+            this.edges[key].update();
+        }
+    }
 }
 
-valueToColor = function(val) {
+function valueToColor(val) {
     var max = 1.0;
 
     if ( val > 0 ) {
@@ -221,10 +302,10 @@ valueToColor = function(val) {
     }
 
     return new BABYLON.Color3(r, g, b);
-};
+}
 
 
-valueToEdgeWidth = function(val) {
+function valueToEdgeWidth(val) {
     var w = Math.abs(val)/2;
     if ( w>0.5 )
         w = 0.7;

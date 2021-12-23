@@ -1,4 +1,5 @@
-/* global BABYLON */
+"use strict";
+/* global BABYLON, myConsole, Promise */
 
 var camera = null;
 
@@ -22,9 +23,19 @@ var groundMaterial = null;
 
 var graf = null;
 
+var displayMode = 'classic';
+
 var nodeToConnect = 0;
 
-var createMaterials = function () {
+var testLabel = null;
+
+var labelsVisible = false;
+
+function getRandom(min, max) {
+  return ( min + (Math.random()*(max-min)));
+};
+
+function createMaterials(scene) {
     grayMat0 = new BABYLON.StandardMaterial("grayMat0", scene);
     grayMat0.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
     grayMat0.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
@@ -61,45 +72,48 @@ var createMaterials = function () {
 };
 
 
-var createDefaultEngine = function () {
-    return new BABYLON.Engine(canvas, true, {preserveDrawingBuffer: true, stencil: true, disableWebGL2Support: false});
+var createSPS = function () {
+
 };
 
-var createScene = function () {
-    var scene = new BABYLON.Scene(engine);
-    camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(0, 0, 0), scene);
+
+function createCamera(scene) {
+    var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(0, 0, 0), scene);
     //camera.setPosition(new BABYLON.Vector3(10, 100, 200));
     camera.setPosition(new BABYLON.Vector3(166, 150, 0));
     camera.attachControl(canvas, true);
 
     camera.upperBetaLimit = (Math.PI / 2) * 0.99;
-    camera.inertia = 0.8;
+    camera.inertia = 0.3;
+
+    return camera;
+}
+;
+
+function createLights(scene) {
     // Light
-    var light = new BABYLON.PointLight("omni", new BABYLON.Vector3(50, 200, 0), scene);
+    //var light = new BABYLON.PointLight("pointLight", camera.position, scene);
+    //var light = new BABYLON.HemisphericLight("HemiLight", new BABYLON.Vector3(-1, 1, 0), scene);
+    //var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 0, -1), scene);
 
-    createMaterials();
+    var light = new BABYLON.SpotLight("Spot0", new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(0, 0, 1), 1.8, 0.01, scene);
+    //light.diffuse = new BABYLON.Color3(1, 1, 1);
+    //light.specular = new BABYLON.Color3(1, 1, 1);
 
-    advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+    light.intensity = 0.75;
+    light.parent = camera;
+    light.position = new BABYLON.Vector3(0, 0, 0);
+    //light.radius = Math.PI;// / 2);
+}
+;
 
-    //graf = new Krata(5, scene);
-    //graf = new Chimera(scene);
-
-    document.getElementById('inputfile').addEventListener( 'change',
-        function() { 
-            loadGraph(this.files[0]); 
-        }); 
-
-    
-    // Ground
+function addEventsListeners(scene) {
+    var startingPoint;
+    var currentMesh;
     var ground = null;//BABYLON.MeshBuilder.CreateGround("ground", {width:10*graf.N+20, height:10*graf.N+20}, scene, false);
     //ground.material = groundMaterial;
 
-
-
-    var startingPoint;
-    var currentMesh;
-
-    var getGroundPosition = function ()
+    function getGroundPosition()
     {
         var pickinfo = scene.pick(scene.pointerX, scene.pointerY, function (mesh) {
             return mesh === ground;
@@ -110,32 +124,20 @@ var createScene = function () {
         }
 
         return null;
-    };
+    }
+    ;
 
-    var pointerDblTap = function (mesh)
-    {
+    function pointerDblTap(mesh) {
         var n2 = mesh.name.split(":");
         if (n2[0] === "edge")
         {
             graf.edgeDoubleClicked(n2[1]);
         }
-    };
+    }
+    ;
 
-    var pointerTap = function (mesh)
-    {
-        var n2 = mesh.name.split(":");
-        if (n2[0] === "edge") {
-            pokazOkienkoE(n2[1], scene.pointerX, scene.pointerY);
-        } else if (n2[0] === "node") {
-            pokazOkienkoN(parseInt(n2[1], 10), scene.pointerX, scene.pointerY);
-        } else {
-            cancelE();
-            cancelN();
-        }
-    };
-
-    var pointerDown = function (event)
-    {
+    function pointerDown(event) {
+        console.log("POINTER.DOWN");
         currentMesh = event.pickInfo.pickedMesh;
 
         startingPoint = getGroundPosition();
@@ -145,23 +147,27 @@ var createScene = function () {
                 camera.detachControl(canvas);
             }, 0);
         }
+    }
+    ;
 
-    };
-
-    var pointerUp = function ()
-    {
+    function onPointerUp() {
+        if (graf !== null) {
+            graf.showLabels(true);
+        }
         if (startingPoint) {
             camera.attachControl(canvas, true);
             startingPoint = null;
+
             return;
         }
-    };
+    }
+    ;
 
-    var pointerMove = function ()
-    {
-        if (graf === null) return;
-        
-        graf.updateNodeLabels();
+    function onPointerMove() {
+        if (graf === null)
+            return;
+
+        //graf.updateNodeLabels();
 
         if (!startingPoint) {
             return;
@@ -180,61 +186,90 @@ var createScene = function () {
 
             startingPoint = current;
         }
-    };
+    }
+    ;
+
+
+    function onPointerTap(pointerInfo) {
+        function onLMBtap(pointerInfo) {
+            function onMeshPicked(mesh) {
+                var n2 = mesh.name.split(":");
+                if (n2[0] === "edge") {
+                    pokazOkienkoE(n2[1], scene.pointerX, scene.pointerY);
+                } else if (n2[0] === "node") {
+                    pokazOkienkoN(parseInt(n2[1], 10), scene.pointerX, scene.pointerY);
+                } else {
+                    cancelE();
+                    cancelN();
+                }
+            }
+            ;
+
+            console.log("LEFT");
+            if (nodeToConnect !== 0) {
+                if (pointerInfo.pickInfo.hit) {
+                    var n2 = pointerInfo.pickInfo.pickedMesh.name.split(":");
+                    if (n2[0] === "node") {
+                        let strId1 = "" + nodeToConnect + "," + parseInt(n2[1], 10);
+                        let strId2 = "" + parseInt(n2[1], 10) + "," + nodeToConnect;
+                        if (!(strId1 in graf.edges) && !(strId2 in graf.edges))
+                            graf.addEdge(nodeToConnect, parseInt(n2[1], 10), 0.5);
+                        else
+                            console.log("edge already exists");
+                    }
+                }
+                nodeToConnect = 0;
+            } else {
+                if (pointerInfo.pickInfo.hit) {
+                    onMeshPicked(pointerInfo.pickInfo.pickedMesh);
+                } else {
+                    cancelE();
+                    cancelN();
+                }
+            }
+        }
+
+        function onMMBtap(pointerInfo) {
+            console.log("MIDDLE");
+            if (pointerInfo.pickInfo.hit) {
+                var n2 = pointerInfo.pickInfo.pickedMesh.name.split(":");
+                if (n2[0] === "node") {
+                    if (nodeToConnect === 0) {
+                        nodeToConnect = parseInt(n2[1], 10);
+                    } else {
+                        let strId1 = "" + nodeToConnect + "," + parseInt(n2[1], 10);
+                        let strId2 = "" + parseInt(n2[1], 10) + "," + nodeToConnect;
+                        if (!(strId1 in graf.edges) && !(strId2 in graf.edges))
+                            graf.addEdge(nodeToConnect, parseInt(n2[1], 10), 0.5);
+                        else
+                            console.log("edge already exists");
+                        nodeToConnect = 0;
+                    }
+                }
+            }
+        }
+
+        function onRMBtap(pointerInfo) {
+            console.log("RIGHT");
+        }
+
+        switch (pointerInfo.event.button) {
+            case 0:
+                onLMBtap(pointerInfo);
+                break;
+            case 1:
+                onMMBtap(pointerInfo);
+                break;
+            case 2:
+                onRMBtap(pointerInfo);
+                break;
+        }
+    }
 
     scene.onPointerObservable.add((pointerInfo) => {
         switch (pointerInfo.type) {
             case BABYLON.PointerEventTypes.POINTERTAP:
-                switch (pointerInfo.event.button) {
-                case 0: 
-                    console.log("LEFT");
-                    if (nodeToConnect !== 0) {
-                        if (pointerInfo.pickInfo.hit) {
-                            var n2 = pointerInfo.pickInfo.pickedMesh.name.split(":");
-                            if (n2[0] === "node") {
-                                let strId1 = "" + nodeToConnect + "," + parseInt(n2[1], 10);
-                                let strId2 = "" + parseInt(n2[1], 10) + "," + nodeToConnect;
-                                if (!(strId1 in graf.edges) && !(strId2 in graf.edges))
-                                    graf.addEdge(nodeToConnect,  parseInt(n2[1], 10), 0.5);
-                                else
-                                    console.log("edge already exists");
-                            }
-                        }
-                        nodeToConnect = 0;
-                    }
-                    else {
-                        if (pointerInfo.pickInfo.hit) {
-                            pointerTap(pointerInfo.pickInfo.pickedMesh);
-                        } else {
-                            cancelE();
-                            cancelN();
-                        }
-                    }
-                    break;
-                case 1: 
-                    console.log("MIDDLE");
-                    if (pointerInfo.pickInfo.hit) {
-                        var n2 = pointerInfo.pickInfo.pickedMesh.name.split(":");
-                        if (n2[0] === "node") {
-                            if (nodeToConnect===0) {
-                                nodeToConnect = parseInt(n2[1], 10);
-                            }
-                            else {
-                                let strId1 = "" + nodeToConnect + "," + parseInt(n2[1], 10);
-                                let strId2 = "" + parseInt(n2[1], 10) + "," + nodeToConnect;
-                                if (!(strId1 in graf.edges) && !(strId2 in graf.edges))
-                                    graf.addEdge(nodeToConnect,  parseInt(n2[1], 10), 0.5);
-                                else
-                                    console.log("edge already exists");
-                                nodeToConnect = 0;
-                            }
-                        }
-                    }
-                    break;
-                case 2: 
-                    console.log("RIGHT");
-                    break;
-                }
+                onPointerTap(pointerInfo);
                 break;
             case BABYLON.PointerEventTypes.POINTERDOUBLETAP:
                 if (pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh !== ground) {
@@ -245,15 +280,56 @@ var createScene = function () {
                 if (pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh !== ground) {
                     pointerDown(pointerInfo);
                 }
+
+                if (graf !== null) {
+                    graf.showLabels(false);
+                }
+
                 break;
             case BABYLON.PointerEventTypes.POINTERUP:
-                pointerUp();
+                onPointerUp();
                 break;
             case BABYLON.PointerEventTypes.POINTERMOVE:
-                pointerMove();
+                onPointerMove();
                 break;
         }
     });
+}
+
+function createScene() {
+    var scene = new BABYLON.Scene(engine);
+
+    camera = createCamera(scene);
+    createLights(scene);
+    createMaterials(scene);
+
+    advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+    document.getElementById('inputfile').addEventListener('change',
+            function () {
+                loadGraph(this.files[0]);
+            });
+
+
+
+    addEventsListeners(scene);
+
+    /*
+     var oldCamPosition = BABYLON.Vector3.Zero();
+     // console.log(camera.position);
+     scene.beforeRender=()=>{
+     //console.log(camera.position + "   " + oldCamPosition);
+     
+     // camera.update();
+     // if (!camera.position.equals(oldCamPosition)) {
+     if (!camera.position.equals(oldCamPosition)) {
+     //scene.clearColor = new BABYLON.Color3.Random();
+     console.log("camera moved");
+     if (graf!==null) graf.updateNodeLabels();
+     oldCamPosition.copyFrom(camera.position);
+     }
+     };
+     */
 
 
 //    scene.registerBeforeRender(() => {
@@ -266,28 +342,31 @@ var createScene = function () {
 //        console.log(screenXY);
 //    });
 
+
     return scene;
+}
+;
+
+window.onload = function (e) {
+    myConsole.initConsole();
+//    console.log("onload!");
 };
 
+//$(document).ready(function () {
+//    // Executes when the HTML document is loaded and the DOM is ready
+//    console.log("ready!");
+//});
 
-var cmdline = document.getElementById("commandline");
+//$(window).on("load", function () {
+//
+//    // Executes when complete page is fully loaded, including
+//    // all frames, objects and images
+//    console.log("Window is loaded");
+//});
 
-cmdline.addEventListener("keyup", (event) => {
-    if (event.key === "Enter") {
-        txtarea = document.getElementById("history");
-        txtarea.textContent += cmdline.value+"\n";
-        
-        txtarea.textContent += interpreted(cmdline.value);
-
-        txtarea.scrollTop = txtarea.scrollHeight;
-        cmdline.value = "";
-    }
-    else if (event.keyCode === 38) {
-        cmdline.value = cmdline.value + "^";
-    }
-});
-
-
+var createDefaultEngine = function () {
+    return new BABYLON.Engine(canvas, true, {doNotHandleContextLost: true, preserveDrawingBuffer: true, stencil: true, disableWebGL2Support: false});
+};
 
 window.initFunction = async function () {
     var asyncEngineCreation = async function () {
@@ -303,6 +382,8 @@ window.initFunction = async function () {
 
     if (!engine)
         throw 'engine should not be null.';
+
+    engine.enableOfflineSupport = false;
 
     window.scene = createScene();
 };

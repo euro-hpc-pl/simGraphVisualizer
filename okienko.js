@@ -1,3 +1,4 @@
+"use strict";
 /* global graf, scene */
 
 var setSize = function() {
@@ -29,6 +30,16 @@ var restoreNode = function(nodeId) {
     but.parentNode.removeChild(but);
 };
 
+var delMissing = function() {
+    var win = document.getElementById("misN");
+    win.innerHTML = "";
+
+    if (graf!==null) {
+        graf.missing = {};
+    }    
+    
+    document.getElementById("missing").style.display = "none";
+};
 
 var pokazOkienkoE = function(edgeId, x, y) {
     var okienko = document.getElementById("okienkoE");

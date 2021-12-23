@@ -1,66 +1,62 @@
+"use strict";
 /* global BABYLON, greenMat, scene, redMat, grayMat0, grayMat1, advancedTexture, camera, graf */
-const drawLabels = false;
+const drawLabels = true;//false;
+
+const createLabel = (id, position, scene) => {
+    return new Label("q" + id, "q" + id, position, scene);
+};
+
 
 class Node {
     constructor(id, x, y, z, val) {
         var name = "node:" + id;
 
+        this.id = id;
         this.active = true;
         this._chckedEdges = 0;
         
-        //this.mesh = BABYLON.MeshBuilder.CreateDisc(name, {radius: 2.5, tessellation: 8}, scene);
-        //this.mesh.rotation = new BABYLON.Vector3(3.14/2, 0, 0);
-
         this.mesh = BABYLON.MeshBuilder.CreateSphere(name, {diameter: 3, segments: 8, updatable: true}, scene);
-        this.mesh.position.x = x;
-        this.mesh.position.y = y;
-        this.mesh.position.z = z;
+        //this.mesh = BABYLON.MeshBuilder.CreateBox(name, {size: 3}, scene);
+        //this.mesh = BABYLON.MeshBuilder.CreateDisc(name, {radius: 16, tessellation: 3}, scene);
+        //this.mesh = BABYLON.MeshBuilder.CreatePlane(name, {width:3, height:3}, scene);
+        //this.mesh.billboardMode = BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
         
+        this.mesh.position = new BABYLON.Vector3( x, y, z );
+
+        this.values = {};
+
+        this.setValue(getRandom(-0.99, 0.99), 'losowe');
         this.setValue(val);
 
-        if (drawLabels)
-        {
-            this.label = new BABYLON.GUI.TextBlock();
-            this.label.text = "q" + (id + 1);
-            this.label.color = "black";
-            this.label.fontSize = 12;
-        }
-        //this.updateLabel();
+
+        //this.label = new Label("q" + this.id, "q" + this.id, this.mesh.position, scene);
+        this.label = createLabel(this.id, this.mesh.position, scene);
     }
 
     set position(pos) {
         this.mesh.position = pos;
+        //this.label.plane.position.copyFrom( pos ).addInPlaceFromFloats(0.0, 5.0, 0.0);
     }
 
     get position() {
         return this.mesh.position;
     }
 
-    updateLabel() {
-        var view = new BABYLON.Vector3(
-                window.engine.getRenderWidth(),
-                window.engine.getRenderHeight(), 0);
+    clear() {
+        this.mesh.dispose();
+        delete this.mesh;
+        this.label.plane.dispose();
+        delete this.label.plane;
+        delete this.label;
+    }
 
-        var pt = BABYLON.Vector3.Project(
-                this.mesh.position,
-                BABYLON.Matrix.Identity(),
-                scene.getTransformMatrix(),
-                camera.viewport.toGlobal(view.x, view.y));
-
-        //console.log(pt);
-
-        if (drawLabels)
-        {
-            this.label.left = pt.x - (view.x / 2);
-            this.label.top = pt.y - (view.y / 2);
-            this.label.zIndex = pt.z;
-            advancedTexture.addControl(this.label);
-        }
+    showLabel(b) {
+        this.label.setEnabled(b);
     }
 
     move(diff) {
         this.mesh.position.addInPlace(diff);
-        //this.updateText();
+        //this.updateLabel();
     }
 
     addCheck() {
@@ -74,8 +70,19 @@ class Node {
             this.mesh.material = grayMat0;
     }
 
-    setValue(val) {
-        this.value = val;
+    getValue(valId) {
+        if (valId === undefined) {
+            valId = 'value';
+        }
+        
+        return this.values[valId];
+    }
+    
+    setValue(val, valId) {
+        if (valId === undefined) {
+            valId = 'value';
+        }
+        this.values[valId] = val;
 
         var mat = new BABYLON.StandardMaterial("mat", scene);
         mat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
@@ -83,6 +90,21 @@ class Node {
         mat.emissiveColor = valueToColor(val);
 
         this.mesh.material = mat;
+    }
+    
+    displayValue(valId) {
+        if (valId === undefined) {
+            valId = 'value';
+        }
+        
+        if (valId in this.values) {
+//            var mat = new BABYLON.StandardMaterial("mat", scene);
+//            mat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+//            mat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+//            mat.emissiveColor = valueToColor(this.values[valId]);
+
+            this.mesh.material.emissiveColor = valueToColor(this.values[valId]);
+        }
     }
 }
 

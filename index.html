@@ -4,15 +4,16 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
         <title>Test wizualizacji grafów</title>
- 
+        <script src="jquery-3.6.0.min.js"></script>
         <script src="babylon.js"></script>
         <script src="babylon.gui.min.js"></script>
-        <script src="input.js"></script>
+        <script src="label.js"></script>
         <script src="edge.js"></script>
         <script src="node.js"></script>
         <script src="graph.js"></script>
         <script src="krata.js"></script>
         <script src="chimera.js"></script>
+        <script src="pegasus.js"></script>
         <script src="okienko.js"></script>
         <script src="controlPanel.js"></script>
         <script src="console.js"></script>
@@ -21,6 +22,9 @@
         <link href="style.css" rel="stylesheet">
     </head>
 <body>
+    <input type="button" class="transparentButton" id="panelSwitch" value="CPL" onclick="switchPanel()">
+    <input type="button" class="transparentButton" id="consoleSwitch" value="CON" onclick="myConsole.switchConsole()">
+    
     <div class="okienko" id="sterowanie">
         <div class="title"><!--<input class="hidebutton" type="button" value="_" onclick="">-->control panel</div>
         <div class="content" id="graphSelection" style="display:block">
@@ -34,6 +38,7 @@
             </select></div>-->
             <div>graph: <select id="graphType">
                 <option value="chimera">chimera</option>
+                <option value="pegasus">pegasus</option>
                 </select> size: <select id="graphCols">
                     <option selected="selected" value="4">4</option>
                     <option value="8">8</option>
@@ -77,9 +82,6 @@
         </div>    
     </div>
 
-    <input type="button" class="transparentButton" id="panelSwitch" value="CPL" onclick="switchPanel()">
-    <input type="button" class="transparentButton" id="consoleSwitch" value="CON" onclick="switchConsole()">
-    
     <div class="okienko" id="missing">
         <div class="title"><!--<input class="hidebutton" type="button" value="_" onclick="">-->removed nodes</div>
         <div class="content">
@@ -96,9 +98,9 @@
     </div>
 
     <div class="okienko" id="konsola">
-        <div class="title"><input class="hidebutton" type="button" value="x" onclick="hideConsole()">console</div>
+        <div class="title" id="consoleHandler" onmouseover="myConsole.makeMovable()" onmouseout="myConsole.makeUnmovable()"><input class="hidebutton" type="button" value="x" onclick="myConsole.hideConsole()">console</div>
         <div class="content">
-            <textarea id="history"></textarea>
+            <textarea id="consoleHistory" readonly></textarea>
             <input type="text" id="commandline">
         </div>
     </div>

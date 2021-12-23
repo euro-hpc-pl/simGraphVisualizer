@@ -1,3 +1,4 @@
+"use strict";
 /* global BABYLON */
 
 class Krata extends Graph {

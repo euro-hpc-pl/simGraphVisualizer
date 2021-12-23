@@ -1,11 +1,10 @@
-class ChimeraModule {
-    constructor( graf, moduleId, firstNode ) {
-        this.parentGraf = graf;
-        this.id = moduleId;
-        //this.firstNode = firstNode;
+class GraphModule {
+    constructor( KL, KR ) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
         
-        this.row = 0;
-        this.col = 0;
+        
     }
     
     create(moduleId, xOffset, yOffset, zOffset) {
