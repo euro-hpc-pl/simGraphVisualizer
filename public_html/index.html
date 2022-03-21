@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <title>Test wizualizacji grafów</title>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://preview.babylonjs.com/babylon.max.js"></script>
+        <script src="https://preview.babylonjs.com/gui/babylon.gui.min.js"></script>
+        <script src="js/sgv.js"></script>
+        
+        <link href="style.css" rel="stylesheet">
+    </head>
+<body>
+    <input type="button" class="transparentButton" id="panelSwitch" value="CPL" onclick="sgv.controlPanel.switchPanel()"/>
+    <input type="button" class="transparentButton" id="consoleSwitch" value="CON" onclick="sgv.console.switchConsole()"/>
+    <input type="button" class="transparentButton" id="dispModeSwitch" value="DIS" onclick="sgv.switchDisplayMode()"/>
+    
+    <div class="okienko" id="sterowanie">
+        <div class="title"><!--<input class="hidebutton" type="button" value="_" onclick="">-->control panel</div>
+        <div class="content" id="graphSelection" style="display:block">
+            <!--<div>graph: <select id="graphType">
+                <option value="chimera">chimera</option>
+                </select> size: <select id="graphSize" onchange="setSize()">
+                    <option value="128">4 x 4 x K&#8324;,&#8324; (128)</option>
+                    <option value="512">8 x 8 x K&#8324;,&#8324; (512)</option>
+                    <option value="1152">12 x 12 x K&#8324;,&#8324; (1152)</option>
+                    <option value="2048">16 x 16 x K&#8324;,&#8324; (2048)</option>
+            </select></div>-->
+            <div>graph: <select id="graphType">
+                <option value="chimera">chimera</option>
+                <option value="pegasus">pegasus</option>
+                </select> size: <select id="graphCols">
+                    <option selected="selected" value="4">4</option>
+                    <option value="8">8</option>
+                    <option value="12">12</option>
+                    <option value="16">16</option>
+            </select> x <select id="graphRows">
+                    <option selected="selected" value="4">4</option>
+                    <option value="8">8</option>
+                    <option value="12">12</option>
+                    <option value="16">16</option>
+            </select> K <select id="graphKL">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option selected="selected" value="4">4</option>
+            </select> , <select id="graphKR">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option selected="selected" value="4">4</option>
+            </select>            </div>
+            <div>
+                <input class="" id="cplCreateButton" name="createButton" type="button" value="Create default">
+            </div>
+            <div>Read from .txt file: 
+                <input id="inputfile" type="file"></div>
+                <!--<div><a href="#" id="mysaver">save</a></div>-->
+            <div>
+                <input class="delbutton" type="button" value="clear workspace" onclick="sgv.controlPanel.removeGraph()">
+            </div>
+        </div>    
+        <div class="content" id="graphDescription" style="display:none">
+            Current graph type: <span id="dscr_type">unknown</span>, size: <span id="dscr_cols">0</span>x<span id="dscr_rows">0</span>xK<sub><span id="dscr_KL">0</span>,<span id="dscr_KR">0</span></sub><br/>
+            Number of nodes: <span id="dscr_nbNodes">0</span>, number of edges: <span id="dscr_nbEdges">0</span>
+            <div>
+                <input class="actionbutton" type="button" value="save to file" onclick="sgv.toTXT()">
+            </div>
+            <div>
+                <input class="delbutton" type="button" value="clear workspace" onclick="sgv.controlPanel.removeGraph()">
+            </div>
+        </div>    
+    </div>
+
+    <div class="okienko" id="missing">
+        <div class="title"><!--<input class="hidebutton" type="button" value="_" onclick="">-->removed nodes</div>
+        <div class="content">
+        <div id="misN">
+        </div>
+        <input class="delbutton" type="button" value="clear history" onclick="sgv.delMissing()">
+        </div>    
+    </div>
+    
+    
+    <div class="okienko" id="wykresy">
+        <div class="title"><!--<input class="hidebutton" type="button" value="_" onclick="">-->graphs</div>
+        <div class="content"></div>
+    </div>
+
+    <div class="okienko" id="konsola">
+        <div class="title" id="consoleHandler" onmouseover="sgv.console.makeMovable()" onmouseout="sgv.console.makeUnmovable()"><input class="hidebutton" type="button" value="x" onclick="sgv.console.hideConsole()">console</div>
+        <div class="content">
+            <textarea id="consoleHistory" readonly></textarea>
+            <input type="text" id="commandline">
+        </div>
+        <div style="background-color:blue;height:5px;width:15px;float:right"></div><div style="background-color:green;height:5px;width:15px;float:left"></div><div style="background-color:red;height:5px;width:auto"></div>
+    </div>
+    
+    
+    <div id="kanwa"><canvas id="renderCanvas"></canvas></div>
+    
+    
+    <div class="okienko" id="okienkoE">
+        <input id="edgeId" type="hidden" value="0">
+        <div class="title"><input class="hidebutton" type="button" value="x" onclick="sgv.cancelE()"><span id="titleE">Edge: q1 &lt;---&gt; q2</span></div>
+        <div class="content">
+            <input id="wagaE" type="number" value="0"><input class="setvaluebutton" id="setE" type="button" value="set" onclick="sgv.edycjaE()">
+            <br/><input class="delbutton" type="button" value="delete" onclick="sgv.usunE()">
+        </div>
+    </div>
+    
+    
+    <div class="okienko" id="okienkoN">
+        <input id="nodeId" type="hidden" value="0">
+        <div class="title"><input class="hidebutton" type="button" value="x" onclick="sgv.cancelN()"><span id="titleN">Node: q1</span></div>
+        <div class="content">
+            <input id="wagaN" type="number" value="0"><input class="setvaluebutton" id="setN" type="button" value="set" onclick="sgv.edycjaN()">
+            <br/><input id="connectN" type="button" value="connect to..." onclick="connectNodes()"><select id="destN"></select><input id="connectSelectN" type="button" value="^" onclick="sgv.connectSelectN()">
+            <br/><input class="delbutton" type="button" value="delete" onclick="sgv.usunN()">
+        </div>
+    </div> 
+    
+    <script>
+        sgv.display("renderCanvas");
+    </script>
+</body>
+</html>

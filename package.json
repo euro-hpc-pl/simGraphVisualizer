@@ -1,0 +1,19 @@
+{
+  "name": "simGraphVisualizer",
+  "version": "0.1.0",
+  "description": "",
+  "author": "Dariusz Pojda <dpojda@iitis.pl>",
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "build.bat"
+  },
+  "directories": {
+    "doc": "./docs",
+    "lib": "./js",
+    "src": "./src"
+  },
+  "browserslist": [
+    "IE 11"
+  ],
+  "sideEffects": false
+}
