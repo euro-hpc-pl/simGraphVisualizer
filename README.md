@@ -25,4 +25,4 @@ Here are some of the subdirectories and their contents:
 Building and testing
 --------------------
 
-If you tweak the code, you can build the library by running the Windows script /build.bat
+After making changes to the code, you can build the library by running the script ./build.bat in Windows or using the gulp tool with the command: gulp build
