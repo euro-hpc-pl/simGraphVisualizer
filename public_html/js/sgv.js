@@ -104,6 +104,7 @@ class Label2 {
     };
 
 }
+
 "use strict";
 /* global BABYLON, greenMat, redMat, grayMat0, grayMat1, advancedTexture, sgv */
 const drawLabels = true;//false;
@@ -213,6 +214,7 @@ class Node {
         }
     }
 }
+
 
 "use strict";
 /* global BABYLON, sgv */
@@ -331,6 +333,7 @@ class Edge {
 
     
 };
+
 "use strict";
 /* global BABYLON, labelsVisible, sgv */
 
@@ -646,6 +649,7 @@ function valueToEdgeWidth(val) {
 
     return w;
 }
+
 "use strict";
 /* global BABYLON, displayMode, sgv */
 
@@ -898,6 +902,7 @@ class Chimera extends Graph {
     
     
 }
+
 
 "use strict";
 /* global BABYLON, sgv */
@@ -1336,6 +1341,7 @@ class Pegasus extends Graph {
     };
     
 }
+
 
 /* global global, BABYLON, URL, Chimera, Pegasus */
 "use strict";
@@ -2134,7 +2140,8 @@ sgv.display = (args) => {
 //var graf = sgv.graf;
 //var scene = sgv.scene;
 
-//export { sgv };"use strict";
+//export { sgv };
+"use strict";
 /* global sgv, Chimera, Pegasus, UI */
 
 sgv.controlPanel = new function() {
@@ -2258,6 +2265,7 @@ sgv.controlPanel = new function() {
         }
     };
 };
+
 "use strict";
 /* global scene, sgv, Chimera, Pegasus, UI */
 

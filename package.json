@@ -1,19 +1,24 @@
 {
-  "name": "simGraphVisualizer",
-  "version": "0.1.0",
-  "description": "",
-  "author": "Dariusz Pojda <dpojda@iitis.pl>",
-  "license": "Apache-2.0",
-  "scripts": {
-    "build": "build.bat"
-  },
-  "directories": {
-    "doc": "./docs",
-    "lib": "./js",
-    "src": "./src"
-  },
-  "browserslist": [
-    "IE 11"
-  ],
-  "sideEffects": false
+    "name": "simGraphVisualizer",
+    "version": "0.1.0",
+    "description": "",
+    "author": "Dariusz Pojda <dpojda@iitis.pl>",
+    "license": "Apache-2.0",
+    "dependencies": {
+        "del": "",
+        "gulp": "",
+        "gulp-concat": "",
+        "gulp-less": "",
+        "gulp-rename": "",
+        "gulp-uglify": ""
+    },
+    "directories": {
+        "doc": "./docs",
+        "lib": "./js",
+        "src": "./src"
+    },
+    "browserslist": [
+        "IE 11"
+    ],
+    "sideEffects": false
 }
