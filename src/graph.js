@@ -43,7 +43,7 @@ var graphVisualiser = ( function () {
 
 
 class Graph {
-    constructor(scene) {
+    constructor() {
         this.nodes = {};
         this.edges = {};
         
@@ -101,7 +101,7 @@ class Graph {
         delete this.missing[nodeId];
 
         if ( Object.keys(this.missing).length === 0 )
-            document.getElementById("missing").style.display = "none";
+            sgv.ui.missingNodes.style.display = "none";
     }
 
     addEdge(node1, node2, val) {
@@ -155,7 +155,7 @@ class Graph {
         this.nodes[nodeId].mesh.dispose();
         delete this.nodes[nodeId];
         
-        addToMissing(nodeId);
+        sgv.addToMissing(nodeId);
     }
 
 

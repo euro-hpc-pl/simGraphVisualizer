@@ -2,26 +2,32 @@
 /* global BABYLON, displayMode, sgv */
 
 class Chimera extends Graph {
-    constructor(scene) {
-        super(scene);
+    constructor() {
+        super();
 
         this.type = 'chimera';
 
-        this.setSize(4,4,4,4);
+        //this.setSize(4,4,4,4);
     }
     
-
-    setSizeFromWindow() {
-        this.cols = parseInt(document.getElementById("graphCols").value, 10);
-        this.rows = parseInt(document.getElementById("graphRows").value, 10);
-        this.KL = parseInt(document.getElementById("graphKL").value, 10);
-        this.KR = parseInt(document.getElementById("graphKR").value, 10);
+    static createNewGraph(size) {
+        var g = new Chimera();
         
-        this.nbModules = this.cols * this.rows;
-        this.modSize = this.KL + this.KR;
+        g.cols = size.cols;
+        g.rows = size.rows;
+        g.KL =   size.KL;
+        g.KR =   size.KR;
+        
+        g.nbModules = g.cols * g.rows;
+        g.modSize = g.KL + g.KR;
 
-        this.size = this.nbModules * this.modSize;
+        g.size = g.nbModules * g.modSize;
+
+        g.createNew();
+
+        return g;
     }
+
     
     setSize(c, r, kl, kr) {
         this.cols = c;

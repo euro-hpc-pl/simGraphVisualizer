@@ -1,16 +1,27 @@
 "use strict";
-/* global sgv */
+/* global sgv, Chimera, Pegasus, UI */
 
 sgv.controlPanel = new function() {
     var cpl = null;
     
     return {
         init: function(id) {
-            cpl = document.getElementById(id);
+            cpl = UI.createControlPanel(id);
+            
+            cpl.querySelector("#cplCreateButton").addEventListener('click',
+                function() {
+                    sgv.controlPanel.createGraph();
+                });
 
-            cpl.querySelector("#cplCreateButton").onclick = function(event) {
-                sgv.controlPanel.createGraph();
-            };
+            cpl.querySelector("#cplDeleteButton").addEventListener('click',
+                function() {
+                    sgv.controlPanel.removeGraph();
+                });
+
+            cpl.querySelector("#cplSaveButton").addEventListener('click',
+                function() {
+                    sgv.toTXT();
+                });
 
             cpl.querySelector('#inputfile').addEventListener('change',
                 function () {
@@ -54,24 +65,32 @@ sgv.controlPanel = new function() {
             document.getElementById("dscr_nbEdges").textContent = Object.keys(sgv.graf.edges).length;
         },
         
+        getGraphTypeAndSize() {
+            return {
+                type: document.getElementById("graphType").value,
+                size: {
+                    cols: parseInt(document.getElementById("graphCols").value, 10),
+                    rows: parseInt(document.getElementById("graphRows").value, 10),
+                    KL: parseInt(document.getElementById("graphKL").value, 10),
+                    KR: parseInt(document.getElementById("graphKR").value, 10)
+                }
+            };
+        },
+        
         createGraph: function() {
             if (sgv.graf!==null) {
                 this.removeGraph();
             }
 
-            let type = document.getElementById("graphType").value;
+            let gDesc = this.getGraphTypeAndSize();
 
-            switch (type) {
+            switch ( gDesc.type ) {
                 case "chimera" :
-                    sgv.graf = new Chimera(sgv.scene);
-                    sgv.graf.setSizeFromWindow();
-                    sgv.graf.createNew();
+                    sgv.graf = Chimera.createNewGraph(gDesc.size);
                     this.setModeDescription();
                     break;
                 case "pegasus" :
-                    sgv.graf = new Pegasus(sgv.scene);
-                    sgv.graf.setSizeFromWindow();
-                    sgv.graf.createNew();
+                    sgv.graf = Pegasus.createNewGraph(gDesc.size);
                     this.setModeDescription();
                     break;
             }

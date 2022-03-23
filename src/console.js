@@ -1,15 +1,12 @@
 "use strict";
-/* global scene, sgv */
+/* global scene, sgv, Chimera, Pegasus, UI */
 
 sgv.console = new function () {
-    var domConsole;
     var isDown;
     var cmdHistory = [];
     var cmdHistoryPtr = -1;
     var movable = false;
-//    function privateMethod () {
-    // ...
-//    }
+    let ui;
 
     function parseCommand(line) {
         function set(node, value) {
@@ -49,29 +46,25 @@ sgv.console = new function () {
 
         function create(type, sizeTXT) {
             if (sgv.graf === null) {
+                const sizesTXT = sizeTXT.split(",");
+
+                size = {
+                    cols:   parseInt(sizesTXT[0], 10),
+                    rows:   parseInt(sizesTXT[1], 10),
+                    KL:     parseInt(sizesTXT[2], 10),
+                    KR:     parseInt(sizesTXT[3], 10)
+                };
+                
                 switch (type) {
-                    case "chimera":
-                        sgv.graf = new Chimera(sgv.scene);
+                    case "chimera" :
+                        sgv.graf = Chimera.createNewGraph(size);
                         break;
-                    case "pegasus":
-                        sgv.graf = new Pegasus(sgv.scene);
+                    case "pegasus" :
+                        sgv.graf = Pegasus.createNewGraph(size);
                         break;
                     default:
                         return "unknown graph type";
                 }
-
-                let sizesTXT = sizeTXT.split(",");
-                let size = [0, 0, 0, 0];
-
-                size[0] = parseInt(sizesTXT[0], 10);
-                size[1] = parseInt(sizesTXT[1], 10);
-                size[2] = parseInt(sizesTXT[2], 10);
-                size[3] = parseInt(sizesTXT[3], 10);
-
-                // TU JESZCZE SPRAWDZAĆ PORAWNOŚĆ TYCH WARTOŚCI !!!! 
-
-                sgv.graf.setSize(size[0], size[1], size[2], size[3]);
-                sgv.graf.createNew();
 
                 sgv.controlPanel.setModeDescription();
 
@@ -288,40 +281,28 @@ sgv.console = new function () {
         return result;
     }
 
-
     return {// public interface
-
         switchConsole: function () {
-            if (domConsole.style.display !== "block") {
-                domConsole.style.display = "block";
+            if (ui.style.display !== "block") {
+                ui.style.display = "block";
             } else {
-                domConsole.style.display = "none";
+                ui.style.display = "none";
             }
         },
 
         showConsole: function () {
-            domConsole.style.display = "block";
+            ui.style.display = "block";
         },
 
         hideConsole: function () {
-            domConsole.style.display = "none";
-        },
-
-        makeMovable: function () {
-            document.getElementById("consoleHandler").style.cursor='pointer';
-            movable = true;
-        },
-
-        makeUnmovable: function () {
-            movable = false;
+            ui.style.display = "none";
         },
 
         initConsole: function (id) {
-            //console.log("you are in: myConsole.initConsole()");
-            domConsole = document.getElementById(id);
-            var domCmdline = document.getElementById("commandline");
-            var offset;
+            ui = UI.createConsole(id);
 
+            let domCmdline = ui.querySelector("#commandline");
+            
             domCmdline.addEventListener("keydown", (event) => {
                 if (event.key === "Enter") {
                     let txtarea = document.getElementById("consoleHistory");
@@ -354,16 +335,29 @@ sgv.console = new function () {
                 }
             });
 
+            ui.querySelector(".hidebutton").addEventListener('click', () => { sgv.console.hideConsole(); });
 
-            domConsole.addEventListener('mousedown', function (e) {
+            let titlebar = ui.querySelector(".title");
+            var offset;
+            
+            titlebar.addEventListener('mouseover', () => {
+                ui.querySelector(".title").style.cursor='pointer';
+                movable = true;
+            });
+            
+            titlebar.addEventListener('mouseout', () => {
+                movable = false;
+            });
+
+            titlebar.addEventListener('mousedown', function (e) {
                 isDown = movable;
                 offset = {
-                    x: domConsole.offsetLeft - e.clientX,
-                    y: domConsole.offsetTop - e.clientY
+                    x: ui.offsetLeft - e.clientX,
+                    y: ui.offsetTop - e.clientY
                 };
             }, true);
 
-            domConsole.addEventListener('mouseup', function () {
+            titlebar.addEventListener('mouseup', function () {
                 isDown = false;
             }, true);
 
@@ -375,8 +369,8 @@ sgv.console = new function () {
                         y: event.clientY
                     };
 
-                    domConsole.style.left = (mousePosition.x + offset.x) + 'px';
-                    domConsole.style.top = (mousePosition.y + offset.y) + 'px';
+                    ui.style.left = (mousePosition.x + offset.x) + 'px';
+                    ui.style.top = (mousePosition.y + offset.y) + 'px';
                 }
             }, true);
         }

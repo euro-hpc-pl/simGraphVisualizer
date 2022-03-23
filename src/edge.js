@@ -3,6 +3,7 @@
 
 class Edge {
     constructor(graf, b, e, val) {
+        this.parentGraph = graf;
         this.values = {};
 
         this.begin = b;
@@ -17,8 +18,8 @@ class Edge {
         var options = {
             instance: this.instance,
             path: [
-                sgv.graf.nodePosition(this.begin),
-                sgv.graf.nodePosition(this.end)
+                this.parentGraph.nodePosition(this.begin),
+                this.parentGraph.nodePosition(this.end)
             ]
         };
 
@@ -29,8 +30,8 @@ class Edge {
     switchCheckFlag() {
         this._checked = !this._checked;
 
-        sgv.graf.checkNode(this.begin, this._checked);
-        sgv.graf.checkNode(this.end, this._checked);
+        this.parentGraph.checkNode(this.begin, this._checked);
+        this.parentGraph.checkNode(this.end, this._checked);
 
         this.instance.material = this._checked ? sgv.grayMat1 : sgv.grayMat0;
     }
@@ -68,8 +69,8 @@ class Edge {
         var options = {
             instance: this.instance,
             path: [
-                sgv.graf.nodePosition(this.begin),
-                sgv.graf.nodePosition(this.end)
+                this.parentGraph.nodePosition(this.begin),
+                this.parentGraph.nodePosition(this.end)
             ],
             radius: edgeWidth
         };
@@ -94,8 +95,8 @@ class Edge {
         
         var options = {
             path: [
-                sgv.graf.nodePosition( this.begin ),
-                sgv.graf.nodePosition( this.end )
+                this.parentGraph.nodePosition( this.begin ),
+                this.parentGraph.nodePosition( this.end )
             ],
             radius: edgeWidth,
             updatable: true

@@ -43,28 +43,36 @@ class QbDescr {
 };
 
 class Pegasus extends Graph {
-    constructor(scene) {
-        super(scene);
+    constructor() {
+        super();
 
         this.type = 'pegasus';
         
-        this.setSize(4,4,4,4);
+        //this.setSize(4,4,4,4);
     }
     
-
-    setSizeFromWindow() {
-        this.cols = parseInt(document.getElementById("graphCols").value, 10);
-        this.rows = parseInt(document.getElementById("graphRows").value, 10);
-        this.KL = parseInt(document.getElementById("graphKL").value, 10);
-        this.KR = parseInt(document.getElementById("graphKR").value, 10);
-        this.layers = 3;
+    static createNewGraph(size) {
+        var g = new Pegasus();
         
-        this.nbModules = this.cols * this.rows * this.layers;
-        this.modSize = this.KL + this.KR;
+        g.cols = size.cols;
+        g.rows = size.rows;
+        g.KL =   size.KL;
+        g.KR =   size.KR;
 
-        this.size = this.nbModules * this.modSize;
+        g.layers = 3;
+
+        g.nbModules = g.cols * g.rows * g.layers;
+        
+        g.modSize = g.KL + g.KR;
+
+        g.size = g.nbModules * g.modSize;
+        
+        g.createNew();
+
+        return g;
     }
-    
+
+   
     setSize(c, r, kl, kr) {
         this.cols = c;
         this.rows = r;
