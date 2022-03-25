@@ -1,12 +1,30 @@
+/* 
+ * Copyright 2022 Dariusz Pojda.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 /* global global, BABYLON, URL, Chimera, Pegasus */
 "use strict";
 
-function getRandom(min, max) {
+var getRandom = function(min, max) {
     return (min + (Math.random() * (max - min)));
-}
+};
 
-var sgv = (typeof exports === "undefined")?(function sgv() {}):(exports);
-if(typeof global !== "undefined") { global.sgv = sgv; }
+var sgv = (typeof exports === "undefined") ? (function sgv() {}) : (exports);
+if (typeof global !== "undefined") {
+    global.sgv = sgv;
+}
 
 sgv.version = "0.1.0";
 sgv.engine = null;
@@ -14,8 +32,9 @@ sgv.scene = null;
 sgv.camera = null;
 sgv.graf = null;
 sgv.displayMode = 'classic';
+sgv.labelsVisible = false;//true;
 
-sgv.createCamera = () => {
+sgv.createCamera = function () {
     sgv.camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(0, 0, 0), sgv.scene);
     //camera.setPosition(new BABYLON.Vector3(10, 100, 200));
     sgv.camera.setPosition(new BABYLON.Vector3(166, 150, 0));
@@ -25,7 +44,7 @@ sgv.createCamera = () => {
     sgv.camera.inertia = 0.3;
 };
 
-sgv.createLights = () => {
+sgv.createLights = function () {
     var light = new BABYLON.SpotLight("Spot0", new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(0, 0, 1), 1.8, 0.01, sgv.scene);
     //light.diffuse = new BABYLON.Color3(1, 1, 1);
     //light.specular = new BABYLON.Color3(1, 1, 1);
@@ -36,7 +55,7 @@ sgv.createLights = () => {
     //light.radius = Math.PI;// / 2);
 };
 
-sgv.createMaterials = function() {
+sgv.createMaterials = function () {
     sgv.grayMat0 = new BABYLON.StandardMaterial("grayMat0", sgv.scene);
     sgv.grayMat0.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
     sgv.grayMat0.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
@@ -72,7 +91,7 @@ sgv.createMaterials = function() {
     sgv.groundMaterial.specularColor = BABYLON.Color3.Black();
 };
 
-sgv.createScene = () => {
+sgv.createScene = function () {
     sgv.scene = new BABYLON.Scene(sgv.engine);
 
     sgv.createCamera();
@@ -81,11 +100,11 @@ sgv.createScene = () => {
 
     sgv.advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
     sgv.nodeToConnect = 0;
-    
+
     sgv.addEventsListeners();
 };
 
-sgv.switchDisplayMode = function() {
+sgv.switchDisplayMode = function () {
     if (sgv.displayMode === 'classic') {
         sgv.displayMode = 'triangle';
     } else if (sgv.displayMode === 'triangle') {
@@ -93,8 +112,8 @@ sgv.switchDisplayMode = function() {
     } else {
         sgv.displayMode = 'classic';
     }
-    
-    if (sgv.graf!==null) {
+
+    if (sgv.graf !== null) {
         sgv.graf.changeDisplayMode();
     }
 };
@@ -186,7 +205,7 @@ sgv.addEventsListeners = function () {
     function onPointerTap(pointerInfo) {
         function onLMBtap(pointerInfo) {
             function onMeshPicked(mesh) {
-                console.log("mesh picked: "+mesh.name);
+                console.log("mesh picked: " + mesh.name);
                 var n2 = mesh.name.split(":");
                 if (n2[0] === "edge") {
                     sgv.pokazOkienkoE(n2[1], sgv.scene.pointerX, sgv.scene.pointerY);
@@ -261,7 +280,7 @@ sgv.addEventsListeners = function () {
     }
     ;
 
-    sgv.scene.onPointerObservable.add((pointerInfo) => {
+    sgv.scene.onPointerObservable.add(function (pointerInfo) {
         switch (pointerInfo.type) {
             case BABYLON.PointerEventTypes.POINTERTAP:
                 onPointerTap(pointerInfo);
@@ -294,119 +313,119 @@ sgv.addEventsListeners = function () {
 };
 
 
-sgv.connectNodes = function() {
+sgv.connectNodes = function () {
     var node1 = document.getElementById("nodeId").value;
     var node2 = document.getElementById("destN").value;
-  
-    if (sgv.graf!==null) {
+
+    if (sgv.graf !== null) {
         sgv.graf.addEdge(node1, node2);
-    }    
+    }
 };
 
-sgv.addToMissing = function(nodeId) {
+sgv.addToMissing = function (nodeId) {
     var win = document.getElementById("misN");
-    win.innerHTML += "<input type=\"button\" id=\"rest"+nodeId+"\" value=\" q"+nodeId+" \" onClick=\"sgv.restoreNode("+nodeId+")\">";
+    win.innerHTML += "<input type=\"button\" id=\"rest" + nodeId + "\" value=\" q" + nodeId + " \" onClick=\"sgv.restoreNode(" + nodeId + ")\">";
     this.ui.missingNodes.style.display = "block";
 };
 
-sgv.restoreNode = function(nodeId) {
+sgv.restoreNode = function (nodeId) {
     sgv.graf.restoreNode(nodeId);
-    
-    var but = document.getElementById("rest"+nodeId);
+
+    var but = document.getElementById("rest" + nodeId);
     but.parentNode.removeChild(but);
 };
 
-sgv.delMissing = function() {
+sgv.delMissing = function () {
     var win = document.getElementById("misN");
     win.innerHTML = "";
 
-    if (sgv.graf!==null) {
+    if (sgv.graf !== null) {
         sgv.graf.missing = {};
-    }    
-    
+    }
+
     this.ui.missingNodes.style.display = "none";
 };
 
-sgv.pokazOkienkoE = function(edgeId, x, y) {
+sgv.pokazOkienkoE = function (edgeId, x, y) {
     var xOffset = this.canvas.clientLeft;
 
-    sgv.ui.edgeProperties.querySelector(".titleText").innerHTML = "Edge q"+sgv.graf.edges[edgeId].begin+" &lt;---&gt; q"+sgv.graf.edges[edgeId].end;
+    sgv.ui.edgeProperties.querySelector(".titleText").innerHTML = "Edge q" + sgv.graf.edges[edgeId].begin + " &lt;---&gt; q" + sgv.graf.edges[edgeId].end;
     sgv.ui.edgeProperties.querySelector("#edgeId").value = edgeId;
     sgv.ui.edgeProperties.querySelector("#wagaE").value = sgv.graf.edgeValue(edgeId);
-    
-    sgv.ui.edgeProperties.style.top = y+"px";
-    sgv.ui.edgeProperties.style.left = (xOffset+x)+"px";
+
+    sgv.ui.edgeProperties.style.top = y + "px";
+    sgv.ui.edgeProperties.style.left = (xOffset + x) + "px";
     sgv.ui.edgeProperties.style.display = "block";
 };
 
-sgv.pokazOkienkoN = function(nodeId, x, y) {
+sgv.pokazOkienkoN = function (nodeId, x, y) {
     var xOffset = this.canvas.clientLeft;
 
-    sgv.ui.nodeProperties.querySelector(".titleText").textContent = "Node q"+nodeId;
+    sgv.ui.nodeProperties.querySelector(".titleText").textContent = "Node q" + nodeId;
     sgv.ui.nodeProperties.querySelector("#nodeId").value = nodeId;
     sgv.ui.nodeProperties.querySelector("#wagaN").value = sgv.graf.nodeValue(nodeId);
-    
+
     let select = sgv.ui.nodeProperties.querySelector("#destN");
 
     var length = select.options.length;
-    for (let i = length-1; i >= 0; i--) {
+    for (let i = length - 1; i >= 0; i--) {
         select.options[i] = null;
     }
 
     for (const key in sgv.graf.nodes) {
         //console.log(nodeId, key);
-        if (key.toString()!==nodeId.toString()) {
+        if (key.toString() !== nodeId.toString()) {
             var opt = document.createElement('option');
             opt.value = key;
-            opt.innerHTML = "q"+key;
+            opt.innerHTML = "q" + key;
             select.appendChild(opt);
         }
     }
-    
-    sgv.ui.nodeProperties.style.top = y+"px";
-    sgv.ui.nodeProperties.style.left = (xOffset+x)+"px";
+
+    sgv.ui.nodeProperties.style.top = y + "px";
+    sgv.ui.nodeProperties.style.left = (xOffset + x) + "px";
     sgv.ui.nodeProperties.style.display = "block";
 };
 
 
-sgv.usunE = function() {
+sgv.usunE = function () {
     sgv.graf.delEdge(sgv.ui.edgeProperties.querySelector("#edgeId").value);
     sgv.ui.edgeProperties.style.display = "none";
 };
 
-sgv.usunN = function() {
+sgv.usunN = function () {
     sgv.graf.delNode(sgv.ui.nodeProperties.querySelector("#nodeId").value);
     sgv.ui.nodeProperties.style.display = "none";
 };
 
-sgv.cancelE = function() {
+sgv.cancelE = function () {
     sgv.ui.edgeProperties.style.display = "none";
 };
 
-sgv.cancelN = function() {
+sgv.cancelN = function () {
     sgv.ui.nodeProperties.style.display = "none";
 };
 
 
-sgv.edycjaE = function() {
+sgv.edycjaE = function () {
     sgv.graf.setEdgeValue(sgv.ui.edgeProperties.querySelector("#edgeId").value, sgv.ui.edgeProperties.querySelector("#wagaE").value);
     sgv.ui.edgeProperties.style.display = "none";
 };
 
-sgv.edycjaN = function() {
+sgv.edycjaN = function () {
     sgv.graf.setNodeValue(sgv.ui.nodeProperties.querySelector("#nodeId").value, sgv.ui.nodeProperties.querySelector("#wagaN").value);
     sgv.ui.nodeProperties.style.display = "none";
 };
 
-sgv.connectSelectN = function() {
-    nodeToConnect = parseInt( sgv.ui.nodeProperties.querySelector("#nodeId").value, 10 );
+sgv.connectSelectN = function () {
+    nodeToConnect = parseInt(sgv.ui.nodeProperties.querySelector("#nodeId").value, 10);
     sgv.ui.nodeProperties.style.display = "none";
 };
 
 
 
 
-sgv.toTXT = function() {
+sgv.toTXT = function () {
     function download(text, name, type) {
         //var a = document.getElementById("mysaver");
         let a = document.createElement("a");
@@ -414,79 +433,77 @@ sgv.toTXT = function() {
         a.href = URL.createObjectURL(file);
         a.download = name;
         a.click();
-    };
-    
+    }
+    ;
+
     var string = "# type=" + sgv.graf.type + "\n";
     string += "# size=" + sgv.graf.cols + "," + sgv.graf.rows + "," + sgv.graf.KL + "," + sgv.graf.KR + "\n";
 
     for (const key in sgv.graf.nodes) {
-        string +=  key + " " + key + " ";
+        string += key + " " + key + " ";
         string += sgv.graf.nodes[key].value + "\n";
     }
-    
+
     for (const key in sgv.graf.edges) {
         string += sgv.graf.edges[key].begin + " " + sgv.graf.edges[key].end + " ";
         string += sgv.graf.edges[key].value + "\n";
     }
-    
+
     //console.log(string);
-    
+
     download(string, 'graphDefinition.txt', 'text/plain');
 };
 
 
-sgv.fromTXT = function(string) {
+sgv.fromTXT = function (string) {
     var res = [];
     var lines = string.split("\n");
-            
+
     var gDesc = sgv.controlPanel.getGraphTypeAndSize();
 
-    var parseComment = function(string) {
+    var parseComment = function (string) {
         var command = string.split("=");
-        if (command[0] === 'type'){
+        if (command[0] === 'type') {
             gDesc.type = command[1];
-        }
-        else if (command[0] === 'size'){
+        } else if (command[0] === 'size') {
             var size = command[1].split(",");
             gDesc.size = {
                 cols: parseInt(size[0], 10),
                 rows: parseInt(size[1], 10),
-                KL:   parseInt(size[2], 10),
-                KR:   parseInt(size[3], 10)
+                KL: parseInt(size[2], 10),
+                KR: parseInt(size[3], 10)
             };
         }
     };
 
-    var parseData = function(string) {
+    var parseData = function (string) {
         var line = string.split(" ");
-        if (line.length===3) {
+        if (line.length === 3) {
             return {
-                    n1: parseInt(line[0], 10),
-                    n2: parseInt(line[1], 10),
-                    val: parseFloat(line[2], 10)
-                };
-        }
-        else {
+                n1: parseInt(line[0], 10),
+                n2: parseInt(line[1], 10),
+                val: parseFloat(line[2], 10)
+            };
+        } else {
             return null;
         }
     };
-    
-    while(lines.length > 0) {
+
+    while (lines.length > 0) {
         if (lines[0][0] !== '#')
         {
-            var d = parseData( lines[0] );
-            if (d!==null) {
-                res.push( d );
+            var d = parseData(lines[0]);
+            if (d !== null) {
+                res.push(d);
             }
-        }
-        else {
+        } else {
             var line = lines[0].split(" ");
             parseComment(line[1]);
         }
         lines.shift();
     }
-    
-    switch ( gDesc.type ) {
+
+    switch (gDesc.type) {
         case "chimera" :
             sgv.graf = Chimera.createNewGraph(gDesc.size);
             break;
@@ -494,226 +511,34 @@ sgv.fromTXT = function(string) {
             sgv.graf = Pegasus.createNewGraph(gDesc.size);
             break;
     }
-    
+
     sgv.graf.fromDef(res);
 };
 
-class UI {
-    static createTitlebar(title, closebuttonVisible) {
-        var t = document.createElement("div");
-        t.setAttribute("class", "title");
-        if (closebuttonVisible) {
-            let btn = document.createElement("input");
-            btn.setAttribute("type", "button");
-            btn.setAttribute("class", "hidebutton");
-            btn.setAttribute("value", "x");
-            t.appendChild(btn);
-        }
-        let span = document.createElement("span");
-        span.setAttribute("class", "titleText");
-        span.textContent = title;
-        
-        t.appendChild(span);
-        
-        return t;
-    };
-    
-    static createEmptyWindow = (id, title, closebuttonVisible, createContentDIV, hiddenInput) => {
-        var o = document.createElement("div");
-        o.setAttribute("class", "sgvUIwindow");
-        o.setAttribute("id", "sgvNodeProperties");
-        let t = UI.createTitlebar( title, closebuttonVisible );
-        o.appendChild( t );
-    };
-    
-    
-    static createNodeProperties = () => {
-        var o = document.createElement("div");
-        o.setAttribute("class", "sgvUIwindow");
-        o.setAttribute("id", "sgvNodeProperties");
-        let t = UI.createTitlebar( 'Node: q1', true );
-        o.appendChild( t );
-        o.innerHTML += 
-        '<input id="nodeId" type="hidden" value="0"> \
-        <div class="content"> \
-            <input id="wagaN" type="number" value="0"><input class="setvaluebutton" id="setN" type="button" value="set"> \
-            <br/><input id="connectN" type="button" value="connect to..."><select id="destN"></select><input id="connectSelectN" type="button" value="^"> \
-            <br/><input class="delbutton" type="button" value="delete"> \
-        </div>';
-        document.body.appendChild(o);
-        return o;
-    };
 
-    static createEdgeProperties = () => {
-        var o = document.createElement("div");
-        o.setAttribute("class", "sgvUIwindow");
-        o.setAttribute("id", "sgvEdgeProperties");
-        o.appendChild( UI.createTitlebar( 'Edge: q1 &lt;---&gt; q2', true ) );
-        o.innerHTML += '<input id="edgeId" type="hidden" value="0"> \
-        <div class="content"> \
-            <input id="wagaE" type="number" value="0"><input class="setvaluebutton" id="setE" type="button" value="set"> \
-            <br/><input class="delbutton" type="button" value="delete"> \
-        </div>';
-        document.body.appendChild(o);
-        return o;
-    };
-    
-    static createMissing(id) {
-        var o = document.createElement("div");
-        o.setAttribute("class", "sgvUIwindow");
-        o.setAttribute("id", id);
-        o.appendChild( UI.createTitlebar( 'removed nodes', false ) );
-
-        o.innerHTML += '<div class="content"><div id="misN"></div> \
-        <input class="delbutton" type="button" value="clear history"> \
-        </div>';
-    
-        document.body.appendChild(o);
-        return o;
-    };
-
-    static createGraphs(id) {
-        var o = document.createElement("div");
-        o.setAttribute("class", "sgvUIwindow");
-        o.setAttribute("id", id);
-        o.appendChild( UI.createTitlebar( 'graphs', false ) );
-
-        o.innerHTML += '<div class="content"></div>';
-    
-        document.body.appendChild(o);
-        return o;
-    };
-    
-    static createConsole(id) {
-        var o = document.createElement("div");
-        o.setAttribute("class", "sgvUIwindow");
-        o.setAttribute("id", id);
-        o.appendChild( UI.createTitlebar( 'console', true ) );
-
-        o.innerHTML += '<div class="content"> \
-            <textarea id="consoleHistory" readonly></textarea> \
-            <input type="text" id="commandline"> \
-        </div> \
-        <div style="background-color:blue;height:5px;width:15px;float:right"></div><div style="background-color:green;height:5px;width:15px;float:left"></div><div style="background-color:red;height:5px;width:auto"></div>';
-        document.body.appendChild(o);
-        return o;
-    };
-    
-    static createControlPanel(id) {
-        var o = document.createElement("div");
-        o.setAttribute("class", "sgvUIwindow");
-        o.setAttribute("id", id);
-        o.appendChild( UI.createTitlebar( 'control panel', true ) );
-        
-        var divSel = document.createElement("div");
-        divSel.setAttribute("class", "content");
-        divSel.setAttribute("id", "graphSelection");
-        divSel.style.display = "block";
-        divSel.innerHTML = '<div>graph: <select id="graphType"><option value="chimera">chimera</option><option value="pegasus">pegasus</option></select> \
-        size: <select id="graphCols"><option selected="selected" value="4">4</option><option value="8">8</option><option value="12">12</option><option value="16">16</option></select> \
-        x <select id="graphRows"><option selected="selected" value="4">4</option><option value="8">8</option><option value="12">12</option><option value="16">16</option></select> \
-        K <select id="graphKL"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option selected="selected" value="4">4</option></select> \
-        , <select id="graphKR"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option selected="selected" value="4">4</option></select> \
-        </div><div><input class="" id="cplCreateButton" name="createButton" type="button" value="Create default"></div> \
-        <div>Read from .txt file: <input id="inputfile" type="file"></div>';
-        
-        var divDesc = document.createElement("div");
-        divDesc.setAttribute("class", "content");
-        divDesc.setAttribute("id", "graphDescription");
-        divDesc.style.display = "none";
-        divDesc.innerHTML = 'Current graph type: <span id="dscr_type">unknown</span>, \
-        size: <span id="dscr_cols">0</span>x<span id="dscr_rows">0</span>xK<sub><span id="dscr_KL">0</span>,<span id="dscr_KR">0</span></sub><br/> \
-            Number of nodes: <span id="dscr_nbNodes">0</span>, number of edges: <span id="dscr_nbEdges">0</span> \
-            <div><input class="actionbutton" id="cplSaveButton" type="button" value="save to file"></div> \
-            <div><input class="delbutton" id="cplDeleteButton" type="button" value="clear workspace"></div>';
-        
-        o.appendChild(divSel);
-        o.appendChild(divDesc);
-        
-        document.body.appendChild(o);
-
-        return o;
-    };
-    
-    static createPanelSwitch() {
-        let btn = document.createElement("input");
-        btn.setAttribute("type", "button");
-        btn.setAttribute("class", "sgvTransparentButton");
-        btn.setAttribute("id", "sgvPanelSwitch");
-        btn.setAttribute("value", "CPL");
-        document.body.appendChild(btn);
-        return btn;
-    };
-
-    static createConsoleSwitch() {
-        let btn = document.createElement("input");
-        btn.setAttribute("type", "button");
-        btn.setAttribute("class", "sgvTransparentButton");
-        btn.setAttribute("id", "sgvConsoleSwitch");
-        btn.setAttribute("value", "CON");
-        document.body.appendChild(btn);
-        return btn;
-    };
-
-    static createDispModeSwitch() {
-        let btn = document.createElement("input");
-        btn.setAttribute("type", "button");
-        btn.setAttribute("class", "sgvTransparentButton");
-        btn.setAttribute("id", "sgvDispModeSwitch");
-        btn.setAttribute("value", "DIS");
-        document.body.appendChild(btn);
-        return btn;
-    };
-    
-   
-    constructor() {
-        this.panelSwitch = UI.createPanelSwitch();
-        this.panelSwitch.addEventListener('click', () => { sgv.controlPanel.switchPanel(); });
-        this.consoleSwitch = UI.createConsoleSwitch();
-        this.consoleSwitch.addEventListener('click', () => { sgv.console.switchConsole(); });
-        this.dispModeSwitch = UI.createDispModeSwitch();
-        this.dispModeSwitch.addEventListener('click', () => { sgv.switchDisplayMode(); });
-        
-        this.nodeProperties = UI.createNodeProperties();
-        this.nodeProperties.querySelector(".hidebutton").addEventListener('click', () => { sgv.cancelN(); });
-        this.nodeProperties.querySelector("#setN").addEventListener('click', () => { sgv.edycjaN(); });
-        this.nodeProperties.querySelector("#connectN").addEventListener('click', () => { sgv.connectNodes(); });
-        this.nodeProperties.querySelector("#connectSelectN").addEventListener('click', () => { sgv.connectSelectN(); });
-        this.nodeProperties.querySelector(".delbutton").addEventListener('click', () => { sgv.usunN(); });
+//=======================
 
 
-        this.edgeProperties = UI.createEdgeProperties();
-        this.edgeProperties.querySelector(".hidebutton").addEventListener('click', () => { sgv.cancelE(); });
-        this.edgeProperties.querySelector("#setE").addEventListener('click', () => { sgv.edycjaE(); });
-        this.edgeProperties.querySelector(".delbutton").addEventListener('click', () => { sgv.usunE(); });
-        
-        this.missingNodes = UI.createMissing('sgvMissingNodes');
-        this.missingNodes.querySelector(".delbutton").addEventListener('click', () => { sgv.delMissing(); });
-
-        //this.wykresy = UI.createGraphs('wykresy');
-    };
-};
-
-sgv.display = (args) => {
-    if ((typeof args === 'undefined')||(typeof args !== 'object')) {
+sgv.display = function(args) {
+    if ((typeof args === 'undefined') || (typeof args !== 'object')) {
         args = {};
     }
-    
+
     sgv.ui = new UI();
 
-   
+
     let targetDIV = null;
     if ('target' in args) {
         targetDIV = document.getElementById(args.target);
     }
 
     // no args.target or HTML element not exists
-    if (targetDIV===null) {
+    if (targetDIV === null) {
         targetDIV = document.createElement("div");
         targetDIV.setAttribute("id", "sgvWorkspaceArea");
         document.body.appendChild(targetDIV);
     }
-    
+
     // add canvas to targeDIV
     sgv.canvas = document.createElement("canvas");
     sgv.canvas.setAttribute("id", "sgvRenderCanvas");
@@ -721,13 +546,14 @@ sgv.display = (args) => {
 
     sgv.console.initConsole("sgvConsole");
     sgv.controlPanel.init("sgvControlPanel"); // ID okienka !!!
-    
+
     sgv.advancedTexture = null;
     sgv.sceneToRender = null;
 
     function createDefaultEngine() {
         return new BABYLON.Engine(sgv.canvas, true, {doNotHandleContextLost: true, preserveDrawingBuffer: true, stencil: true, disableWebGL2Support: false});
-    };
+    }
+    ;
 
     window.initFunction = async function () {
         var asyncEngineCreation = async function () {
@@ -749,7 +575,7 @@ sgv.display = (args) => {
         sgv.createScene();
     };
 
-    initFunction().then(() => {
+    initFunction().then( function() {
         sgv.sceneToRender = sgv.scene;
         sgv.engine.runRenderLoop(function () {
             if (sgv.sceneToRender && sgv.sceneToRender.activeCamera) {
@@ -760,9 +586,9 @@ sgv.display = (args) => {
 
     // Resize
     window.addEventListener("resize",
-        function () {
-            sgv.engine.resize();
-        });
+            function () {
+                sgv.engine.resize();
+            });
 
 };
 

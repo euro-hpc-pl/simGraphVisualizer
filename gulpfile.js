@@ -13,12 +13,16 @@ var concat = require('gulp-concat');
 var del = require('del');
 
 var srcfiles = [
+    //"./src/libs/jquery-3.6.0.js",
+    //"./src/libs/babylon.max.js",
+    //"./src/libs/babylon.gui.js",
     "./src/label.js",
     "./src/node.js",
     "./src/edge.js",
     "./src/graph.js",
     "./src/chimera.js",
     "./src/pegasus.js",
+    "./src/UI.js",
     "./src/SimGraphVisualizer.js",
     "./src/controlPanel.js",
     "./src/console.js"
