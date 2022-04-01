@@ -21,9 +21,10 @@ const createLabel = function(id, position, scene) {
     return new Label("q" + id, "q" + id, position, scene);
 };
 
-var Node = /** @class */ (function(id, x, y, z, val) {
+var Node = /** @class */ (function(graf, id, x, y, z, val) {
         var name = "node:" + id;
 
+        this.parentGraph = graf;
         this.id = id;
         this.active = true;
         this._chckedEdges = 0;
@@ -33,6 +34,11 @@ var Node = /** @class */ (function(id, x, y, z, val) {
         //this.mesh = BABYLON.MeshBuilder.CreateDisc(name, {radius: 16, tessellation: 3}, scene);
         //this.mesh = BABYLON.MeshBuilder.CreatePlane(name, {width:3, height:3}, scene);
         //this.mesh.billboardMode = BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
+        
+        mesh.material = new BABYLON.StandardMaterial("mat", sgv.scene);
+        mesh.material.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+        mesh.material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+        mesh.material.emissiveColor = new BABYLON.Color4(0.2, 0.2, 0.2);
         
         mesh.position = new BABYLON.Vector3( x, y, z );
 
@@ -54,12 +60,16 @@ var Node = /** @class */ (function(id, x, y, z, val) {
 
     });
 
-    this.clear = function() {
+    this.dispose = function() {
         mesh.dispose();
-        delete this.mesh;
+        delete mesh;
         this.label.plane.dispose();
         delete this.label.plane;
         delete this.label;
+    };
+
+    this.clear = function() {
+        this.dispose();
     };
 
     this.showLabel = function(b) {
@@ -82,45 +92,52 @@ var Node = /** @class */ (function(id, x, y, z, val) {
             mesh.material = sgv.grayMat0;
     };
 
-    this.getValue = function(valId) {
-        if (valId === undefined) {
-            valId = 'value';
+    this.getValue = function(scope) {
+        if (scope === undefined) {
+            scope = this.parentGraph.currentScope;
         }
         
-        return this.values[valId];
-    };
-    
-    this.setValue = function(val, valId) {
-        if (valId === undefined) {
-            valId = 'value';
+        if (this.values.hasOwnProperty(scope)){
+            return this.values[scope];
+        } else {
+            return null;
         }
-        this.values[valId] = val;
-
-        var mat = new BABYLON.StandardMaterial("mat", sgv.scene);
-        mat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-        mat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-        mat.emissiveColor = valueToColor(val);
-
-        mesh.material = mat;
     };
-    
-    this.displayValue = function(valId) {
-        if (valId === undefined) {
-            valId = 'value';
+
+    this.delValue = function(scope) {
+        if (scope === undefined) {
+            scope = this.parentGraph.currentScope;
         }
         
-        if (valId in this.values) {
-//            var mat = new BABYLON.StandardMaterial("mat", scene);
-//            mat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-//            mat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-//            mat.emissiveColor = valueToColor(this.values[valId]);
-
-            mesh.material.emissiveColor = valueToColor(this.values[valId]);
+        if (scope in this.values) {
+            delete this.values[scope];
+        }
+    };
+    
+    this.setValue = function(val, scope) {
+        if (scope === undefined) {
+            scope = this.parentGraph.currentScope;
+        }
+        this.values[scope] = val;
+    };
+    
+    this.displayValue = function(scope) {
+        if (scope === undefined) {
+            scope = this.parentGraph.currentScope;
+        }
+        
+        if (scope in this.values) {
+            //mesh.material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+            mesh.material.emissiveColor = valueToColor(this.values[scope]);
+        } else {
+            //mesh.material.specularColor = new BABYLON.Color3(0.0, 0.0, 0.0);
+            mesh.material.emissiveColor = new BABYLON.Color4(0.2, 0.2, 0.2);
         }
     };
 
-        this.setValue(getRandom(-0.99, 0.99), 'losowe');
-        this.setValue(val);
+    this.setValue(val);
+    this.setValue(getRandom(-0.99, 0.99), 'losowe');
 
+    this.displayValue();
 });
 

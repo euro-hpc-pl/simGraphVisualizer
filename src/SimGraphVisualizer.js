@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/* global global, BABYLON, URL, Chimera, Pegasus */
+/* global global, BABYLON, URL, Chimera, Pegasus, UI */
 "use strict";
 
 var getRandom = function(min, max) {
@@ -312,10 +312,14 @@ sgv.addEventsListeners = function () {
 
 };
 
+sgv.connectSelectN = function () {
+    sgv.nodeToConnect = parseInt(sgv.ui.nodeProperties.querySelector("#nodeId").value, 10);
+    sgv.ui.nodeProperties.style.display = "none";
+};
 
 sgv.connectNodes = function () {
-    var node1 = document.getElementById("nodeId").value;
-    var node2 = document.getElementById("destN").value;
+    var node1 = sgv.ui.nodeProperties.querySelector("#nodeId").value;
+    var node2 = sgv.ui.nodeProperties.querySelector("#destN").value;
 
     if (sgv.graf !== null) {
         sgv.graf.addEdge(node1, node2);
@@ -323,20 +327,27 @@ sgv.connectNodes = function () {
 };
 
 sgv.addToMissing = function (nodeId) {
-    var win = document.getElementById("misN");
-    win.innerHTML += "<input type=\"button\" id=\"rest" + nodeId + "\" value=\" q" + nodeId + " \" onClick=\"sgv.restoreNode(" + nodeId + ")\">";
+    let win = sgv.ui.missingNodes.querySelector("#misN");
+    
+    let i = UI.newInput("button", " q" + nodeId + " ", "", "rest" + nodeId );
+    
+    i.addEventListener('click', function () {
+        sgv.restoreNode(nodeId);
+    });
+    win.appendChild(i);
+
     this.ui.missingNodes.style.display = "block";
 };
 
 sgv.restoreNode = function (nodeId) {
     sgv.graf.restoreNode(nodeId);
 
-    var but = document.getElementById("rest" + nodeId);
+    var but = sgv.ui.missingNodes.querySelector("#rest" + nodeId);
     but.parentNode.removeChild(but);
 };
 
 sgv.delMissing = function () {
-    var win = document.getElementById("misN");
+    var win = sgv.ui.missingNodes.querySelector("#misN");
     win.innerHTML = "";
 
     if (sgv.graf !== null) {
@@ -416,13 +427,6 @@ sgv.edycjaN = function () {
     sgv.graf.setNodeValue(sgv.ui.nodeProperties.querySelector("#nodeId").value, sgv.ui.nodeProperties.querySelector("#wagaN").value);
     sgv.ui.nodeProperties.style.display = "none";
 };
-
-sgv.connectSelectN = function () {
-    nodeToConnect = parseInt(sgv.ui.nodeProperties.querySelector("#nodeId").value, 10);
-    sgv.ui.nodeProperties.style.display = "none";
-};
-
-
 
 
 sgv.toTXT = function () {

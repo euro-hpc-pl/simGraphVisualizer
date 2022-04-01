@@ -22,7 +22,9 @@ var Graph = /** @class */ (function () {
     this.edges = {};
     this.missing = {};
     this.type = 'generic';
-
+    this.scopeOfValues = ['default', 'losowe'];
+    this.currentScope = 'default';
+    
     this.dispose = function () {
         for (const key in this.edges) {
             this.edges[key].instance.dispose();
@@ -46,7 +48,7 @@ var Graph = /** @class */ (function () {
     };
 
     this.addNode = function(nodeId, pos, val) {
-        this.nodes[nodeId] = new Node(nodeId, pos.x, pos.y, pos.z, val);
+        this.nodes[nodeId] = new Node(this, nodeId, pos.x, pos.y, pos.z, val);
     };
 
     this.restoreNode = function (nodeId) {
@@ -117,7 +119,8 @@ var Graph = /** @class */ (function () {
             this.missing[nodeId].edges[key] = tmpEdges[key];
         }
         
-        this.nodes[nodeId].mesh.dispose();
+        //this.nodes[nodeId].mesh.dispose();
+        this.nodes[nodeId].clear();
         delete this.nodes[nodeId];
 
         sgv.addToMissing(nodeId);
@@ -132,21 +135,51 @@ var Graph = /** @class */ (function () {
         }
     };
 
+    this.addScopeOfValues = function(scope) {
+        if ( (scope !== undefined) && ! this.scopeOfValues.includes(scope) ) {
+            this.scopeOfValues.push(scope);
+            return this.scopeOfValues.indexOf(scope);
+        }
+        return -1;
+    };
 
-    this.displayValues = function (valId) {
-        let firstKey = Object.keys(this.nodes)[0];
+    this.delScopeOfValues = function(scope) {
+        if ( (scope !== undefined) && (scope !== 'default') ) {
 
-        let prefix = '';
+            let idx = this.scopeOfValues.indexOf(scope);
+            if (idx!==-1) {
+                
+                this.scopeOfValues.splice(idx,1);
+                
+                for (const key in this.nodes) {
+                    this.nodes[key].delValue(scope);
+                }
 
-        if ((valId === undefined) || !(valId in this.nodes[firstKey].values)) {
-            valId = 'value';
-            prefix = "[incorrect, setting default] ";
+                if (this.currentScope === scope) {
+                    this.currentScope = 'default';
+                    this.displayValues('default');
+                }
+
+                return this.scopeOfValues.indexOf(this.currentScope);
+            }
+        }
+        return -1;
+    };
+
+    this.hasScope = function (scope) {
+        return (scope !== undefined) && this.scopeOfValues.includes(scope);
+    };
+    
+    this.displayValues = function (scope) {
+        if ( (scope === undefined) || ! this.scopeOfValues.includes(scope) ) {
+            return false;
         }
 
+        this.currentScope = scope;
         for (const key in this.nodes) {
-            this.nodes[key].displayValue(valId);
+            this.nodes[key].displayValue(scope);
         }
-        return prefix + valId;
+        return true;
     };
 
 //    updateNodeLabels(show) {
@@ -186,6 +219,7 @@ var Graph = /** @class */ (function () {
 
     this.setNodeValue = function (nodeId, value) {
         this.nodes[nodeId].setValue(value);
+        this.nodes[nodeId].displayValue();
     };
 
     this.nodeValue = function (nodeId) {
@@ -227,7 +261,7 @@ var Graph = /** @class */ (function () {
 
     this.changeDisplayMode = function () {
         for (const key in this.nodes) {
-            let pos = calcPosition(key);
+            let pos = this.calcPosition(key);
             this.nodes[key].position.copyFrom(pos);
             this.nodes[key].label.plane.position.copyFrom(pos).addInPlaceFromFloats(0.0, 5.0, 0.0);
         }
@@ -244,6 +278,9 @@ var Graph = /** @class */ (function () {
             }
         }
     };
+    
+    
+    this.addScopeOfValues('losowe2');
 });
 
 

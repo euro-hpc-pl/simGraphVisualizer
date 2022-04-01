@@ -60,6 +60,64 @@ sgv.console = new function () {
             }
         }
 
+        function scope(action, scope) {
+            if (sgv.graf === null) {
+                return "no graph defined";
+            } else {
+                switch(action) {
+                    case "list":
+                        return sgv.graf.scopeOfValues.toString();
+                        break;
+                    case "add":
+                        let idx = sgv.graf.addScopeOfValues(scope);
+
+                        if (idx>=0) {
+                            sgv.controlPanel.ui().querySelector("#cplDispValues").add(UI.option(scope,scope));
+                            sgv.controlPanel.ui().querySelector("#cplDispValues").selectedIndex = idx;
+                            sgv.graf.displayValues(scope);
+                        }
+                        
+                        return "Added scope "+scope;
+                        break;
+                    case "delete":
+                        const select = sgv.controlPanel.ui().querySelector("#cplDispValues"); 
+
+                        let idx2 = sgv.graf.delScopeOfValues(scope);
+                    
+                        if (  idx2 >= 0 ) {
+                            let i = UI.findOption(select, scope);
+                            if ( i>-1 ) {
+                                select.remove(i);
+                            }
+
+                            select.selectedIndex = idx2;
+
+                            return "Deleted scope "+scope+", current scope: "+sgv.graf.currentScope;
+                        }
+
+                        return "Scope "+scope+" could not to be deleted... Current scope: "+sgv.graf.currentScope;
+                        break;
+                    case "set":
+                        if (sgv.graf.hasScope(scope)) {
+                            if ( sgv.graf.displayValues(scope) ) {
+                                const select = sgv.controlPanel.ui().querySelector("#cplDispValues"); 
+                                let i = UI.findOption(select, scope);
+                                if ( i>-1 ) {
+                                    select.selectedIndex = i;
+                                }
+                            }
+                            
+                            return "Current scope: "+sgv.graf.currentScope;
+                        }
+                        return "Bad scope name: "+scope+"... Current scope: "+sgv.graf.currentScope;
+                        break;
+                    default:
+                        return "Current scope: "+sgv.graf.currentScope;
+                        break;
+                }
+            }
+        }
+
         function create(type, sizeTXT) {
             if (sgv.graf === null) {
                 const sizesTXT = sizeTXT.split(",");
@@ -265,6 +323,9 @@ sgv.console = new function () {
                 break;
             case "set":
                 result = set2(polecenie);
+                break;
+            case "scope":
+                result = scope(command[1], command[2]);
                 break;
 //            case "set":
 //                result = set(command[1], command[2]);

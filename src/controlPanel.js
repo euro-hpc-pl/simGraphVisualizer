@@ -34,6 +34,50 @@ sgv.controlPanel = new function() {
                     sgv.controlPanel.removeGraph();
                 });
 
+            cpl.querySelector("#cplDispValues").addEventListener('change',
+                function() {
+                    sgv.graf.displayValues(this.value);
+                });
+
+            cpl.querySelector("#cplSkipAddScope").addEventListener('click',
+                function() {
+                    cpl.querySelector("#cplDivNS").style.display = "none";
+                    cpl.querySelector("#cplDivDS").style.display = "block";
+                });
+
+            cpl.querySelector("#cplAcceptAddScope").addEventListener('click',
+                function() {
+                    let scope = cpl.querySelector("#cplAddScopeInput").value;
+                    let idx = sgv.graf.addScopeOfValues(scope);
+                    
+                    if (idx>=0) {
+                        cpl.querySelector("#cplDispValues").add(UI.option(scope,scope));
+                        cpl.querySelector("#cplDispValues").selectedIndex = idx;
+                        sgv.graf.displayValues(scope);
+                    }
+                    
+                    cpl.querySelector("#cplDivNS").style.display = "none";
+                    cpl.querySelector("#cplDivDS").style.display = "inline";
+                });
+
+            cpl.querySelector("#cplAddScope").addEventListener('click',
+                function() {
+                    cpl.querySelector("#cplDivNS").style.display = "inline";
+                    cpl.querySelector("#cplDivDS").style.display = "none";
+                });
+
+            cpl.querySelector("#cplDelScope").addEventListener('click',
+                function() {
+                    const select = cpl.querySelector("#cplDispValues"); 
+
+                    let idx = sgv.graf.delScopeOfValues(select.value);
+                    
+                    if (  idx >= 0 ) {
+                        select.remove(select.selectedIndex);
+                        select.selectedIndex = idx;
+                    }
+                });
+
             cpl.querySelector("#cplSaveButton").addEventListener('click',
                 function() {
                     sgv.toTXT();
@@ -55,6 +99,10 @@ sgv.controlPanel = new function() {
             cpl.style.display = (isUndefined(b)||(b!==0))?"none":"block";
         },
 
+        ui: function() {
+            return cpl;
+        },
+        
         switchPanel: function() {
             cpl.style.display = (cpl.style.display === "none")?"block":"none";
         },

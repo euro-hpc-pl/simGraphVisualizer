@@ -152,9 +152,10 @@ const createLabel = function(id, position, scene) {
     return new Label("q" + id, "q" + id, position, scene);
 };
 
-var Node = /** @class */ (function(id, x, y, z, val) {
+var Node = /** @class */ (function(graf, id, x, y, z, val) {
         var name = "node:" + id;
 
+        this.parentGraph = graf;
         this.id = id;
         this.active = true;
         this._chckedEdges = 0;
@@ -164,6 +165,11 @@ var Node = /** @class */ (function(id, x, y, z, val) {
         //this.mesh = BABYLON.MeshBuilder.CreateDisc(name, {radius: 16, tessellation: 3}, scene);
         //this.mesh = BABYLON.MeshBuilder.CreatePlane(name, {width:3, height:3}, scene);
         //this.mesh.billboardMode = BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
+        
+        mesh.material = new BABYLON.StandardMaterial("mat", sgv.scene);
+        mesh.material.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+        mesh.material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+        mesh.material.emissiveColor = new BABYLON.Color4(0.2, 0.2, 0.2);
         
         mesh.position = new BABYLON.Vector3( x, y, z );
 
@@ -185,12 +191,16 @@ var Node = /** @class */ (function(id, x, y, z, val) {
 
     });
 
-    this.clear = function() {
+    this.dispose = function() {
         mesh.dispose();
-        delete this.mesh;
+        delete mesh;
         this.label.plane.dispose();
         delete this.label.plane;
         delete this.label;
+    };
+
+    this.clear = function() {
+        this.dispose();
     };
 
     this.showLabel = function(b) {
@@ -213,46 +223,53 @@ var Node = /** @class */ (function(id, x, y, z, val) {
             mesh.material = sgv.grayMat0;
     };
 
-    this.getValue = function(valId) {
-        if (valId === undefined) {
-            valId = 'value';
+    this.getValue = function(scope) {
+        if (scope === undefined) {
+            scope = this.parentGraph.currentScope;
         }
         
-        return this.values[valId];
-    };
-    
-    this.setValue = function(val, valId) {
-        if (valId === undefined) {
-            valId = 'value';
+        if (this.values.hasOwnProperty(scope)){
+            return this.values[scope];
+        } else {
+            return null;
         }
-        this.values[valId] = val;
-
-        var mat = new BABYLON.StandardMaterial("mat", sgv.scene);
-        mat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-        mat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-        mat.emissiveColor = valueToColor(val);
-
-        mesh.material = mat;
     };
-    
-    this.displayValue = function(valId) {
-        if (valId === undefined) {
-            valId = 'value';
+
+    this.delValue = function(scope) {
+        if (scope === undefined) {
+            scope = this.parentGraph.currentScope;
         }
         
-        if (valId in this.values) {
-//            var mat = new BABYLON.StandardMaterial("mat", scene);
-//            mat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-//            mat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-//            mat.emissiveColor = valueToColor(this.values[valId]);
-
-            mesh.material.emissiveColor = valueToColor(this.values[valId]);
+        if (scope in this.values) {
+            delete this.values[scope];
+        }
+    };
+    
+    this.setValue = function(val, scope) {
+        if (scope === undefined) {
+            scope = this.parentGraph.currentScope;
+        }
+        this.values[scope] = val;
+    };
+    
+    this.displayValue = function(scope) {
+        if (scope === undefined) {
+            scope = this.parentGraph.currentScope;
+        }
+        
+        if (scope in this.values) {
+            //mesh.material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+            mesh.material.emissiveColor = valueToColor(this.values[scope]);
+        } else {
+            //mesh.material.specularColor = new BABYLON.Color3(0.0, 0.0, 0.0);
+            mesh.material.emissiveColor = new BABYLON.Color4(0.2, 0.2, 0.2);
         }
     };
 
-        this.setValue(getRandom(-0.99, 0.99), 'losowe');
-        this.setValue(val);
+    this.setValue(val);
+    this.setValue(getRandom(-0.99, 0.99), 'losowe');
 
+    this.displayValue();
 });
 
 
@@ -523,7 +540,9 @@ var Graph = /** @class */ (function () {
     this.edges = {};
     this.missing = {};
     this.type = 'generic';
-
+    this.scopeOfValues = ['default', 'losowe'];
+    this.currentScope = 'default';
+    
     this.dispose = function () {
         for (const key in this.edges) {
             this.edges[key].instance.dispose();
@@ -547,7 +566,7 @@ var Graph = /** @class */ (function () {
     };
 
     this.addNode = function(nodeId, pos, val) {
-        this.nodes[nodeId] = new Node(nodeId, pos.x, pos.y, pos.z, val);
+        this.nodes[nodeId] = new Node(this, nodeId, pos.x, pos.y, pos.z, val);
     };
 
     this.restoreNode = function (nodeId) {
@@ -618,7 +637,8 @@ var Graph = /** @class */ (function () {
             this.missing[nodeId].edges[key] = tmpEdges[key];
         }
         
-        this.nodes[nodeId].mesh.dispose();
+        //this.nodes[nodeId].mesh.dispose();
+        this.nodes[nodeId].clear();
         delete this.nodes[nodeId];
 
         sgv.addToMissing(nodeId);
@@ -633,21 +653,51 @@ var Graph = /** @class */ (function () {
         }
     };
 
+    this.addScopeOfValues = function(scope) {
+        if ( (scope !== undefined) && ! this.scopeOfValues.includes(scope) ) {
+            this.scopeOfValues.push(scope);
+            return this.scopeOfValues.indexOf(scope);
+        }
+        return -1;
+    };
 
-    this.displayValues = function (valId) {
-        let firstKey = Object.keys(this.nodes)[0];
+    this.delScopeOfValues = function(scope) {
+        if ( (scope !== undefined) && (scope !== 'default') ) {
 
-        let prefix = '';
+            let idx = this.scopeOfValues.indexOf(scope);
+            if (idx!==-1) {
+                
+                this.scopeOfValues.splice(idx,1);
+                
+                for (const key in this.nodes) {
+                    this.nodes[key].delValue(scope);
+                }
 
-        if ((valId === undefined) || !(valId in this.nodes[firstKey].values)) {
-            valId = 'value';
-            prefix = "[incorrect, setting default] ";
+                if (this.currentScope === scope) {
+                    this.currentScope = 'default';
+                    this.displayValues('default');
+                }
+
+                return this.scopeOfValues.indexOf(this.currentScope);
+            }
+        }
+        return -1;
+    };
+
+    this.hasScope = function (scope) {
+        return (scope !== undefined) && this.scopeOfValues.includes(scope);
+    };
+    
+    this.displayValues = function (scope) {
+        if ( (scope === undefined) || ! this.scopeOfValues.includes(scope) ) {
+            return false;
         }
 
+        this.currentScope = scope;
         for (const key in this.nodes) {
-            this.nodes[key].displayValue(valId);
+            this.nodes[key].displayValue(scope);
         }
-        return prefix + valId;
+        return true;
     };
 
 //    updateNodeLabels(show) {
@@ -687,6 +737,7 @@ var Graph = /** @class */ (function () {
 
     this.setNodeValue = function (nodeId, value) {
         this.nodes[nodeId].setValue(value);
+        this.nodes[nodeId].displayValue();
     };
 
     this.nodeValue = function (nodeId) {
@@ -728,7 +779,7 @@ var Graph = /** @class */ (function () {
 
     this.changeDisplayMode = function () {
         for (const key in this.nodes) {
-            let pos = calcPosition(key);
+            let pos = this.calcPosition(key);
             this.nodes[key].position.copyFrom(pos);
             this.nodes[key].label.plane.position.copyFrom(pos).addInPlaceFromFloats(0.0, 5.0, 0.0);
         }
@@ -745,6 +796,9 @@ var Graph = /** @class */ (function () {
             }
         }
     };
+    
+    
+    this.addScopeOfValues('losowe2');
 });
 
 
@@ -1528,105 +1582,181 @@ Pegasus.createNewGraph = function (size) {
 /* global sgv */
 
 var UI = (function () {
+    
+    
     this.panelSwitch = UI.createPanelSwitch();
-    this.panelSwitch.addEventListener('click', function() {
+    this.panelSwitch.addEventListener('click', function () {
         sgv.controlPanel.switchPanel();
     });
     this.consoleSwitch = UI.createConsoleSwitch();
-    this.consoleSwitch.addEventListener('click', function() {
+    this.consoleSwitch.addEventListener('click', function () {
         sgv.console.switchConsole();
     });
     this.dispModeSwitch = UI.createDispModeSwitch();
-    this.dispModeSwitch.addEventListener('click', function() {
+    this.dispModeSwitch.addEventListener('click', function () {
         sgv.switchDisplayMode();
     });
 
     this.nodeProperties = UI.createNodeProperties();
-    this.nodeProperties.querySelector(".hidebutton").addEventListener('click', function() {
+    this.nodeProperties.querySelector(".hidebutton").addEventListener('click', function () {
         sgv.cancelN();
     });
-    this.nodeProperties.querySelector("#setN").addEventListener('click', function() {
+    this.nodeProperties.querySelector("#setN").addEventListener('click', function () {
         sgv.edycjaN();
     });
-    this.nodeProperties.querySelector("#connectN").addEventListener('click', function() {
+    this.nodeProperties.querySelector("#connectN").addEventListener('click', function () {
         sgv.connectNodes();
     });
-    this.nodeProperties.querySelector("#connectSelectN").addEventListener('click', function() {
+    this.nodeProperties.querySelector("#connectSelectN").addEventListener('click', function () {
         sgv.connectSelectN();
     });
-    this.nodeProperties.querySelector(".delbutton").addEventListener('click', function() {
+    this.nodeProperties.querySelector(".delbutton").addEventListener('click', function () {
         sgv.usunN();
     });
 
 
     this.edgeProperties = UI.createEdgeProperties();
-    this.edgeProperties.querySelector(".hidebutton").addEventListener('click', function() {
+    this.edgeProperties.querySelector(".hidebutton").addEventListener('click', function () {
         sgv.cancelE();
     });
-    this.edgeProperties.querySelector("#setE").addEventListener('click', function() {
+    this.edgeProperties.querySelector("#setE").addEventListener('click', function () {
         sgv.edycjaE();
     });
-    this.edgeProperties.querySelector(".delbutton").addEventListener('click', function() {
+    this.edgeProperties.querySelector(".delbutton").addEventListener('click', function () {
         sgv.usunE();
     });
 
     this.missingNodes = UI.createMissing('sgvMissingNodes');
-    this.missingNodes.querySelector(".delbutton").addEventListener('click', function() {
+    this.missingNodes.querySelector(".delbutton").addEventListener('click', function () {
         sgv.delMissing();
     });
 
     //this.wykresy = UI.createGraphs('wykresy');
 });
 
-UI.createTitlebar = function (title, closebuttonVisible) {
-    var t = document.createElement("div");
-    t.setAttribute("class", "title");
-    if (closebuttonVisible) {
-        let btn = document.createElement("input");
-        btn.setAttribute("type", "button");
-        btn.setAttribute("class", "hidebutton");
-        btn.setAttribute("value", "x");
-        t.appendChild(btn);
-    }
-    let span = document.createElement("span");
-    span.setAttribute("class", "titleText");
-    span.textContent = title;
+UI.tag = function(_tag, _attrs, _props ) {
+    var o = document.createElement(_tag);
 
-    t.appendChild(span);
+    for (const key in _attrs) {
+        o.setAttribute(key, _attrs[key]);
+    }
+    
+    for (const key in _props) {
+        o[key] = _props[key];
+    }
+    
+    return o;
+};
+
+UI.span = function(_text, _attrs) {
+    return UI.tag("span", _attrs, {'textContent': _text} );
+};
+
+UI.findOption = function(_select,_value) {
+    for (var i= 0; i<_select.options.length; i++) {
+        if (_select.options[i].value===_value) {
+            return i;
+        }
+    }
+    return -1;
+};
+
+UI.option = function(_value, _text) {
+    var o = document.createElement("option");
+    o.value = _value;
+    o.text = _text;
+    return o;
+};
+
+UI.input = function(_props) {
+    var o = document.createElement("input");
+    //o.setAttribute("type", _type);
+    for (const key in _props) {
+        //if (o.hasOwnProperty(key)) {
+            o.setAttribute(key, _props[key]);
+        //}
+    }
+    return o;
+};
+
+UI.newInput = function (_type, _value, _class, _id) {
+    var o = document.createElement("input");
+    o.setAttribute("type", _type);
+    o.value = _value;
+    if ((_class !== undefined) && (_class !== "")) {
+        o.setAttribute("class", _class);
+    }
+    if ((_id !== undefined) && (_id !== "")) {
+        o.setAttribute("id", _id);
+    }
+    return o;
+};
+
+
+UI.createTitlebar = function (title, closebuttonVisible) {
+    var t = UI.tag( "div", { "class": "title" });
+    
+    if (closebuttonVisible) {
+        t.appendChild(
+                UI.tag( "input", {
+                        "type": "button",
+                        "value": "x",
+                        "class": "hidebutton" } ) );
+    }
+
+    t.appendChild( UI.tag( "span", { "class": "titleText" }, {"textContent": title}) );
 
     return t;
 };
 
-UI.createEmptyWindow = function (id, title, closebuttonVisible, createContentDIV, hiddenInput) {
+UI.createEmptyWindow = function (_class, _id, _title, _closebuttonVisible ) {//, _createContentDIV, _hiddenInput) {
     var o = document.createElement("div");
-    o.setAttribute("class", "sgvUIwindow");
-    o.setAttribute("id", "sgvNodeProperties");
-    let t = UI.createTitlebar(title, closebuttonVisible);
+    
+    if ((_class !== undefined) && (_class !== "")) {
+        o.setAttribute("class", _class);
+    }
+    if ((_id !== undefined) && (_id !== "")) {
+        o.setAttribute("id", _id);
+    }
+
+    let t = UI.createTitlebar(_title, _closebuttonVisible);
     o.appendChild(t);
+    
+    return o;
 };
 
+
 UI.createNodeProperties = function () {
-    var o = document.createElement("div");
-    o.setAttribute("class", "sgvUIwindow");
-    o.setAttribute("id", "sgvNodeProperties");
-    let t = UI.createTitlebar('Node: q1', true);
-    o.appendChild(t);
-    o.innerHTML +=
-            '<input id="nodeId" type="hidden" value="0"> \
-        <div class="content"> \
-            <input id="wagaN" type="number" value="0"><input class="setvaluebutton" id="setN" type="button" value="set"> \
-            <br/><input id="connectN" type="button" value="connect to..."><select id="destN"></select><input id="connectSelectN" type="button" value="^"> \
-            <br/><input class="delbutton" type="button" value="delete"> \
-        </div>';
+    var o = UI.createEmptyWindow("sgvUIwindow", "sgvNodeProperties", "Node: q1", true);
+
+    o.appendChild(UI.newInput("hidden", "0", "", "nodeId"));
+
+    var d = document.createElement("div");
+    d.setAttribute("class", "content");
+
+    d.appendChild(UI.newInput("number", "0", "", "wagaN"));
+    d.appendChild(UI.newInput("button", "set", "setvaluebutton", "setN"));
+    d.appendChild(document.createElement("br"));
+    d.appendChild(UI.newInput("button", "connect to...", "", "connectN"));
+
+    var s = document.createElement("select");
+    s.setAttribute("id", "destN");
+
+    d.appendChild(s);
+
+    d.appendChild(UI.newInput("button", "^", "", "connectSelectN"));
+    d.appendChild(document.createElement("br"));
+    d.appendChild(UI.newInput("button", "delete", "delbutton", ""));
+
+    o.appendChild(d);
+
     document.body.appendChild(o);
     return o;
 };
 
 UI.createEdgeProperties = function () {
-    var o = document.createElement("div");
-    o.setAttribute("class", "sgvUIwindow");
-    o.setAttribute("id", "sgvEdgeProperties");
-    o.appendChild(UI.createTitlebar('Edge: q1 &lt;---&gt; q2', true));
+    var o = UI.createEmptyWindow("sgvUIwindow", "sgvEdgeProperties", "Edge: q1 &lt;---&gt; q2", true);
+
     o.innerHTML += '<input id="edgeId" type="hidden" value="0"> \
         <div class="content"> \
             <input id="wagaE" type="number" value="0"><input class="setvaluebutton" id="setE" type="button" value="set"> \
@@ -1637,10 +1767,7 @@ UI.createEdgeProperties = function () {
 };
 
 UI.createMissing = function (id) {
-    var o = document.createElement("div");
-    o.setAttribute("class", "sgvUIwindow");
-    o.setAttribute("id", id);
-    o.appendChild(UI.createTitlebar('removed nodes', false));
+    var o = UI.createEmptyWindow("sgvUIwindow", id, "removed nodes", false);
 
     o.innerHTML += '<div class="content"><div id="misN"></div> \
         <input class="delbutton" type="button" value="clear history"> \
@@ -1651,10 +1778,7 @@ UI.createMissing = function (id) {
 };
 
 UI.createGraphs = function (id) {
-    var o = document.createElement("div");
-    o.setAttribute("class", "sgvUIwindow");
-    o.setAttribute("id", id);
-    o.appendChild(UI.createTitlebar('graphs', false));
+    var o = UI.createEmptyWindow("sgvUIwindow", id, "graphs", false);
 
     o.innerHTML += '<div class="content"></div>';
 
@@ -1663,10 +1787,7 @@ UI.createGraphs = function (id) {
 };
 
 UI.createConsole = function (id) {
-    var o = document.createElement("div");
-    o.setAttribute("class", "sgvUIwindow");
-    o.setAttribute("id", id);
-    o.appendChild(UI.createTitlebar('console', true));
+    var o = UI.createEmptyWindow("sgvUIwindow", id, "console", true);
 
     o.innerHTML += '<div class="content"> \
             <textarea id="consoleHistory" readonly></textarea> \
@@ -1678,35 +1799,62 @@ UI.createConsole = function (id) {
 };
 
 UI.createControlPanel = function (id) {
-    var o = document.createElement("div");
-    o.setAttribute("class", "sgvUIwindow");
-    o.setAttribute("id", id);
-    o.appendChild(UI.createTitlebar('control panel', true));
+    divSel = function () {
+        var divSel = UI.tag( "div", { "class": "content", "id": "graphSelection" });
+        divSel.style.display = "block";
+        divSel.innerHTML = '<div>graph: <select id="graphType"><option value="chimera">chimera</option><option value="pegasus">pegasus</option></select> \
+            size: <select id="graphCols"><option selected="selected" value="4">4</option><option value="8">8</option><option value="12">12</option><option value="16">16</option></select> \
+            x <select id="graphRows"><option selected="selected" value="4">4</option><option value="8">8</option><option value="12">12</option><option value="16">16</option></select> \
+            K <select id="graphKL"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option selected="selected" value="4">4</option></select> \
+            , <select id="graphKR"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option selected="selected" value="4">4</option></select> \
+            </div><div><input class="" id="cplCreateButton" name="createButton" type="button" value="Create default"></div> \
+            <div>Read from .txt file: <input id="inputfile" type="file"></div>';
+        return divSel;
+    };
 
-    var divSel = document.createElement("div");
-    divSel.setAttribute("class", "content");
-    divSel.setAttribute("id", "graphSelection");
-    divSel.style.display = "block";
-    divSel.innerHTML = '<div>graph: <select id="graphType"><option value="chimera">chimera</option><option value="pegasus">pegasus</option></select> \
-        size: <select id="graphCols"><option selected="selected" value="4">4</option><option value="8">8</option><option value="12">12</option><option value="16">16</option></select> \
-        x <select id="graphRows"><option selected="selected" value="4">4</option><option value="8">8</option><option value="12">12</option><option value="16">16</option></select> \
-        K <select id="graphKL"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option selected="selected" value="4">4</option></select> \
-        , <select id="graphKR"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option selected="selected" value="4">4</option></select> \
-        </div><div><input class="" id="cplCreateButton" name="createButton" type="button" value="Create default"></div> \
-        <div>Read from .txt file: <input id="inputfile" type="file"></div>';
+    divDesc = function () {
+        var divDesc = UI.tag("div", {"class": "content", "id": "graphDescription"});
+ 
+        divDesc.innerHTML = "Current graph type: ";
+        divDesc.appendChild( UI.span("unknown", {'id':"dscr_type"}) );
 
-    var divDesc = document.createElement("div");
-    divDesc.setAttribute("class", "content");
-    divDesc.setAttribute("id", "graphDescription");
-    divDesc.style.display = "none";
-    divDesc.innerHTML = 'Current graph type: <span id="dscr_type">unknown</span>, \
-        size: <span id="dscr_cols">0</span>x<span id="dscr_rows">0</span>xK<sub><span id="dscr_KL">0</span>,<span id="dscr_KR">0</span></sub><br/> \
-            Number of nodes: <span id="dscr_nbNodes">0</span>, number of edges: <span id="dscr_nbEdges">0</span> \
-            <div><input class="actionbutton" id="cplSaveButton" type="button" value="save to file"></div> \
-            <div><input class="delbutton" id="cplDeleteButton" type="button" value="clear workspace"></div>';
+        divDesc.innerHTML += ', size: <span id="dscr_cols">0</span>x<span id="dscr_rows">0</span>xK<sub><span id="dscr_KL">0</span>,<span id="dscr_KR">0</span></sub><br/> \
+                Number of nodes: <span id="dscr_nbNodes">0</span>, number of edges: <span id="dscr_nbEdges">0</span>';
+      
+        
+        let divNS = UI.tag( "div", {'class': "sgvD1", 'id': "cplDivNS" }, {'textContent': "add new scope: "} );
+        divNS.appendChild( UI.tag("input", { 'type': "button", 'class': "sgvC", 'id': "cplSkipAddScope", 'value': "<" } ) );
+        divNS.appendChild( UI.tag("input", { 'type': "text", 'id': "cplAddScopeInput", 'value': "newScope" } ) );
+        divNS.appendChild( UI.tag("input", { 'type': "button", 'class': "sgvC", 'id': "cplAcceptAddScope",'value': "+" } ) );
+        divNS.style.display = "none";
+        
+        let scopeSelect = UI.tag( "select", {'id': "cplDispValues" } );
+        scopeSelect.add( UI.option( "default", "default" ) );
+        scopeSelect.add( UI.option( "losowe", "losowe" ) );
+        scopeSelect.add( UI.option( "losowe2", "losowe2" ) );
 
-    o.appendChild(divSel);
-    o.appendChild(divDesc);
+        let divDS = UI.tag( "div", {'class': "sgvD1", 'id': "cplDivDS" }, {'textContent': "current scope: "} );
+        divDS.appendChild(scopeSelect);
+        divDS.appendChild( UI.tag("input", { 'type': "button", 'class': "sgvC", 'id': "cplAddScope", 'value': "+" } ) );
+        divDS.appendChild( UI.tag("input", { 'type': "button", 'class': "sgvC", 'id': "cplDelScope", 'value': "-" } ) );
+
+        let scope = UI.tag( "div", {'class': "sgvSelectBox", 'id': "cplScope" } );
+        scope.appendChild(divNS);
+        scope.appendChild(divDS);
+        
+        divDesc.appendChild(scope);
+        
+        divDesc.appendChild( UI.tag("input", { 'class': "actionbutton", 'id': "cplSaveButton", 'type': "button", 'value': "save to file" } ) );
+        divDesc.appendChild( UI.tag("input", { 'class': "delbutton", 'id': "cplDeleteButton", 'type': "button", 'value': "clear workspace" } ) );
+
+        divDesc.style.display = "none";
+        return divDesc;
+    };
+
+    var o = UI.createEmptyWindow("sgvUIwindow", id, "control panel", true);
+
+    o.appendChild(divSel());
+    o.appendChild(divDesc());
 
     document.body.appendChild(o);
 
@@ -1714,31 +1862,24 @@ UI.createControlPanel = function (id) {
 };
 
 UI.createPanelSwitch = function () {
-    let btn = document.createElement("input");
-    btn.setAttribute("type", "button");
-    btn.setAttribute("class", "sgvTransparentButton");
-    btn.setAttribute("id", "sgvPanelSwitch");
-    btn.setAttribute("value", "CPL");
+    let btn = UI.newInput("button", "CPL", "sgvTransparentButton", "sgvPanelSwitch");
     document.body.appendChild(btn);
     return btn;
 };
 
 UI.createConsoleSwitch = function () {
-    let btn = document.createElement("input");
-    btn.setAttribute("type", "button");
-    btn.setAttribute("class", "sgvTransparentButton");
-    btn.setAttribute("id", "sgvConsoleSwitch");
-    btn.setAttribute("value", "CON");
+    let btn = UI.newInput("button", "CON", "sgvTransparentButton", "sgvConsoleSwitch");
     document.body.appendChild(btn);
     return btn;
 };
 
 UI.createDispModeSwitch = function () {
-    let btn = document.createElement("input");
-    btn.setAttribute("type", "button");
-    btn.setAttribute("class", "sgvTransparentButton");
-    btn.setAttribute("id", "sgvDispModeSwitch");
-    btn.setAttribute("value", "DIS");
+    let btn = UI.tag( "input", {
+                'type':     "button",
+                'value':    "DIS",
+                'class':    "sgvTransparentButton",
+                'id':       "sgvDispModeSwitch"
+            });
     document.body.appendChild(btn);
     return btn;
 };
@@ -1760,7 +1901,7 @@ UI.createDispModeSwitch = function () {
  * limitations under the License.
  */
 
-/* global global, BABYLON, URL, Chimera, Pegasus */
+/* global global, BABYLON, URL, Chimera, Pegasus, UI */
 "use strict";
 
 var getRandom = function(min, max) {
@@ -2058,10 +2199,14 @@ sgv.addEventsListeners = function () {
 
 };
 
+sgv.connectSelectN = function () {
+    sgv.nodeToConnect = parseInt(sgv.ui.nodeProperties.querySelector("#nodeId").value, 10);
+    sgv.ui.nodeProperties.style.display = "none";
+};
 
 sgv.connectNodes = function () {
-    var node1 = document.getElementById("nodeId").value;
-    var node2 = document.getElementById("destN").value;
+    var node1 = sgv.ui.nodeProperties.querySelector("#nodeId").value;
+    var node2 = sgv.ui.nodeProperties.querySelector("#destN").value;
 
     if (sgv.graf !== null) {
         sgv.graf.addEdge(node1, node2);
@@ -2069,20 +2214,27 @@ sgv.connectNodes = function () {
 };
 
 sgv.addToMissing = function (nodeId) {
-    var win = document.getElementById("misN");
-    win.innerHTML += "<input type=\"button\" id=\"rest" + nodeId + "\" value=\" q" + nodeId + " \" onClick=\"sgv.restoreNode(" + nodeId + ")\">";
+    let win = sgv.ui.missingNodes.querySelector("#misN");
+    
+    let i = UI.newInput("button", " q" + nodeId + " ", "", "rest" + nodeId );
+    
+    i.addEventListener('click', function () {
+        sgv.restoreNode(nodeId);
+    });
+    win.appendChild(i);
+
     this.ui.missingNodes.style.display = "block";
 };
 
 sgv.restoreNode = function (nodeId) {
     sgv.graf.restoreNode(nodeId);
 
-    var but = document.getElementById("rest" + nodeId);
+    var but = sgv.ui.missingNodes.querySelector("#rest" + nodeId);
     but.parentNode.removeChild(but);
 };
 
 sgv.delMissing = function () {
-    var win = document.getElementById("misN");
+    var win = sgv.ui.missingNodes.querySelector("#misN");
     win.innerHTML = "";
 
     if (sgv.graf !== null) {
@@ -2162,13 +2314,6 @@ sgv.edycjaN = function () {
     sgv.graf.setNodeValue(sgv.ui.nodeProperties.querySelector("#nodeId").value, sgv.ui.nodeProperties.querySelector("#wagaN").value);
     sgv.ui.nodeProperties.style.display = "none";
 };
-
-sgv.connectSelectN = function () {
-    nodeToConnect = parseInt(sgv.ui.nodeProperties.querySelector("#nodeId").value, 10);
-    sgv.ui.nodeProperties.style.display = "none";
-};
-
-
 
 
 sgv.toTXT = function () {
@@ -2404,6 +2549,50 @@ sgv.controlPanel = new function() {
                     sgv.controlPanel.removeGraph();
                 });
 
+            cpl.querySelector("#cplDispValues").addEventListener('change',
+                function() {
+                    sgv.graf.displayValues(this.value);
+                });
+
+            cpl.querySelector("#cplSkipAddScope").addEventListener('click',
+                function() {
+                    cpl.querySelector("#cplDivNS").style.display = "none";
+                    cpl.querySelector("#cplDivDS").style.display = "block";
+                });
+
+            cpl.querySelector("#cplAcceptAddScope").addEventListener('click',
+                function() {
+                    let scope = cpl.querySelector("#cplAddScopeInput").value;
+                    let idx = sgv.graf.addScopeOfValues(scope);
+                    
+                    if (idx>=0) {
+                        cpl.querySelector("#cplDispValues").add(UI.option(scope,scope));
+                        cpl.querySelector("#cplDispValues").selectedIndex = idx;
+                        sgv.graf.displayValues(scope);
+                    }
+                    
+                    cpl.querySelector("#cplDivNS").style.display = "none";
+                    cpl.querySelector("#cplDivDS").style.display = "inline";
+                });
+
+            cpl.querySelector("#cplAddScope").addEventListener('click',
+                function() {
+                    cpl.querySelector("#cplDivNS").style.display = "inline";
+                    cpl.querySelector("#cplDivDS").style.display = "none";
+                });
+
+            cpl.querySelector("#cplDelScope").addEventListener('click',
+                function() {
+                    const select = cpl.querySelector("#cplDispValues"); 
+
+                    let idx = sgv.graf.delScopeOfValues(select.value);
+                    
+                    if (  idx >= 0 ) {
+                        select.remove(select.selectedIndex);
+                        select.selectedIndex = idx;
+                    }
+                });
+
             cpl.querySelector("#cplSaveButton").addEventListener('click',
                 function() {
                     sgv.toTXT();
@@ -2425,6 +2614,10 @@ sgv.controlPanel = new function() {
             cpl.style.display = (isUndefined(b)||(b!==0))?"none":"block";
         },
 
+        ui: function() {
+            return cpl;
+        },
+        
         switchPanel: function() {
             cpl.style.display = (cpl.style.display === "none")?"block":"none";
         },
@@ -2567,6 +2760,64 @@ sgv.console = new function () {
                     return "deleted node q" + id;
                 } else {
                     return "node q" + id + " not exists";
+                }
+            }
+        }
+
+        function scope(action, scope) {
+            if (sgv.graf === null) {
+                return "no graph defined";
+            } else {
+                switch(action) {
+                    case "list":
+                        return sgv.graf.scopeOfValues.toString();
+                        break;
+                    case "add":
+                        let idx = sgv.graf.addScopeOfValues(scope);
+
+                        if (idx>=0) {
+                            sgv.controlPanel.ui().querySelector("#cplDispValues").add(UI.option(scope,scope));
+                            sgv.controlPanel.ui().querySelector("#cplDispValues").selectedIndex = idx;
+                            sgv.graf.displayValues(scope);
+                        }
+                        
+                        return "Added scope "+scope;
+                        break;
+                    case "delete":
+                        const select = sgv.controlPanel.ui().querySelector("#cplDispValues"); 
+
+                        let idx2 = sgv.graf.delScopeOfValues(scope);
+                    
+                        if (  idx2 >= 0 ) {
+                            let i = UI.findOption(select, scope);
+                            if ( i>-1 ) {
+                                select.remove(i);
+                            }
+
+                            select.selectedIndex = idx2;
+
+                            return "Deleted scope "+scope+", current scope: "+sgv.graf.currentScope;
+                        }
+
+                        return "Scope "+scope+" could not to be deleted... Current scope: "+sgv.graf.currentScope;
+                        break;
+                    case "set":
+                        if (sgv.graf.hasScope(scope)) {
+                            if ( sgv.graf.displayValues(scope) ) {
+                                const select = sgv.controlPanel.ui().querySelector("#cplDispValues"); 
+                                let i = UI.findOption(select, scope);
+                                if ( i>-1 ) {
+                                    select.selectedIndex = i;
+                                }
+                            }
+                            
+                            return "Current scope: "+sgv.graf.currentScope;
+                        }
+                        return "Bad scope name: "+scope+"... Current scope: "+sgv.graf.currentScope;
+                        break;
+                    default:
+                        return "Current scope: "+sgv.graf.currentScope;
+                        break;
                 }
             }
         }
@@ -2776,6 +3027,9 @@ sgv.console = new function () {
                 break;
             case "set":
                 result = set2(polecenie);
+                break;
+            case "scope":
+                result = scope(command[1], command[2]);
                 break;
 //            case "set":
 //                result = set(command[1], command[2]);
