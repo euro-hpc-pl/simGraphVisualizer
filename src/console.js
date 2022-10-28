@@ -132,9 +132,11 @@ sgv.console = new function () {
                 switch (type) {
                     case "chimera" :
                         sgv.graf = Chimera.createNewGraph(size);
+                        sgv.graf.createDefaultStructure();
                         break;
                     case "pegasus" :
                         sgv.graf = Pegasus.createNewGraph(size);
+                        sgv.graf.createDefaultStructure();
                         break;
                     default:
                         return "unknown graph type";
@@ -266,7 +268,7 @@ sgv.console = new function () {
                 return "too few arguments";
             }
 
-            let val = parseFloat(split1[1]);
+            let val = parseFloat(split1[1].replace(/,/g, '.'));
             // if NaN -> delete
 
             let split2 = split1[0].split('+');
@@ -282,6 +284,72 @@ sgv.console = new function () {
 
         function display(valId) {
             return "displayed value: " + sgv.graf.displayValues(valId);
+        }
+        
+        function limits(cmds) {
+            if (sgv.graf === null) {
+                return "no graph defined";
+            }
+
+            //let cmds = polecenie.split(" ");
+            
+            let response = "";
+            
+            if (cmds.length===1) {
+                response = "Current display limits [red, green] are set to [" + sgv.graf.redLimit+", "+sgv.graf.greenLimit+"]\n";
+                let minmax = sgv.graf.getMinMaxNodeVal();
+                response+= "\nnode values range in current scope is: [" + minmax.min + ", " + minmax.max +"] "+minmax.com;
+                minmax = sgv.graf.getMinMaxEdgeVal();
+                response+= "\nedge weights range in current scope is: [" + minmax.min + ", " + minmax.max +"] "+minmax.com;
+                return response;
+            }
+            
+            
+            switch (cmds[1]) {
+                case "set":
+                    if (cmds.length<4){
+                        return "too few arguments\nUse: limits set <min> <max>";
+                    }
+                    
+                    let min = parseFloat(cmds[2].replace(/,/g, '.'));
+                    let max = parseFloat(cmds[3].replace(/,/g, '.'));
+                    
+                    if (isNaN(min)||isNaN(max)){
+                        return "Bad arguments: <min> and <max> should be numbers.";
+                    }
+
+                    if ((min>0)||(max<0)||(min===max)){
+                        return "Bad arguments: <min> cannot be greater than zero, <max> cannot be less than zero and both values cannot be zero at the same time.";
+                    }
+
+                    sgv.graf.redLimit = min;
+                    sgv.graf.greenLimit = max;
+
+                    response = "Display limits [red, green] are set to [" + sgv.graf.redLimit+", "+sgv.graf.greenLimit+"]";
+                    
+                    break;
+//                case "red":
+//                    if (cmds.length>2){
+//                        sgv.graf.redLimit = parseFloat(cmds[2]);
+//                        response = "red limit set to " + sgv.graf.redLimit;
+//                    } else {
+//                        return "current red limit = "+sgv.graf.redLimit;
+//                    }
+//                    break;
+//                case "green":
+//                    if (cmds.length>2){
+//                        sgv.graf.greenLimit = parseFloat(cmds[2]);
+//                        response = "green limit set to " + sgv.graf.greenLimit;
+//                    } else {
+//                        return "current green limit = "+sgv.graf.greenLimit;
+//                    }
+//                    break;
+                default:
+                    return "bad arguments";
+            }
+            
+            sgv.graf.displayValues(sgv.graf.currentScope);
+            return response;
         }
         
         function getHelp(command) {
@@ -314,6 +382,9 @@ sgv.console = new function () {
             case "help":
             case "?":
                 result = getHelp(command[1]);
+                break;
+            case "limits":
+                result = limits(command);
                 break;
             case "create":
                 result = create(command[1], command[2]);

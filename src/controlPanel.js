@@ -15,7 +15,7 @@
  */
 
 "use strict";
-/* global sgv, Chimera, Pegasus, UI */
+/* global sgv, Chimera, Pegasus, UI, parserGEXF */
 
 sgv.controlPanel = new function() {
     var cpl = null;
@@ -23,6 +23,14 @@ sgv.controlPanel = new function() {
     return {
         init: function(id) {
             cpl = UI.createControlPanel(id);
+
+            cpl.querySelector("#cplElectronTestButton").addEventListener('click',
+                function() {
+                    //console.info("KONTROLA");
+                    let tekst = sgv.graf.exportTXT();
+                    //console.log(tekst);
+                    electronTestButtonClicked(tekst);
+                });
             
             cpl.querySelector("#cplCreateButton").addEventListener('click',
                 function() {
@@ -81,6 +89,11 @@ sgv.controlPanel = new function() {
             cpl.querySelector("#cplSaveButton").addEventListener('click',
                 function() {
                     sgv.toTXT();
+                });
+
+            cpl.querySelector("#cplSaveGEXFButton").addEventListener('click',
+                function() {
+                    sgv.toGEXF();
                 });
 
             cpl.querySelector('#inputfile').addEventListener('change',
@@ -142,6 +155,8 @@ sgv.controlPanel = new function() {
         },
         
         createGraph: function() {
+            showSplash();
+            
             if (sgv.graf!==null) {
                 this.removeGraph();
             }
@@ -151,13 +166,17 @@ sgv.controlPanel = new function() {
             switch ( gDesc.type ) {
                 case "chimera" :
                     sgv.graf = Chimera.createNewGraph(gDesc.size);
+                    sgv.graf.createDefaultStructure();
                     this.setModeDescription();
                     break;
                 case "pegasus" :
                     sgv.graf = Pegasus.createNewGraph(gDesc.size);
+                    sgv.graf.createDefaultStructure();
                     this.setModeDescription();
                     break;
             }
+            
+            hideSplash();
         },
         
         removeGraph: function() {
@@ -171,18 +190,78 @@ sgv.controlPanel = new function() {
             this.setModeSelection();
         },
         
-        loadGraph: function(file) {
-            var fr = new FileReader(); 
-            fr.onload = function(){
+//        loadGraph1: function(file) {
+//            var fr = new FileReader(); 
+//            fr.addEventListener('error', () => {
+//                console.error(`Error occurred reading file: ${file.name}`);
+//            });
+//            fr.onload = function(){
+//                if (sgv.graf!==null) {
+//                    this.removeGraph();
+//                }
+//
+//                sgv.fromTXT(fr.result);
+//
+//                sgv.controlPanel.setModeDescription();
+//            }; 
+//            fr.readAsText(file); 
+//        },
+        
+        
+        loadGraph: function(selectedFile) {
+            const name = selectedFile.name;
+            const reader = new FileReader();
+            if (selectedFile) {
+                reader.addEventListener('error', () => {
+                    console.error(`Error occurred reading file: ${selectedFile.name}`);
+                });
+
+                reader.addEventListener('load', () => {
+                    console.info(`File: ${selectedFile.name} read successfully`);
+                    //let name = selectedFile.name;
+                    if (name.endsWith("txt")) {
+                        if (sgv.graf!==null) {
+                            this.removeGraph();
+                        }
+
+                        sgv.fromTXT(reader.result);
+        
+                        console.log(sgv.graf);
+
+                        sgv.controlPanel.setModeDescription();
+                    } else if(name.endsWith("gexf")) {
+                        if (parseGEXF(reader.result)){
+                            sgv.controlPanel.setModeDescription();
+                        }
+                    } else {
+                        console.error(`Incorrect file format...`);
+                    }
+                });
+                
+                if ( name.endsWith("txt") || name.endsWith("gexf") ) {
+                    reader.readAsText(selectedFile); 
+                //reader.readAsDataURL(selectedFile);
+                } else {
+                    console.error(`Incorrect file extension...`);
+                }
+            }                    
+        },
+        
+        loadGraph2: function(name,data) {
+            if (name.endsWith("txt")) {
                 if (sgv.graf!==null) {
                     this.removeGraph();
                 }
-
-                sgv.fromTXT(fr.result);
-
+                sgv.fromTXT(data);
                 sgv.controlPanel.setModeDescription();
-            }; 
-            fr.readAsText(file); 
+            } else if(name.endsWith("gexf")) {
+                if (sgv.graf!==null) {
+                    this.removeGraph();
+                }
+                if (parseGEXF(data)){
+                    sgv.controlPanel.setModeDescription();
+                }
+            };
         }
     };
 };

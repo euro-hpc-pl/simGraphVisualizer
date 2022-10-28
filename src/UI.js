@@ -36,6 +36,12 @@ var UI = (function () {
     this.nodeProperties.querySelector(".hidebutton").addEventListener('click', function () {
         sgv.cancelN();
     });
+    this.nodeProperties.querySelector("#nsSelectN").addEventListener('change', function () {
+        sgv.changeScopeN();
+    });
+    this.nodeProperties.querySelector("#valueCheckN").addEventListener('click', function () {
+        sgv.activateN();
+    });
     this.nodeProperties.querySelector("#setN").addEventListener('click', function () {
         sgv.edycjaN();
     });
@@ -54,6 +60,9 @@ var UI = (function () {
     this.edgeProperties.querySelector(".hidebutton").addEventListener('click', function () {
         sgv.cancelE();
     });
+    this.edgeProperties.querySelector("#valueCheckE").addEventListener('click', function () {
+        sgv.activateE();
+    });
     this.edgeProperties.querySelector("#setE").addEventListener('click', function () {
         sgv.edycjaE();
     });
@@ -67,6 +76,71 @@ var UI = (function () {
     });
 
     //this.wykresy = UI.createGraphs('wykresy');
+    
+    
+    this.oknoN = {
+        show : function (nodeId, x, y) {
+            var xOffset = sgv.canvas.clientLeft;
+
+            sgv.ui.nodeProperties.querySelector(".titleText").textContent = "Node q" + nodeId;
+            sgv.ui.nodeProperties.querySelector("#nodeId").value = nodeId;
+
+
+            let nss = sgv.ui.nodeProperties.querySelector("#nsSelectN");
+
+            var length = nss.options.length;
+            for (let i = length - 1; i >= 0; i--) {
+                nss.options[i] = null;
+            }
+
+            for (const key in sgv.graf.scopeOfValues) {
+                var opt = document.createElement('option');
+                opt.value = key;
+                opt.innerHTML = sgv.graf.scopeOfValues[key];
+                if ( sgv.graf.currentScope === sgv.graf.scopeOfValues[key]) {
+                    opt.selected = "selected";
+                }
+                nss.appendChild(opt);
+            }
+
+
+
+            let currentValue = sgv.graf.nodeValue(nodeId);
+            if ((currentValue===null)||isNaN(currentValue)) {
+                sgv.ui.nodeProperties.querySelector("#valueCheckN").checked = "";
+                sgv.ui.nodeProperties.querySelector("#wagaN").value = null;
+                sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "disabled";
+                sgv.ui.nodeProperties.querySelector("#setN").disabled = "disabled";
+            } else {
+                sgv.ui.nodeProperties.querySelector("#valueCheckN").checked = "checked";
+                sgv.ui.nodeProperties.querySelector("#wagaN").value = currentValue;
+                sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "";
+                sgv.ui.nodeProperties.querySelector("#setN").disabled = "";
+            }
+
+            let select = sgv.ui.nodeProperties.querySelector("#destN");
+
+            var length = select.options.length;
+            for (let i = length - 1; i >= 0; i--) {
+                select.options[i] = null;
+            }
+
+            for (const key in sgv.graf.nodes) {
+                //console.log(nodeId, key);
+                if (key.toString() !== nodeId.toString()) {
+                    var opt = document.createElement('option');
+                    opt.value = key;
+                    opt.innerHTML = "q" + key;
+                    select.appendChild(opt);
+                }
+            }
+
+            sgv.ui.nodeProperties.style.top = y + "px";
+            sgv.ui.nodeProperties.style.left = (xOffset + x) + "px";
+            sgv.ui.nodeProperties.style.display = "block";
+        }
+    };
+    
 });
 
 UI.tag = function(_tag, _attrs, _props ) {
@@ -169,6 +243,15 @@ UI.createNodeProperties = function () {
     var d = document.createElement("div");
     d.setAttribute("class", "content");
 
+    var nss = document.createElement("select");
+    nss.setAttribute("id", "nsSelectN");
+//    for (const n in sgv.graf.scopeOfValues)
+//        nss.appendChild(UI.tag("option", { 'value': n } ) );
+    
+    d.innerHTML += 'Scope: ';
+    d.appendChild(nss);
+    d.appendChild(document.createElement("br"));
+    d.appendChild(UI.newInput("checkbox", "", "", "valueCheckN"));
     d.appendChild(UI.newInput("number", "0", "", "wagaN"));
     d.appendChild(UI.newInput("button", "set", "setvaluebutton", "setN"));
     d.appendChild(document.createElement("br"));
@@ -194,7 +277,7 @@ UI.createEdgeProperties = function () {
 
     o.innerHTML += '<input id="edgeId" type="hidden" value="0"> \
         <div class="content"> \
-            <input id="wagaE" type="number" value="0"><input class="setvaluebutton" id="setE" type="button" value="set"> \
+            <input type="checkbox" value="" id="valueCheckE"><input id="wagaE" type="number" value="0"><input class="setvaluebutton" id="setE" type="button" value="set"> \
             <br/><input class="delbutton" type="button" value="delete"> \
         </div>';
     document.body.appendChild(o);
@@ -279,8 +362,11 @@ UI.createControlPanel = function (id) {
         
         divDesc.appendChild(scope);
         
-        divDesc.appendChild( UI.tag("input", { 'class': "actionbutton", 'id': "cplSaveButton", 'type': "button", 'value': "save to file" } ) );
+        divDesc.appendChild( UI.tag("input", { 'class': "actionbutton", 'id': "cplSaveButton", 'type': "button", 'value': "save to TXT" } ) );
+        divDesc.appendChild( UI.tag("input", { 'class': "actionbutton", 'id': "cplSaveGEXFButton", 'type': "button", 'value': "save to GEXF" } ) );
         divDesc.appendChild( UI.tag("input", { 'class': "delbutton", 'id': "cplDeleteButton", 'type': "button", 'value': "clear workspace" } ) );
+
+        divDesc.appendChild( UI.tag("input", { 'class': "actionbutton", 'id': "cplElectronTestButton", 'type': "button", 'value': ">>> TEST <<<" } ) );
 
         divDesc.style.display = "none";
         return divDesc;

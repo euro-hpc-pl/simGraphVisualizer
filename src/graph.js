@@ -17,6 +17,8 @@
 "use strict";
 /* global BABYLON, labelsVisible, sgv */
 
+//const txtFile = require("io_TXT.js");
+
 var Graph = /** @class */ (function () {
     this.nodes = {};
     this.edges = {};
@@ -24,7 +26,9 @@ var Graph = /** @class */ (function () {
     this.type = 'generic';
     this.scopeOfValues = ['default', 'losowe'];
     this.currentScope = 'default';
-    
+    this.greenLimit = 1.0;
+    this.redLimit = -1.0;
+
     this.dispose = function () {
         for (const key in this.edges) {
             this.edges[key].instance.dispose();
@@ -73,6 +77,83 @@ var Graph = /** @class */ (function () {
         if (Object.keys(this.missing).length === 0)
             sgv.ui.missingNodes.style.display = "none";
     };
+
+    this.getKeyByValue = function(object, value) {
+        return Object.keys(object).find(key => object[key] === value);
+    };
+
+    this.getScopeIndex = function(scope) {
+        return Object.keys(this.scopeOfValues).find(key => this.scopeOfValues[key] === scope);
+    };
+    
+    this.exportTXT = function() {
+        var string = "# type=" + this.type + "\n";
+        string += "# size=" + this.cols + "," + this.rows + "," + this.KL + "," + this.KR + "\n";
+
+        for (const key in this.nodes) {
+            string += key + " " + key + " ";
+            string += this.nodes[key].getValue() + "\n";
+        }
+
+        for (const key in this.edges) {
+            string += this.edges[key].begin + " " + this.edges[key].end + " ";
+            string += this.edges[key].getValue() + "\n";
+        }
+        
+        return string;
+    };
+    
+    this.exportGEXF = function() {
+        var xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+        //xml += "<gexf xmlns=\"http://www.gexf.net/1.2draft\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema−instance\" xsi:schemaLocation=\"http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd\" version=\"1.2\">\n";
+        xml += "<gexf xmlns=\"http://gexf.net/1.2\" version=\"1.2\">\n";
+        xml += "  <meta>\n";// lastmodifieddate=\"2009−03−20\">\n";
+        xml += "    <creator>IITiS.pl</creator>\n";
+        xml += "    <description>SimGraphVisualizer GEXF export</description>\n";
+        xml += "  </meta>\n";
+        
+        
+        xml += "  <graph defaultedgetype=\"undirected\">\n";
+        
+        xml += "    <attributes class=\"node\">\n";
+        for (const key in this.scopeOfValues) {
+            let val = this.scopeOfValues[key];
+            if (val==="default"){
+                val+= ";" + this.type + ";" + this.cols + "," + this.rows + "," + this.KL + "," + this.KR;
+            }
+            xml += "      <attribute id=\""+key+"\" title=\""+val+"\" type=\"float\"/>\n";
+        }
+        xml += "    </attributes>\n";
+        
+        xml += "    <nodes>\n";
+        for (const key in this.nodes) {
+            xml += this.nodes[key].exportGEXF();
+        }
+        xml += "    </nodes>\n";
+
+        xml += "    <attributes class=\"edge\">\n";
+        for (const key in this.scopeOfValues) {
+            let val = this.scopeOfValues[key];
+//            if (val==="default"){
+//                val+= ";" + this.type + ";" + this.cols + "," + this.rows + "," + this.KL + "," + this.KR;
+//            }
+            xml += "      <attribute id=\""+key+"\" title=\""+val+"\" type=\"float\"/>\n";
+        }
+        xml += "    </attributes>\n";
+        
+        
+        xml += "    <edges>\n";
+        let tmpId = 0;
+        for (const key in this.edges) {
+            xml += this.edges[key].exportGEXF(++tmpId);
+        }
+        xml += "    </edges>\n";
+        xml += "  </graph>\n";
+        xml += "</gexf>\n";
+
+        return xml;
+    };
+
 
     this.addEdge = function (node1, node2, val) {
         if (node1 < node2) {
@@ -135,6 +216,74 @@ var Graph = /** @class */ (function () {
         }
     };
 
+    this.stringToStruct = (string) => {
+       if ((string===undefined)||(string===null)) return null;
+    
+        var result = {
+            nodes: {},
+            edges: {}
+        };
+
+        var lines = string.split("\n");
+
+        var parseData = function (string) {
+            var line = string.split(" ");
+            if (line.length === 3) {
+                return {
+                    n1: parseInt(line[0], 10),
+                    n2: parseInt(line[1], 10),
+                    val: parseFloat(line[2], 10)
+                };
+            } else {
+                return null;
+            }
+        };
+
+        while (lines.length > 0) {
+            if (lines[0][0] !== '#')
+            {
+                var d = parseData(lines[0]);
+                if (d !== null) {
+                    if (d.n1===d.n2) {
+                        result.nodes[d.n1] = d.val;
+                    } else {
+                        if (d.n1 < d.n2) {
+                            var strId = "" + d.n1 + "," + d.n2;
+                            result.edges[strId] = d.val;
+                        } else {
+                            var strId = "" + d.n2 + "," + d.n1;
+                            result.edges[strId] = d.val;
+                        }
+                    }
+                }
+            }
+            lines.shift();
+        }
+        return result;
+    };
+
+    this.loadScopeValues = (scope, data) => {
+        let isNew = false;
+        if ( (scope !== undefined) && ! this.scopeOfValues.includes(scope) ) {
+            this.scopeOfValues.push(scope);
+            isNew = true;
+        }
+        
+        var struct = this.stringToStruct(data);
+        
+        for (const key in struct.nodes) {
+            this.nodes[key].setValue(struct.nodes[key],scope);
+        }
+
+        for (const key in struct.edges) {
+            this.edges[key].setValue(struct.edges[key],scope);
+        }
+        
+        this.displayValues(scope);
+        
+        return {n:isNew, i:this.scopeOfValues.indexOf(scope)};
+    };
+
     this.addScopeOfValues = function(scope) {
         if ( (scope !== undefined) && ! this.scopeOfValues.includes(scope) ) {
             this.scopeOfValues.push(scope);
@@ -179,6 +328,9 @@ var Graph = /** @class */ (function () {
         for (const key in this.nodes) {
             this.nodes[key].displayValue(scope);
         }
+        for (const key in this.edges) {
+            this.edges[key].displayValue(scope);
+        }
         return true;
     };
 
@@ -211,19 +363,102 @@ var Graph = /** @class */ (function () {
 
     this.setEdgeValue = function (edgeId, value) {
         this.edges[edgeId].setValue(value);
+        this.edges[edgeId].displayValue();
+    };
+
+    this.delEdgeValue = function (edgeId) {
+        this.edges[edgeId].delValue();
+        this.edges[edgeId].displayValue();
     };
 
     this.edgeValue = function(edgeId) {
-        return this.edges[edgeId].value;
+        return this.edges[edgeId].getValue();
     };
 
-    this.setNodeValue = function (nodeId, value) {
-        this.nodes[nodeId].setValue(value);
+    this.setNodeValue = function (nodeId, value, scope) {
+        this.nodes[nodeId].setValue(value, scope);
         this.nodes[nodeId].displayValue();
     };
 
-    this.nodeValue = function (nodeId) {
-        return this.nodes[nodeId].getValue();
+    this.delNodeValue = function (nodeId, scope) {
+        this.nodes[nodeId].delValue(scope);
+        this.nodes[nodeId].displayValue();
+    };
+
+    this.nodeValue = function (nodeId,scope) {
+        return this.nodes[nodeId].getValue(scope);
+    };
+
+    this.getMinMaxEdgeVal = function (scope) {
+        if ( (scope === undefined) || ! this.scopeOfValues.includes(scope) ) {
+            scope = this.currentScope;
+        }
+        
+        var result = {
+            min: Number.MAX_VALUE,
+            max: Number.MIN_VALUE,
+            com: ""
+        };
+
+        let nan = true;
+        
+        for (const key in this.edges) {
+            let val = this.edges[key].getValue(scope);
+            
+            if (val < result.min) {
+                nan = false;
+                result.min = val;
+            }
+
+            if (val > result.max) {
+                nan = false;
+                result.max = val;
+            }
+        }
+
+        if (nan){
+            result.min = Number.NaN;
+            result.max = Number.NaN;
+            result.com = "\nWARNING: The graph has no edge that has a weight in the current scope.\n";
+        }
+
+        return result;
+    };
+
+    this.getMinMaxNodeVal = function (scope) {
+        if ( (scope === undefined) || ! this.scopeOfValues.includes(scope) ) {
+            scope = this.currentScope;
+        }
+        
+        var result = {
+            min: Number.MAX_VALUE,
+            max: Number.MIN_VALUE,
+            com: ""
+        };
+
+        let nan = true;
+
+        for (const key in this.nodes) {
+            let val = this.nodes[key].getValue(scope);
+            
+            if (val < result.min) {
+                nan = false;
+                result.min = val;
+            }
+
+            if (val > result.max) {
+                nan = false;
+                result.max = val;
+            }
+        }
+
+        if (nan){
+            result.min = Number.NaN;
+            result.max = Number.NaN;
+            result.com = "\nWARNING: The graph has no node that has a value in the current scope.\n";
+        }
+
+        return result;
     };
 
     this.getMinMaxVal = function () {
@@ -283,19 +518,16 @@ var Graph = /** @class */ (function () {
     this.addScopeOfValues('losowe2');
 });
 
-
-
-
-
 function valueToColor(val) {
-    var max = 1.0;
+    let max = sgv.graf.greenLimit;
+    let min = sgv.graf.redLimit;
 
     if (val > 0) {
         var r = 0;
         var g = (val < max) ? (val / max) : 1.0;
         var b = 1.0 - g;
     } else if (val < 0) {
-        var r = ((-val) < max) ? (-val / max) : 1.0;
+        var r = (val > min) ? (val / min) : 1.0;
         var g = 0;
         var b = 1.0 - r;
     } else {

@@ -93,7 +93,7 @@ var Pegasus = /** @class */ (function () {
         return this.cols * this.rows * 8;
     };
 
-    this.createNew = function () {
+    this.createDefaultStructure = function () {
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < this.rows; y++) {
                 for (let x = 0; x < this.cols; x++) {
@@ -419,7 +419,7 @@ var Pegasus = /** @class */ (function () {
 
 
 
-    this.fromDef = function (def) {
+    this.createStructureFromDef = function (def) {
         for (let i = 0; i < def.length; i++) {
             if (def[i].n1 === def[i].n2) {
                 let nodeId = def[i].n1;
@@ -458,7 +458,7 @@ Pegasus.createNewGraph = function (size) {
 
     g.size = g.nbModules * g.modSize;
 
-    g.createNew();
+    //g.createDefaultStructure();
 
     return g;
 };

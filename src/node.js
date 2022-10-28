@@ -29,22 +29,13 @@ var Node = /** @class */ (function(graf, id, x, y, z, val) {
         this.active = true;
         this._chckedEdges = 0;
         
-        var mesh = BABYLON.MeshBuilder.CreateSphere(name, {diameter: 3, segments: 8, updatable: true}, sgv.scene);
-        //this.mesh = BABYLON.MeshBuilder.CreateBox(name, {size: 3}, scene);
-        //this.mesh = BABYLON.MeshBuilder.CreateDisc(name, {radius: 16, tessellation: 3}, scene);
-        //this.mesh = BABYLON.MeshBuilder.CreatePlane(name, {width:3, height:3}, scene);
-        //this.mesh.billboardMode = BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
-        
-        mesh.material = new BABYLON.StandardMaterial("mat", sgv.scene);
-        mesh.material.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-        mesh.material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-        mesh.material.emissiveColor = new BABYLON.Color4(0.2, 0.2, 0.2);
-        
+        var mesh = sgv.defaultSphere.clone(id);
+        mesh.material = sgv.defaultSphere.material.clone();
         mesh.position = new BABYLON.Vector3( x, y, z );
-
+        mesh.name = name;
+        mesh.setEnabled(true);
+        
         this.values = {};
-
-
 
         //this.label = new Label("q" + this.id, "q" + this.id, this.mesh.position, scene);
         this.label = createLabel(this.id, mesh.position, sgv.scene);
@@ -100,8 +91,19 @@ var Node = /** @class */ (function(graf, id, x, y, z, val) {
         if (this.values.hasOwnProperty(scope)){
             return this.values[scope];
         } else {
-            return null;
+            return Number.NaN;
         }
+    };
+
+    this.exportGEXF = function() {
+        let xml = "      <node id=\""+this.id+"\">\n";
+        xml += "        <attvalues>\n";
+        for (const key in this.values) {
+            xml += "          <attvalue for=\""+this.parentGraph.getScopeIndex(key)+"\" value=\""+this.values[key]+"\"/>\n";
+        }
+        xml += "        </attvalues>\n";
+        xml += "      </node>\n";
+        return xml;
     };
 
     this.delValue = function(scope) {
@@ -136,7 +138,7 @@ var Node = /** @class */ (function(graf, id, x, y, z, val) {
     };
 
     this.setValue(val);
-    this.setValue(getRandom(-0.99, 0.99), 'losowe');
+    //this.setValue(getRandom(-0.99, 0.99), 'losowe');
 
     this.displayValue();
 });

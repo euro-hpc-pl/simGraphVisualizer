@@ -23,6 +23,7 @@ var srcfiles = [
     "./src/chimera.js",
     "./src/pegasus.js",
     "./src/UI.js",
+    "./src/io_GEXF.js",
     "./src/SimGraphVisualizer.js",
     "./src/controlPanel.js",
     "./src/console.js"
@@ -30,6 +31,11 @@ var srcfiles = [
 
 var dstdir = "./public_html/js/";
 var dstfile = "sgv.js";
+
+gulp.task('copyToElectron', function() {
+    return gulp.src(dstdir+dstfile)
+        .pipe(gulp.dest('../desktopSGV/views/home/js'));
+});
 
 gulp.task('minimize', function() {
     return gulp.src(dstdir+dstfile)
@@ -44,7 +50,7 @@ gulp.task('merge', function () {
         .pipe(gulp.dest(dstdir));
 });
 
-gulp.task('build', gulp.series('merge', 'minimize'));
+gulp.task('build', gulp.series('merge', 'minimize', 'copyToElectron'));
 
 gulp.task('clean', function() {
     return del([dstdir+"*.*"]);

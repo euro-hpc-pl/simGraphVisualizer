@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/* global global, BABYLON, URL, Chimera, Pegasus, UI */
+/* global global, BABYLON, URL, Chimera, Pegasus, UI, parserGEXF */
 "use strict";
 
 var getRandom = function(min, max) {
@@ -40,8 +40,10 @@ sgv.createCamera = function () {
     sgv.camera.setPosition(new BABYLON.Vector3(166, 150, 0));
     sgv.camera.attachControl(sgv.canvas, true);
 
+    sgv.camera.inputs.attached.pointers.panningSensibility = 25;
+    
     sgv.camera.upperBetaLimit = (Math.PI / 2) * 0.99;
-    sgv.camera.inertia = 0.3;
+    sgv.camera.inertia = 0.5;
 };
 
 sgv.createLights = function () {
@@ -91,17 +93,38 @@ sgv.createMaterials = function () {
     sgv.groundMaterial.specularColor = BABYLON.Color3.Black();
 };
 
+sgv.createDefaultObjects = () => {
+    sgv.createMaterials();
+    
+    //this.mesh = BABYLON.MeshBuilder.CreateBox(name, {size: 3}, scene);
+    //this.mesh = BABYLON.MeshBuilder.CreateDisc(name, {radius: 16, tessellation: 3}, scene);
+    //this.mesh = BABYLON.MeshBuilder.CreatePlane(name, {width:3, height:3}, scene);
+    //this.mesh.billboardMode = BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
+    sgv.defaultSphere = BABYLON.MeshBuilder.CreateSphere("defaultSphere", {diameter: 3, segments: 8, updatable: true}, sgv.scene);
+    sgv.defaultSphere.material = new BABYLON.StandardMaterial("mat", sgv.scene);
+    sgv.defaultSphere.material.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+    sgv.defaultSphere.material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+    sgv.defaultSphere.material.emissiveColor = new BABYLON.Color4(0.2, 0.2, 0.2);
+    sgv.defaultSphere.setEnabled(false);
+};
+
 sgv.createScene = function () {
     sgv.scene = new BABYLON.Scene(sgv.engine);
 
     sgv.createCamera();
     sgv.createLights();
-    sgv.createMaterials();
 
+    sgv.createDefaultObjects();
+    
     sgv.advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
     sgv.nodeToConnect = 0;
 
     sgv.addEventsListeners();
+    
+    sgv.scene.clearColor = new BABYLON.Color3(0.7, 0.7, 0.7);
+    //sgv.scene.executeWhenReady(() => {
+    //    console.log("ready");
+    //});
 };
 
 sgv.switchDisplayMode = function () {
@@ -211,6 +234,7 @@ sgv.addEventsListeners = function () {
                     sgv.pokazOkienkoE(n2[1], sgv.scene.pointerX, sgv.scene.pointerY);
                 } else if (n2[0] === "node") {
                     sgv.pokazOkienkoN(parseInt(n2[1], 10), sgv.scene.pointerX, sgv.scene.pointerY);
+                    //sgv.ui.oknoN.show(parseInt(n2[1], 10), sgv.scene.pointerX, sgv.scene.pointerY);
                 } else {
                     sgv.cancelE();
                     sgv.cancelN();
@@ -362,7 +386,22 @@ sgv.pokazOkienkoE = function (edgeId, x, y) {
 
     sgv.ui.edgeProperties.querySelector(".titleText").innerHTML = "Edge q" + sgv.graf.edges[edgeId].begin + " &lt;---&gt; q" + sgv.graf.edges[edgeId].end;
     sgv.ui.edgeProperties.querySelector("#edgeId").value = edgeId;
-    sgv.ui.edgeProperties.querySelector("#wagaE").value = sgv.graf.edgeValue(edgeId);
+    
+    let currentValue = sgv.graf.edgeValue(edgeId);
+    if (currentValue===null) {
+        sgv.ui.edgeProperties.querySelector("#valueCheckE").checked = "";
+        sgv.ui.edgeProperties.querySelector("#wagaE").value = null;
+        sgv.ui.edgeProperties.querySelector("#wagaE").disabled = "disabled";
+        sgv.ui.edgeProperties.querySelector("#setE").disabled = "disabled";
+    } else {
+        sgv.ui.edgeProperties.querySelector("#valueCheckE").checked = "checked";
+        sgv.ui.edgeProperties.querySelector("#wagaE").value = currentValue;
+        sgv.ui.edgeProperties.querySelector("#wagaE").disabled = "";
+        sgv.ui.edgeProperties.querySelector("#setE").disabled = "";
+    }
+
+    
+    //sgv.ui.edgeProperties.querySelector("#wagaE").value = sgv.graf.edgeValue(edgeId);
 
     sgv.ui.edgeProperties.style.top = y + "px";
     sgv.ui.edgeProperties.style.left = (xOffset + x) + "px";
@@ -374,8 +413,40 @@ sgv.pokazOkienkoN = function (nodeId, x, y) {
 
     sgv.ui.nodeProperties.querySelector(".titleText").textContent = "Node q" + nodeId;
     sgv.ui.nodeProperties.querySelector("#nodeId").value = nodeId;
-    sgv.ui.nodeProperties.querySelector("#wagaN").value = sgv.graf.nodeValue(nodeId);
+    
+    
+    let nss = sgv.ui.nodeProperties.querySelector("#nsSelectN");
 
+    var length = nss.options.length;
+    for (let i = length - 1; i >= 0; i--) {
+        nss.options[i] = null;
+    }
+
+    for (const key in sgv.graf.scopeOfValues) {
+        var opt = document.createElement('option');
+        opt.value = key;
+        opt.innerHTML = sgv.graf.scopeOfValues[key];
+        if ( sgv.graf.currentScope === sgv.graf.scopeOfValues[key]) {
+            opt.selected = "selected";
+        }
+        nss.appendChild(opt);
+    }
+
+    
+    
+    let currentValue = sgv.graf.nodeValue(nodeId);
+    if ((currentValue===null)||isNaN(currentValue)) {
+        sgv.ui.nodeProperties.querySelector("#valueCheckN").checked = "";
+        sgv.ui.nodeProperties.querySelector("#wagaN").value = null;
+        sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "disabled";
+        sgv.ui.nodeProperties.querySelector("#setN").disabled = "disabled";
+    } else {
+        sgv.ui.nodeProperties.querySelector("#valueCheckN").checked = "checked";
+        sgv.ui.nodeProperties.querySelector("#wagaN").value = currentValue;
+        sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "";
+        sgv.ui.nodeProperties.querySelector("#setN").disabled = "";
+    }
+        
     let select = sgv.ui.nodeProperties.querySelector("#destN");
 
     var length = select.options.length;
@@ -417,17 +488,103 @@ sgv.cancelN = function () {
     sgv.ui.nodeProperties.style.display = "none";
 };
 
+sgv.changeScopeN = function () {
+    console.log('changeScopeN: ' + event.target.value);
+    
+    let nodeId = sgv.ui.nodeProperties.querySelector("#nodeId").value;
+    
+    let currentValue = sgv.graf.nodeValue(nodeId,sgv.graf.scopeOfValues[event.target.value]);
+    if ((currentValue===null)||isNaN(currentValue)) {
+        console.log('NULL');
+        sgv.ui.nodeProperties.querySelector("#valueCheckN").checked = "";
+        sgv.ui.nodeProperties.querySelector("#wagaN").value = null;
+        sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "disabled";
+        sgv.ui.nodeProperties.querySelector("#setN").disabled = "disabled";
+    } else {
+        console.log('NOT NULL');
+        sgv.ui.nodeProperties.querySelector("#valueCheckN").checked = "checked";
+        sgv.ui.nodeProperties.querySelector("#wagaN").value = currentValue;
+        sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "";
+        sgv.ui.nodeProperties.querySelector("#setN").disabled = "";
+    }
+};
+
 
 sgv.edycjaE = function () {
-    sgv.graf.setEdgeValue(sgv.ui.edgeProperties.querySelector("#edgeId").value, sgv.ui.edgeProperties.querySelector("#wagaE").value);
+    let id = sgv.ui.edgeProperties.querySelector("#edgeId").value;
+    let val = parseFloat(sgv.ui.edgeProperties.querySelector("#wagaE").value.replace(/,/g, '.'));
+    sgv.graf.setEdgeValue(id, val);
     sgv.ui.edgeProperties.style.display = "none";
 };
 
 sgv.edycjaN = function () {
-    sgv.graf.setNodeValue(sgv.ui.nodeProperties.querySelector("#nodeId").value, sgv.ui.nodeProperties.querySelector("#wagaN").value);
+    let id = sgv.ui.nodeProperties.querySelector("#nodeId").value;
+    let val = parseFloat(sgv.ui.nodeProperties.querySelector("#wagaN").value.replace(/,/g, '.'));
+    let scope = sgv.graf.scopeOfValues[sgv.ui.nodeProperties.querySelector("#nsSelectN").value];
+    sgv.graf.setNodeValue(id, val, scope);
     sgv.ui.nodeProperties.style.display = "none";
 };
 
+sgv.activateN = function () {
+    let scope = sgv.graf.scopeOfValues[sgv.ui.nodeProperties.querySelector("#nsSelectN").value];
+    let isActive = sgv.ui.nodeProperties.querySelector("#valueCheckN").checked;
+    if (isActive) {
+        sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "";
+        sgv.ui.nodeProperties.querySelector("#setN").disabled = "";
+        let val = parseFloat(sgv.ui.nodeProperties.querySelector("#wagaN").value.replace(/,/g, '.'));
+        if (val==="") {
+            val=0;
+            sgv.ui.nodeProperties.querySelector("#wagaN").value = val;
+        }
+        sgv.graf.setNodeValue(sgv.ui.nodeProperties.querySelector("#nodeId").value, val, scope);
+    } else {
+        sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "disabled";
+        sgv.ui.nodeProperties.querySelector("#setN").disabled = "disabled";
+        sgv.graf.delNodeValue(sgv.ui.nodeProperties.querySelector("#nodeId").value, scope);
+    }
+};
+
+sgv.activateE = function () {
+    let isActive = sgv.ui.edgeProperties.querySelector("#valueCheckE").checked;
+    if (isActive) {
+        sgv.ui.edgeProperties.querySelector("#wagaE").disabled = "";
+        sgv.ui.edgeProperties.querySelector("#setE").disabled = "";
+        let val = parseFloat(sgv.ui.edgeProperties.querySelector("#wagaE").value.replace(/,/g, '.'));
+        if (val==="") {
+            val=0;
+            sgv.ui.edgeProperties.querySelector("#wagaE").value = val;
+        }
+        sgv.graf.setEdgeValue(sgv.ui.edgeProperties.querySelector("#edgeId").value, val);
+    } else {
+        sgv.ui.edgeProperties.querySelector("#wagaE").disabled = "disabled";
+        sgv.ui.edgeProperties.querySelector("#setE").disabled = "disabled";
+        sgv.graf.delEdgeValue(sgv.ui.edgeProperties.querySelector("#edgeId").value);
+    }
+};
+
+sgv.stringToScope = (data,newScope) => {
+    let r = sgv.graf.loadScopeValues(newScope,data);
+            
+    if (r.n) {
+        sgv.controlPanel.ui().querySelector("#cplDispValues").add(UI.option(newScope,newScope));
+    }
+    sgv.controlPanel.ui().querySelector("#cplDispValues").selectedIndex = r.i;
+};
+
+sgv.toGEXF = function () {
+    function download(text, name, type) {
+        //var a = document.getElementById("mysaver");
+        let a = document.createElement("a");
+        let file = new Blob([text], {type: type});
+        a.href = URL.createObjectURL(file);
+        a.download = name;
+        a.click();
+    }
+
+    var string = sgv.graf.exportGEXF();
+
+    download(string, 'graphDefinition.gexf', 'text/xml');
+};
 
 sgv.toTXT = function () {
     function download(text, name, type) {
@@ -438,22 +595,8 @@ sgv.toTXT = function () {
         a.download = name;
         a.click();
     }
-    ;
 
-    var string = "# type=" + sgv.graf.type + "\n";
-    string += "# size=" + sgv.graf.cols + "," + sgv.graf.rows + "," + sgv.graf.KL + "," + sgv.graf.KR + "\n";
-
-    for (const key in sgv.graf.nodes) {
-        string += key + " " + key + " ";
-        string += sgv.graf.nodes[key].value + "\n";
-    }
-
-    for (const key in sgv.graf.edges) {
-        string += sgv.graf.edges[key].begin + " " + sgv.graf.edges[key].end + " ";
-        string += sgv.graf.edges[key].value + "\n";
-    }
-
-    //console.log(string);
+    var string = sgv.graf.exportTXT();
 
     download(string, 'graphDefinition.txt', 'text/plain');
 };
@@ -516,7 +659,7 @@ sgv.fromTXT = function (string) {
             break;
     }
 
-    sgv.graf.fromDef(res);
+    sgv.graf.createStructureFromDef(res);
 };
 
 
@@ -557,7 +700,7 @@ sgv.display = function(args) {
     function createDefaultEngine() {
         return new BABYLON.Engine(sgv.canvas, true, {doNotHandleContextLost: true, preserveDrawingBuffer: true, stencil: true, disableWebGL2Support: false});
     }
-    ;
+    
 
     window.initFunction = async function () {
         var asyncEngineCreation = async function () {

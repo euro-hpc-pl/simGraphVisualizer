@@ -189,7 +189,7 @@ var Chimera = /** @class */ (function () {
         return nodeOffset[sgv.displayMode][idx];
     };
 
-    this.createNew = function () {
+    this.createDefaultStructure = function () {
         //const start = performance.now();
         for (let m = 0; m < this.nbModules; m++) {
             this.createModule(m);
@@ -213,7 +213,7 @@ var Chimera = /** @class */ (function () {
         this.showLabels(true);
     };
 
-    this.fromDef = function (def) {
+    this.createStructureFromDef = function (def) {
         for (let i = 0; i < def.length; i++) {
             if (def[i].n1 === def[i].n2) {
                 let nodeId = def[i].n1;
@@ -223,12 +223,47 @@ var Chimera = /** @class */ (function () {
                 let n1 = def[i].n1;
                 let n2 = def[i].n2;
                 this.addEdge(n1, n2, def[i].val);
+                this.edges["" + def[i].n1 + "," + def[i].n2].setValue(def[i].val, 'default');
                 //let strId = "" + n1 + "," + n2;
                 //edges[strId].setValue(  );
             }
         }
         //console.log(nodes);
     };
+
+    this.createStructureFromDef2 = function (def) {
+        for (let i = 0; i < def.length; i++) {
+            if (def[i].n1 === def[i].n2) {
+                let nodeId = def[i].n1;
+
+                this.addNode(nodeId, this.calcPosition(nodeId), 0.0);
+
+                for (const key in def[i].values) {
+                    this.nodes[nodeId].setValue(def[i].values[key], key);
+                }
+                this.nodes[nodeId].displayValue('default');
+                
+            } else {
+                let n1 = def[i].n1;
+                let n2 = def[i].n2;
+                this.addEdge(n1, n2);
+         
+                var strId = "" + n1 + "," + n2;
+                if (n2 < n1) {
+                    strId = "" + n2 + "," + n1;
+                }
+
+                for (const key in def[i].values) {
+                    this.edges[strId].setValue(def[i].values[key], key);
+                }
+                
+                this.edges[strId].displayValue('default');
+            }
+        }
+        //console.log(this.edges);
+        //console.log(nodes);
+    };
+
 
     this.setSize = function(c, r, kl, kr) {
         this.cols = c;
@@ -255,7 +290,7 @@ Chimera.createNewGraph = function (size) {
     g.nbModules = g.cols * g.rows;
     g.modSize = g.KL + g.KR;
     g.size = g.nbModules * g.modSize;
-    g.createNew();
+    //g.createDefaultStructure();
     return g;
 };
 

@@ -72,6 +72,16 @@
     color: #fff;
 }
 
+.sgvUIwindow .setvaluebutton:disabled {
+    background-color: #888;
+    color: #aaa;
+}
+
+.sgvUIwindow #wagaN:disabled {
+    background-color: #ddd;
+    color: #ccc;
+}
+
 #sgvControlPanel {
     min-width: 200px;
     left:70px;

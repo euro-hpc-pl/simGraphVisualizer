@@ -160,22 +160,13 @@ var Node = /** @class */ (function(graf, id, x, y, z, val) {
         this.active = true;
         this._chckedEdges = 0;
         
-        var mesh = BABYLON.MeshBuilder.CreateSphere(name, {diameter: 3, segments: 8, updatable: true}, sgv.scene);
-        //this.mesh = BABYLON.MeshBuilder.CreateBox(name, {size: 3}, scene);
-        //this.mesh = BABYLON.MeshBuilder.CreateDisc(name, {radius: 16, tessellation: 3}, scene);
-        //this.mesh = BABYLON.MeshBuilder.CreatePlane(name, {width:3, height:3}, scene);
-        //this.mesh.billboardMode = BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
-        
-        mesh.material = new BABYLON.StandardMaterial("mat", sgv.scene);
-        mesh.material.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-        mesh.material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-        mesh.material.emissiveColor = new BABYLON.Color4(0.2, 0.2, 0.2);
-        
+        var mesh = sgv.defaultSphere.clone(id);
+        mesh.material = sgv.defaultSphere.material.clone();
         mesh.position = new BABYLON.Vector3( x, y, z );
-
+        mesh.name = name;
+        mesh.setEnabled(true);
+        
         this.values = {};
-
-
 
         //this.label = new Label("q" + this.id, "q" + this.id, this.mesh.position, scene);
         this.label = createLabel(this.id, mesh.position, sgv.scene);
@@ -231,8 +222,19 @@ var Node = /** @class */ (function(graf, id, x, y, z, val) {
         if (this.values.hasOwnProperty(scope)){
             return this.values[scope];
         } else {
-            return null;
+            return Number.NaN;
         }
+    };
+
+    this.exportGEXF = function() {
+        let xml = "      <node id=\""+this.id+"\">\n";
+        xml += "        <attvalues>\n";
+        for (const key in this.values) {
+            xml += "          <attvalue for=\""+this.parentGraph.getScopeIndex(key)+"\" value=\""+this.values[key]+"\"/>\n";
+        }
+        xml += "        </attvalues>\n";
+        xml += "      </node>\n";
+        return xml;
     };
 
     this.delValue = function(scope) {
@@ -267,7 +269,7 @@ var Node = /** @class */ (function(graf, id, x, y, z, val) {
     };
 
     this.setValue(val);
-    this.setValue(getRandom(-0.99, 0.99), 'losowe');
+    //this.setValue(getRandom(-0.99, 0.99), 'losowe');
 
     this.displayValue();
 });
@@ -323,27 +325,59 @@ var Edge = /** @class */ (function (graf, b, e, val) {
         this.instance.material = this._checked ? sgv.grayMat1 : sgv.grayMat0;
     };
 
-
-    this.getValue = function (valId) {
-        if (valId === undefined) {
-            valId = 'value';
+    this.delValue = function(scope) {
+        if (scope === undefined) {
+            scope = this.parentGraph.currentScope;
         }
+        
+        if (scope in this.values) {
+            delete this.values[scope];
+        }
+    };
 
-        return this.values[valId];
+    this.getValue = function (scope) {
+        if (scope === undefined) {
+            scope = this.parentGraph.currentScope;
+        }
+        
+        if (this.values.hasOwnProperty(scope)){
+            return this.values[scope];
+        } else {
+            return Number.NaN;
+        }
     };
 
     this.setValue = function (val, valId) {
         if (valId === undefined) {
-            valId = 'value';
+            valId = 'default';
         }
+        
+        //console.log(valId, val);
+
         this.values[valId] = val;
 
         this.displayValue(valId);
     };
 
+//<edge id=”0” source=”0” target=”1”/>
+    this.exportGEXF = function(tmpId) {
+        //return "      <edge id=\""+tmpId+"\" source=\""+this.begin+"\" target=\""+this.end+"\"/>\n";
+        let xml = "      <edge id=\""+tmpId+"\" source=\""+this.begin+"\" target=\""+this.end+"\">\n";
+        xml += "        <attvalues>\n";
+        for (const key in this.values) {
+            xml += "          <attvalue for=\""+this.parentGraph.getScopeIndex(key)+"\" value=\""+this.values[key]+"\"/>\n";
+        }
+        xml += "        </attvalues>\n";
+        xml += "      </edge>\n";
+        return xml;
+        
+    };
+
+
     this.displayValue = function (valId) {
+        //console.log(valId);
         if (valId === undefined) {
-            valId = 'value';
+            valId = 'default';
         }
 
         let edgeColor = new BABYLON.Color3(0.2, 0.2, 0.2);
@@ -372,9 +406,9 @@ var Edge = /** @class */ (function (graf, b, e, val) {
         let edgeWidth = 0.1;
 
         if (val === undefined) {
-            this.values['value'] = Number.NaN;
+            this.values['default'] = Number.NaN;
         } else {
-            this.values['value'] = val;
+            this.values['default'] = val;
             edgeColor = valueToColor(val);
             edgeWidth = valueToEdgeWidth(val);
         }
@@ -399,122 +433,8 @@ var Edge = /** @class */ (function (graf, b, e, val) {
         this.instance.material = mat;
     };
 
-    this.createInstance(val);
+    this.createInstance(this.values.default);
 });
-
-
-class Edge1 {
-    constructor(graf, b, e, val) {
-        this.parentGraph = graf;
-        this.values = {};
-
-        this.begin = b;
-        this.end = e;
-
-        this._checked = false;
-
-        this.createInstance(val);
-    }
-
-    update() {
-        var options = {
-            instance: this.instance,
-            path: [
-                this.parentGraph.nodePosition(this.begin),
-                this.parentGraph.nodePosition(this.end)
-            ]
-        };
-
-        let name = "edge:" + this.begin + "," + this.end;
-        this.instance = BABYLON.MeshBuilder.CreateTube(name, options, sgv.scene);
-    }
-
-    switchCheckFlag() {
-        this._checked = !this._checked;
-
-        this.parentGraph.checkNode(this.begin, this._checked);
-        this.parentGraph.checkNode(this.end, this._checked);
-
-        this.instance.material = this._checked ? sgv.grayMat1 : sgv.grayMat0;
-    }
-
-    getValue(valId) {
-        if (valId === undefined) {
-            valId = 'value';
-        }
-
-        return this.values[valId];
-    }
-
-    setValue(val, valId) {
-        if (valId === undefined) {
-            valId = 'value';
-        }
-        this.values[valId] = val;
-
-        this.displayValue(valId);
-    }
-
-    displayValue(valId) {
-        if (valId === undefined) {
-            valId = 'value';
-        }
-
-        let edgeColor = new BABYLON.Color3(0.2, 0.2, 0.2);
-        let edgeWidth = 0.1;
-        if (valId in this.values) {
-            edgeColor = valueToColor(this.values[valId]);
-            edgeWidth = valueToEdgeWidth(this.values[valId]);
-        }
-
-        var options = {
-            instance: this.instance,
-            path: [
-                this.parentGraph.nodePosition(this.begin),
-                this.parentGraph.nodePosition(this.end)
-            ],
-            radius: edgeWidth
-        };
-
-        let name = "edge:" + this.begin + "," + this.end;
-        this.instance = BABYLON.MeshBuilder.CreateTube(name, options, sgv.scene);
-        this.instance.material.emissiveColor = edgeColor;
-    }
-
-    createInstance(val) {
-        let edgeColor = new BABYLON.Color3(0.2, 0.2, 0.2);
-        let edgeWidth = 0.1;
-
-        if (val === undefined) {
-            this.values['value'] = Number.NaN;
-        } else {
-            this.values['value'] = val;
-            edgeColor = valueToColor(val);
-            edgeWidth = valueToEdgeWidth(val);
-        }
-
-        var options = {
-            path: [
-                this.parentGraph.nodePosition(this.begin),
-                this.parentGraph.nodePosition(this.end)
-            ],
-            radius: edgeWidth,
-            updatable: true
-        };
-
-        let name = "edge:" + this.begin + "," + this.end;
-        this.instance = BABYLON.MeshBuilder.CreateTube(name, options, sgv.scene);
-
-        var mat = new BABYLON.StandardMaterial("mat", sgv.scene);
-        mat.diffuseColor = edgeColor;
-        mat.specularColor = new BABYLON.Color3(0.0, 0.0, 0.0);
-        mat.emissiveColor = new BABYLON.Color3(0.0, 0.0, 0.0);
-
-        this.instance.material = mat;
-    }
-
-}
-;
 
 /* 
  * Copyright 2022 Dariusz Pojda.
@@ -535,6 +455,8 @@ class Edge1 {
 "use strict";
 /* global BABYLON, labelsVisible, sgv */
 
+//const txtFile = require("io_TXT.js");
+
 var Graph = /** @class */ (function () {
     this.nodes = {};
     this.edges = {};
@@ -542,7 +464,9 @@ var Graph = /** @class */ (function () {
     this.type = 'generic';
     this.scopeOfValues = ['default', 'losowe'];
     this.currentScope = 'default';
-    
+    this.greenLimit = 1.0;
+    this.redLimit = -1.0;
+
     this.dispose = function () {
         for (const key in this.edges) {
             this.edges[key].instance.dispose();
@@ -591,6 +515,83 @@ var Graph = /** @class */ (function () {
         if (Object.keys(this.missing).length === 0)
             sgv.ui.missingNodes.style.display = "none";
     };
+
+    this.getKeyByValue = function(object, value) {
+        return Object.keys(object).find(key => object[key] === value);
+    };
+
+    this.getScopeIndex = function(scope) {
+        return Object.keys(this.scopeOfValues).find(key => this.scopeOfValues[key] === scope);
+    };
+    
+    this.exportTXT = function() {
+        var string = "# type=" + this.type + "\n";
+        string += "# size=" + this.cols + "," + this.rows + "," + this.KL + "," + this.KR + "\n";
+
+        for (const key in this.nodes) {
+            string += key + " " + key + " ";
+            string += this.nodes[key].getValue() + "\n";
+        }
+
+        for (const key in this.edges) {
+            string += this.edges[key].begin + " " + this.edges[key].end + " ";
+            string += this.edges[key].getValue() + "\n";
+        }
+        
+        return string;
+    };
+    
+    this.exportGEXF = function() {
+        var xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+        //xml += "<gexf xmlns=\"http://www.gexf.net/1.2draft\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema−instance\" xsi:schemaLocation=\"http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd\" version=\"1.2\">\n";
+        xml += "<gexf xmlns=\"http://gexf.net/1.2\" version=\"1.2\">\n";
+        xml += "  <meta>\n";// lastmodifieddate=\"2009−03−20\">\n";
+        xml += "    <creator>IITiS.pl</creator>\n";
+        xml += "    <description>SimGraphVisualizer GEXF export</description>\n";
+        xml += "  </meta>\n";
+        
+        
+        xml += "  <graph defaultedgetype=\"undirected\">\n";
+        
+        xml += "    <attributes class=\"node\">\n";
+        for (const key in this.scopeOfValues) {
+            let val = this.scopeOfValues[key];
+            if (val==="default"){
+                val+= ";" + this.type + ";" + this.cols + "," + this.rows + "," + this.KL + "," + this.KR;
+            }
+            xml += "      <attribute id=\""+key+"\" title=\""+val+"\" type=\"float\"/>\n";
+        }
+        xml += "    </attributes>\n";
+        
+        xml += "    <nodes>\n";
+        for (const key in this.nodes) {
+            xml += this.nodes[key].exportGEXF();
+        }
+        xml += "    </nodes>\n";
+
+        xml += "    <attributes class=\"edge\">\n";
+        for (const key in this.scopeOfValues) {
+            let val = this.scopeOfValues[key];
+//            if (val==="default"){
+//                val+= ";" + this.type + ";" + this.cols + "," + this.rows + "," + this.KL + "," + this.KR;
+//            }
+            xml += "      <attribute id=\""+key+"\" title=\""+val+"\" type=\"float\"/>\n";
+        }
+        xml += "    </attributes>\n";
+        
+        
+        xml += "    <edges>\n";
+        let tmpId = 0;
+        for (const key in this.edges) {
+            xml += this.edges[key].exportGEXF(++tmpId);
+        }
+        xml += "    </edges>\n";
+        xml += "  </graph>\n";
+        xml += "</gexf>\n";
+
+        return xml;
+    };
+
 
     this.addEdge = function (node1, node2, val) {
         if (node1 < node2) {
@@ -653,6 +654,74 @@ var Graph = /** @class */ (function () {
         }
     };
 
+    this.stringToStruct = (string) => {
+       if ((string===undefined)||(string===null)) return null;
+    
+        var result = {
+            nodes: {},
+            edges: {}
+        };
+
+        var lines = string.split("\n");
+
+        var parseData = function (string) {
+            var line = string.split(" ");
+            if (line.length === 3) {
+                return {
+                    n1: parseInt(line[0], 10),
+                    n2: parseInt(line[1], 10),
+                    val: parseFloat(line[2], 10)
+                };
+            } else {
+                return null;
+            }
+        };
+
+        while (lines.length > 0) {
+            if (lines[0][0] !== '#')
+            {
+                var d = parseData(lines[0]);
+                if (d !== null) {
+                    if (d.n1===d.n2) {
+                        result.nodes[d.n1] = d.val;
+                    } else {
+                        if (d.n1 < d.n2) {
+                            var strId = "" + d.n1 + "," + d.n2;
+                            result.edges[strId] = d.val;
+                        } else {
+                            var strId = "" + d.n2 + "," + d.n1;
+                            result.edges[strId] = d.val;
+                        }
+                    }
+                }
+            }
+            lines.shift();
+        }
+        return result;
+    };
+
+    this.loadScopeValues = (scope, data) => {
+        let isNew = false;
+        if ( (scope !== undefined) && ! this.scopeOfValues.includes(scope) ) {
+            this.scopeOfValues.push(scope);
+            isNew = true;
+        }
+        
+        var struct = this.stringToStruct(data);
+        
+        for (const key in struct.nodes) {
+            this.nodes[key].setValue(struct.nodes[key],scope);
+        }
+
+        for (const key in struct.edges) {
+            this.edges[key].setValue(struct.edges[key],scope);
+        }
+        
+        this.displayValues(scope);
+        
+        return {n:isNew, i:this.scopeOfValues.indexOf(scope)};
+    };
+
     this.addScopeOfValues = function(scope) {
         if ( (scope !== undefined) && ! this.scopeOfValues.includes(scope) ) {
             this.scopeOfValues.push(scope);
@@ -697,6 +766,9 @@ var Graph = /** @class */ (function () {
         for (const key in this.nodes) {
             this.nodes[key].displayValue(scope);
         }
+        for (const key in this.edges) {
+            this.edges[key].displayValue(scope);
+        }
         return true;
     };
 
@@ -729,19 +801,102 @@ var Graph = /** @class */ (function () {
 
     this.setEdgeValue = function (edgeId, value) {
         this.edges[edgeId].setValue(value);
+        this.edges[edgeId].displayValue();
+    };
+
+    this.delEdgeValue = function (edgeId) {
+        this.edges[edgeId].delValue();
+        this.edges[edgeId].displayValue();
     };
 
     this.edgeValue = function(edgeId) {
-        return this.edges[edgeId].value;
+        return this.edges[edgeId].getValue();
     };
 
-    this.setNodeValue = function (nodeId, value) {
-        this.nodes[nodeId].setValue(value);
+    this.setNodeValue = function (nodeId, value, scope) {
+        this.nodes[nodeId].setValue(value, scope);
         this.nodes[nodeId].displayValue();
     };
 
-    this.nodeValue = function (nodeId) {
-        return this.nodes[nodeId].getValue();
+    this.delNodeValue = function (nodeId, scope) {
+        this.nodes[nodeId].delValue(scope);
+        this.nodes[nodeId].displayValue();
+    };
+
+    this.nodeValue = function (nodeId,scope) {
+        return this.nodes[nodeId].getValue(scope);
+    };
+
+    this.getMinMaxEdgeVal = function (scope) {
+        if ( (scope === undefined) || ! this.scopeOfValues.includes(scope) ) {
+            scope = this.currentScope;
+        }
+        
+        var result = {
+            min: Number.MAX_VALUE,
+            max: Number.MIN_VALUE,
+            com: ""
+        };
+
+        let nan = true;
+        
+        for (const key in this.edges) {
+            let val = this.edges[key].getValue(scope);
+            
+            if (val < result.min) {
+                nan = false;
+                result.min = val;
+            }
+
+            if (val > result.max) {
+                nan = false;
+                result.max = val;
+            }
+        }
+
+        if (nan){
+            result.min = Number.NaN;
+            result.max = Number.NaN;
+            result.com = "\nWARNING: The graph has no edge that has a weight in the current scope.\n";
+        }
+
+        return result;
+    };
+
+    this.getMinMaxNodeVal = function (scope) {
+        if ( (scope === undefined) || ! this.scopeOfValues.includes(scope) ) {
+            scope = this.currentScope;
+        }
+        
+        var result = {
+            min: Number.MAX_VALUE,
+            max: Number.MIN_VALUE,
+            com: ""
+        };
+
+        let nan = true;
+
+        for (const key in this.nodes) {
+            let val = this.nodes[key].getValue(scope);
+            
+            if (val < result.min) {
+                nan = false;
+                result.min = val;
+            }
+
+            if (val > result.max) {
+                nan = false;
+                result.max = val;
+            }
+        }
+
+        if (nan){
+            result.min = Number.NaN;
+            result.max = Number.NaN;
+            result.com = "\nWARNING: The graph has no node that has a value in the current scope.\n";
+        }
+
+        return result;
     };
 
     this.getMinMaxVal = function () {
@@ -801,19 +956,16 @@ var Graph = /** @class */ (function () {
     this.addScopeOfValues('losowe2');
 });
 
-
-
-
-
 function valueToColor(val) {
-    var max = 1.0;
+    let max = sgv.graf.greenLimit;
+    let min = sgv.graf.redLimit;
 
     if (val > 0) {
         var r = 0;
         var g = (val < max) ? (val / max) : 1.0;
         var b = 1.0 - g;
     } else if (val < 0) {
-        var r = ((-val) < max) ? (-val / max) : 1.0;
+        var r = (val > min) ? (val / min) : 1.0;
         var g = 0;
         var b = 1.0 - r;
     } else {
@@ -1027,7 +1179,7 @@ var Chimera = /** @class */ (function () {
         return nodeOffset[sgv.displayMode][idx];
     };
 
-    this.createNew = function () {
+    this.createDefaultStructure = function () {
         //const start = performance.now();
         for (let m = 0; m < this.nbModules; m++) {
             this.createModule(m);
@@ -1051,7 +1203,7 @@ var Chimera = /** @class */ (function () {
         this.showLabels(true);
     };
 
-    this.fromDef = function (def) {
+    this.createStructureFromDef = function (def) {
         for (let i = 0; i < def.length; i++) {
             if (def[i].n1 === def[i].n2) {
                 let nodeId = def[i].n1;
@@ -1061,12 +1213,47 @@ var Chimera = /** @class */ (function () {
                 let n1 = def[i].n1;
                 let n2 = def[i].n2;
                 this.addEdge(n1, n2, def[i].val);
+                this.edges["" + def[i].n1 + "," + def[i].n2].setValue(def[i].val, 'default');
                 //let strId = "" + n1 + "," + n2;
                 //edges[strId].setValue(  );
             }
         }
         //console.log(nodes);
     };
+
+    this.createStructureFromDef2 = function (def) {
+        for (let i = 0; i < def.length; i++) {
+            if (def[i].n1 === def[i].n2) {
+                let nodeId = def[i].n1;
+
+                this.addNode(nodeId, this.calcPosition(nodeId), 0.0);
+
+                for (const key in def[i].values) {
+                    this.nodes[nodeId].setValue(def[i].values[key], key);
+                }
+                this.nodes[nodeId].displayValue('default');
+                
+            } else {
+                let n1 = def[i].n1;
+                let n2 = def[i].n2;
+                this.addEdge(n1, n2);
+         
+                var strId = "" + n1 + "," + n2;
+                if (n2 < n1) {
+                    strId = "" + n2 + "," + n1;
+                }
+
+                for (const key in def[i].values) {
+                    this.edges[strId].setValue(def[i].values[key], key);
+                }
+                
+                this.edges[strId].displayValue('default');
+            }
+        }
+        //console.log(this.edges);
+        //console.log(nodes);
+    };
+
 
     this.setSize = function(c, r, kl, kr) {
         this.cols = c;
@@ -1093,7 +1280,7 @@ Chimera.createNewGraph = function (size) {
     g.nbModules = g.cols * g.rows;
     g.modSize = g.KL + g.KR;
     g.size = g.nbModules * g.modSize;
-    g.createNew();
+    //g.createDefaultStructure();
     return g;
 };
 
@@ -1193,7 +1380,7 @@ var Pegasus = /** @class */ (function () {
         return this.cols * this.rows * 8;
     };
 
-    this.createNew = function () {
+    this.createDefaultStructure = function () {
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < this.rows; y++) {
                 for (let x = 0; x < this.cols; x++) {
@@ -1519,7 +1706,7 @@ var Pegasus = /** @class */ (function () {
 
 
 
-    this.fromDef = function (def) {
+    this.createStructureFromDef = function (def) {
         for (let i = 0; i < def.length; i++) {
             if (def[i].n1 === def[i].n2) {
                 let nodeId = def[i].n1;
@@ -1558,7 +1745,7 @@ Pegasus.createNewGraph = function (size) {
 
     g.size = g.nbModules * g.modSize;
 
-    g.createNew();
+    //g.createDefaultStructure();
 
     return g;
 };
@@ -1601,6 +1788,12 @@ var UI = (function () {
     this.nodeProperties.querySelector(".hidebutton").addEventListener('click', function () {
         sgv.cancelN();
     });
+    this.nodeProperties.querySelector("#nsSelectN").addEventListener('change', function () {
+        sgv.changeScopeN();
+    });
+    this.nodeProperties.querySelector("#valueCheckN").addEventListener('click', function () {
+        sgv.activateN();
+    });
     this.nodeProperties.querySelector("#setN").addEventListener('click', function () {
         sgv.edycjaN();
     });
@@ -1619,6 +1812,9 @@ var UI = (function () {
     this.edgeProperties.querySelector(".hidebutton").addEventListener('click', function () {
         sgv.cancelE();
     });
+    this.edgeProperties.querySelector("#valueCheckE").addEventListener('click', function () {
+        sgv.activateE();
+    });
     this.edgeProperties.querySelector("#setE").addEventListener('click', function () {
         sgv.edycjaE();
     });
@@ -1632,6 +1828,71 @@ var UI = (function () {
     });
 
     //this.wykresy = UI.createGraphs('wykresy');
+    
+    
+    this.oknoN = {
+        show : function (nodeId, x, y) {
+            var xOffset = sgv.canvas.clientLeft;
+
+            sgv.ui.nodeProperties.querySelector(".titleText").textContent = "Node q" + nodeId;
+            sgv.ui.nodeProperties.querySelector("#nodeId").value = nodeId;
+
+
+            let nss = sgv.ui.nodeProperties.querySelector("#nsSelectN");
+
+            var length = nss.options.length;
+            for (let i = length - 1; i >= 0; i--) {
+                nss.options[i] = null;
+            }
+
+            for (const key in sgv.graf.scopeOfValues) {
+                var opt = document.createElement('option');
+                opt.value = key;
+                opt.innerHTML = sgv.graf.scopeOfValues[key];
+                if ( sgv.graf.currentScope === sgv.graf.scopeOfValues[key]) {
+                    opt.selected = "selected";
+                }
+                nss.appendChild(opt);
+            }
+
+
+
+            let currentValue = sgv.graf.nodeValue(nodeId);
+            if ((currentValue===null)||isNaN(currentValue)) {
+                sgv.ui.nodeProperties.querySelector("#valueCheckN").checked = "";
+                sgv.ui.nodeProperties.querySelector("#wagaN").value = null;
+                sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "disabled";
+                sgv.ui.nodeProperties.querySelector("#setN").disabled = "disabled";
+            } else {
+                sgv.ui.nodeProperties.querySelector("#valueCheckN").checked = "checked";
+                sgv.ui.nodeProperties.querySelector("#wagaN").value = currentValue;
+                sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "";
+                sgv.ui.nodeProperties.querySelector("#setN").disabled = "";
+            }
+
+            let select = sgv.ui.nodeProperties.querySelector("#destN");
+
+            var length = select.options.length;
+            for (let i = length - 1; i >= 0; i--) {
+                select.options[i] = null;
+            }
+
+            for (const key in sgv.graf.nodes) {
+                //console.log(nodeId, key);
+                if (key.toString() !== nodeId.toString()) {
+                    var opt = document.createElement('option');
+                    opt.value = key;
+                    opt.innerHTML = "q" + key;
+                    select.appendChild(opt);
+                }
+            }
+
+            sgv.ui.nodeProperties.style.top = y + "px";
+            sgv.ui.nodeProperties.style.left = (xOffset + x) + "px";
+            sgv.ui.nodeProperties.style.display = "block";
+        }
+    };
+    
 });
 
 UI.tag = function(_tag, _attrs, _props ) {
@@ -1734,6 +1995,15 @@ UI.createNodeProperties = function () {
     var d = document.createElement("div");
     d.setAttribute("class", "content");
 
+    var nss = document.createElement("select");
+    nss.setAttribute("id", "nsSelectN");
+//    for (const n in sgv.graf.scopeOfValues)
+//        nss.appendChild(UI.tag("option", { 'value': n } ) );
+    
+    d.innerHTML += 'Scope: ';
+    d.appendChild(nss);
+    d.appendChild(document.createElement("br"));
+    d.appendChild(UI.newInput("checkbox", "", "", "valueCheckN"));
     d.appendChild(UI.newInput("number", "0", "", "wagaN"));
     d.appendChild(UI.newInput("button", "set", "setvaluebutton", "setN"));
     d.appendChild(document.createElement("br"));
@@ -1759,7 +2029,7 @@ UI.createEdgeProperties = function () {
 
     o.innerHTML += '<input id="edgeId" type="hidden" value="0"> \
         <div class="content"> \
-            <input id="wagaE" type="number" value="0"><input class="setvaluebutton" id="setE" type="button" value="set"> \
+            <input type="checkbox" value="" id="valueCheckE"><input id="wagaE" type="number" value="0"><input class="setvaluebutton" id="setE" type="button" value="set"> \
             <br/><input class="delbutton" type="button" value="delete"> \
         </div>';
     document.body.appendChild(o);
@@ -1844,8 +2114,11 @@ UI.createControlPanel = function (id) {
         
         divDesc.appendChild(scope);
         
-        divDesc.appendChild( UI.tag("input", { 'class': "actionbutton", 'id': "cplSaveButton", 'type': "button", 'value': "save to file" } ) );
+        divDesc.appendChild( UI.tag("input", { 'class': "actionbutton", 'id': "cplSaveButton", 'type': "button", 'value': "save to TXT" } ) );
+        divDesc.appendChild( UI.tag("input", { 'class': "actionbutton", 'id': "cplSaveGEXFButton", 'type': "button", 'value': "save to GEXF" } ) );
         divDesc.appendChild( UI.tag("input", { 'class': "delbutton", 'id': "cplDeleteButton", 'type': "button", 'value': "clear workspace" } ) );
+
+        divDesc.appendChild( UI.tag("input", { 'class': "actionbutton", 'id': "cplElectronTestButton", 'type': "button", 'value': ">>> TEST <<<" } ) );
 
         divDesc.style.display = "none";
         return divDesc;
@@ -1886,6 +2159,186 @@ UI.createDispModeSwitch = function () {
 
 
 /* 
+ * Copyright 2022 pojdulos.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/* global Chimera, Pegasus, sgv */
+
+"use strict";
+
+parseGEXF = function(string) {
+    var graphType = "unknown";
+    var graphSize = { cols:0, rows:0, KL:0, KR:0 };
+    var nodeAttrs = {};
+    var edgeAttrs = {};
+    var newGraph = null;
+    var def2 = [];
+    
+    parseNodes = function(parentNode) {
+        let nodes = parentNode.getElementsByTagName("nodes");
+        let node = nodes[0].getElementsByTagName("node");
+        
+        for ( let i =0; i<node.length; i++){
+            let def = {};
+
+            let id = node[i].getAttribute("id");
+            
+            def.n1 = def.n2 = parseInt(id);
+            def.values = {};
+            
+            let attvals = node[i].getElementsByTagName("attvalues");
+            
+            if (attvals.length>0) {
+                let vals = attvals[0].getElementsByTagName("attvalue");
+            
+                for ( let j =0; j<vals.length; j++){
+                    let value = vals[j].getAttribute("value");
+                    let k = vals[j].getAttribute("for");
+                    let title = nodeAttrs[k];
+                    def.values[title] = parseFloat(value);
+                }    
+            }
+            
+            def2.push(def);
+        }
+    };
+    
+    parseEdges = function(parentNode) {
+        let nodes = parentNode.getElementsByTagName("edges");
+        let node = nodes[0].getElementsByTagName("edge");
+        
+        for ( let i =0; i<node.length; i++){
+            let def = {};
+
+            let source = node[i].getAttribute("source");
+            let target = node[i].getAttribute("target");
+            
+            def.n1 = parseInt(source);
+            def.n2 = parseInt(target);
+            def.values = {};
+            
+            let attvals = node[i].getElementsByTagName("attvalues");
+            
+            if (attvals.length>0) {
+                let vals = attvals[0].getElementsByTagName("attvalue");
+            
+                for ( let j =0; j<vals.length; j++){
+                    let value = vals[j].getAttribute("value");
+                    let k = vals[j].getAttribute("for");
+                    let title = edgeAttrs[k];
+                    def.values[title] = parseFloat(value);
+                }    
+            }
+            
+            //def.values.default = 0.0;
+            def2.push(def);
+        }
+    };
+
+    parseNodeAttribute = function(attributeNode) {
+        let id = attributeNode.getAttribute("id");
+        let title = attributeNode.getAttribute("title");
+
+        if (title.startsWith("default")){
+            let list = title.split(";");
+
+            title = list[0];
+            let type = list[1];
+            let size = list[2];
+
+            return {id,title,type,size};
+        }
+
+        return {id,title};
+    };
+    
+
+    parseEdgeAttribute = function(attributeNode) {
+        let id = attributeNode.getAttribute("id");
+        let title = attributeNode.getAttribute("title");
+        return {id,title};
+    };
+
+
+    parseAttributes = function(parentNode){
+        let attrs = parentNode.getElementsByTagName("attributes");
+
+        for ( let i =0; i<attrs.length; i++){
+            let attrsClass = attrs[i].getAttribute("class");
+
+            let attr = attrs[i].getElementsByTagName("attribute");
+
+            for ( let j =0; j<attr.length; j++){
+                if (attrsClass === "node" ) {
+                    let result = parseNodeAttribute(attr[j]);
+
+                    nodeAttrs[result.id] = result.title;
+
+
+                    if ('type' in result){ //default with graph type and size
+                        graphType = result.type;
+                    }
+
+                    if ('size' in result){
+                        let ss = result.size.split(",");
+                        //if (ss.lenght>3){
+                            graphSize.cols = parseInt(ss[0]);
+                            graphSize.rows = parseInt(ss[1]);
+                            graphSize.KL = parseInt(ss[2]);
+                            graphSize.KR = parseInt(ss[3]);
+                        //}
+                    }  
+                } else if (attrsClass === "edge" ) {
+                    let result = parseEdgeAttribute(attr[j]);
+                    edgeAttrs[result.id] = result.title;
+                }
+            }
+        }
+    };
+    
+    
+    if (window.DOMParser) {
+        parser = new DOMParser();
+        xmlDoc = parser.parseFromString(string, "text/xml");
+    }
+    else { // Internet Explorer 
+        xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
+        xmlDoc.async = false;
+        xmlDoc.loadXML(string);
+    }
+    
+    //console.log(xmlDoc);
+    
+    parseAttributes(xmlDoc);
+    parseNodes(xmlDoc);
+    parseEdges(xmlDoc);
+   
+    //console.log(def2);
+
+    if (graphType === "chimera"){
+        sgv.graf = Chimera.createNewGraph(graphSize);
+        sgv.graf.createStructureFromDef2(def2);
+        return true;
+    } else if (graphType === "pegasus"){
+        newGraph = Pegasus.createNewGraph(graphSize);
+    }
+
+    return false;
+};
+
+/* 
  * Copyright 2022 Dariusz Pojda.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1901,7 +2354,7 @@ UI.createDispModeSwitch = function () {
  * limitations under the License.
  */
 
-/* global global, BABYLON, URL, Chimera, Pegasus, UI */
+/* global global, BABYLON, URL, Chimera, Pegasus, UI, parserGEXF */
 "use strict";
 
 var getRandom = function(min, max) {
@@ -1927,8 +2380,10 @@ sgv.createCamera = function () {
     sgv.camera.setPosition(new BABYLON.Vector3(166, 150, 0));
     sgv.camera.attachControl(sgv.canvas, true);
 
+    sgv.camera.inputs.attached.pointers.panningSensibility = 25;
+    
     sgv.camera.upperBetaLimit = (Math.PI / 2) * 0.99;
-    sgv.camera.inertia = 0.3;
+    sgv.camera.inertia = 0.5;
 };
 
 sgv.createLights = function () {
@@ -1978,17 +2433,38 @@ sgv.createMaterials = function () {
     sgv.groundMaterial.specularColor = BABYLON.Color3.Black();
 };
 
+sgv.createDefaultObjects = () => {
+    sgv.createMaterials();
+    
+    //this.mesh = BABYLON.MeshBuilder.CreateBox(name, {size: 3}, scene);
+    //this.mesh = BABYLON.MeshBuilder.CreateDisc(name, {radius: 16, tessellation: 3}, scene);
+    //this.mesh = BABYLON.MeshBuilder.CreatePlane(name, {width:3, height:3}, scene);
+    //this.mesh.billboardMode = BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
+    sgv.defaultSphere = BABYLON.MeshBuilder.CreateSphere("defaultSphere", {diameter: 3, segments: 8, updatable: true}, sgv.scene);
+    sgv.defaultSphere.material = new BABYLON.StandardMaterial("mat", sgv.scene);
+    sgv.defaultSphere.material.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+    sgv.defaultSphere.material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+    sgv.defaultSphere.material.emissiveColor = new BABYLON.Color4(0.2, 0.2, 0.2);
+    sgv.defaultSphere.setEnabled(false);
+};
+
 sgv.createScene = function () {
     sgv.scene = new BABYLON.Scene(sgv.engine);
 
     sgv.createCamera();
     sgv.createLights();
-    sgv.createMaterials();
 
+    sgv.createDefaultObjects();
+    
     sgv.advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
     sgv.nodeToConnect = 0;
 
     sgv.addEventsListeners();
+    
+    sgv.scene.clearColor = new BABYLON.Color3(0.7, 0.7, 0.7);
+    //sgv.scene.executeWhenReady(() => {
+    //    console.log("ready");
+    //});
 };
 
 sgv.switchDisplayMode = function () {
@@ -2098,6 +2574,7 @@ sgv.addEventsListeners = function () {
                     sgv.pokazOkienkoE(n2[1], sgv.scene.pointerX, sgv.scene.pointerY);
                 } else if (n2[0] === "node") {
                     sgv.pokazOkienkoN(parseInt(n2[1], 10), sgv.scene.pointerX, sgv.scene.pointerY);
+                    //sgv.ui.oknoN.show(parseInt(n2[1], 10), sgv.scene.pointerX, sgv.scene.pointerY);
                 } else {
                     sgv.cancelE();
                     sgv.cancelN();
@@ -2249,7 +2726,22 @@ sgv.pokazOkienkoE = function (edgeId, x, y) {
 
     sgv.ui.edgeProperties.querySelector(".titleText").innerHTML = "Edge q" + sgv.graf.edges[edgeId].begin + " &lt;---&gt; q" + sgv.graf.edges[edgeId].end;
     sgv.ui.edgeProperties.querySelector("#edgeId").value = edgeId;
-    sgv.ui.edgeProperties.querySelector("#wagaE").value = sgv.graf.edgeValue(edgeId);
+    
+    let currentValue = sgv.graf.edgeValue(edgeId);
+    if (currentValue===null) {
+        sgv.ui.edgeProperties.querySelector("#valueCheckE").checked = "";
+        sgv.ui.edgeProperties.querySelector("#wagaE").value = null;
+        sgv.ui.edgeProperties.querySelector("#wagaE").disabled = "disabled";
+        sgv.ui.edgeProperties.querySelector("#setE").disabled = "disabled";
+    } else {
+        sgv.ui.edgeProperties.querySelector("#valueCheckE").checked = "checked";
+        sgv.ui.edgeProperties.querySelector("#wagaE").value = currentValue;
+        sgv.ui.edgeProperties.querySelector("#wagaE").disabled = "";
+        sgv.ui.edgeProperties.querySelector("#setE").disabled = "";
+    }
+
+    
+    //sgv.ui.edgeProperties.querySelector("#wagaE").value = sgv.graf.edgeValue(edgeId);
 
     sgv.ui.edgeProperties.style.top = y + "px";
     sgv.ui.edgeProperties.style.left = (xOffset + x) + "px";
@@ -2261,8 +2753,40 @@ sgv.pokazOkienkoN = function (nodeId, x, y) {
 
     sgv.ui.nodeProperties.querySelector(".titleText").textContent = "Node q" + nodeId;
     sgv.ui.nodeProperties.querySelector("#nodeId").value = nodeId;
-    sgv.ui.nodeProperties.querySelector("#wagaN").value = sgv.graf.nodeValue(nodeId);
+    
+    
+    let nss = sgv.ui.nodeProperties.querySelector("#nsSelectN");
 
+    var length = nss.options.length;
+    for (let i = length - 1; i >= 0; i--) {
+        nss.options[i] = null;
+    }
+
+    for (const key in sgv.graf.scopeOfValues) {
+        var opt = document.createElement('option');
+        opt.value = key;
+        opt.innerHTML = sgv.graf.scopeOfValues[key];
+        if ( sgv.graf.currentScope === sgv.graf.scopeOfValues[key]) {
+            opt.selected = "selected";
+        }
+        nss.appendChild(opt);
+    }
+
+    
+    
+    let currentValue = sgv.graf.nodeValue(nodeId);
+    if ((currentValue===null)||isNaN(currentValue)) {
+        sgv.ui.nodeProperties.querySelector("#valueCheckN").checked = "";
+        sgv.ui.nodeProperties.querySelector("#wagaN").value = null;
+        sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "disabled";
+        sgv.ui.nodeProperties.querySelector("#setN").disabled = "disabled";
+    } else {
+        sgv.ui.nodeProperties.querySelector("#valueCheckN").checked = "checked";
+        sgv.ui.nodeProperties.querySelector("#wagaN").value = currentValue;
+        sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "";
+        sgv.ui.nodeProperties.querySelector("#setN").disabled = "";
+    }
+        
     let select = sgv.ui.nodeProperties.querySelector("#destN");
 
     var length = select.options.length;
@@ -2304,17 +2828,103 @@ sgv.cancelN = function () {
     sgv.ui.nodeProperties.style.display = "none";
 };
 
+sgv.changeScopeN = function () {
+    console.log('changeScopeN: ' + event.target.value);
+    
+    let nodeId = sgv.ui.nodeProperties.querySelector("#nodeId").value;
+    
+    let currentValue = sgv.graf.nodeValue(nodeId,sgv.graf.scopeOfValues[event.target.value]);
+    if ((currentValue===null)||isNaN(currentValue)) {
+        console.log('NULL');
+        sgv.ui.nodeProperties.querySelector("#valueCheckN").checked = "";
+        sgv.ui.nodeProperties.querySelector("#wagaN").value = null;
+        sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "disabled";
+        sgv.ui.nodeProperties.querySelector("#setN").disabled = "disabled";
+    } else {
+        console.log('NOT NULL');
+        sgv.ui.nodeProperties.querySelector("#valueCheckN").checked = "checked";
+        sgv.ui.nodeProperties.querySelector("#wagaN").value = currentValue;
+        sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "";
+        sgv.ui.nodeProperties.querySelector("#setN").disabled = "";
+    }
+};
+
 
 sgv.edycjaE = function () {
-    sgv.graf.setEdgeValue(sgv.ui.edgeProperties.querySelector("#edgeId").value, sgv.ui.edgeProperties.querySelector("#wagaE").value);
+    let id = sgv.ui.edgeProperties.querySelector("#edgeId").value;
+    let val = parseFloat(sgv.ui.edgeProperties.querySelector("#wagaE").value.replace(/,/g, '.'));
+    sgv.graf.setEdgeValue(id, val);
     sgv.ui.edgeProperties.style.display = "none";
 };
 
 sgv.edycjaN = function () {
-    sgv.graf.setNodeValue(sgv.ui.nodeProperties.querySelector("#nodeId").value, sgv.ui.nodeProperties.querySelector("#wagaN").value);
+    let id = sgv.ui.nodeProperties.querySelector("#nodeId").value;
+    let val = parseFloat(sgv.ui.nodeProperties.querySelector("#wagaN").value.replace(/,/g, '.'));
+    let scope = sgv.graf.scopeOfValues[sgv.ui.nodeProperties.querySelector("#nsSelectN").value];
+    sgv.graf.setNodeValue(id, val, scope);
     sgv.ui.nodeProperties.style.display = "none";
 };
 
+sgv.activateN = function () {
+    let scope = sgv.graf.scopeOfValues[sgv.ui.nodeProperties.querySelector("#nsSelectN").value];
+    let isActive = sgv.ui.nodeProperties.querySelector("#valueCheckN").checked;
+    if (isActive) {
+        sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "";
+        sgv.ui.nodeProperties.querySelector("#setN").disabled = "";
+        let val = parseFloat(sgv.ui.nodeProperties.querySelector("#wagaN").value.replace(/,/g, '.'));
+        if (val==="") {
+            val=0;
+            sgv.ui.nodeProperties.querySelector("#wagaN").value = val;
+        }
+        sgv.graf.setNodeValue(sgv.ui.nodeProperties.querySelector("#nodeId").value, val, scope);
+    } else {
+        sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "disabled";
+        sgv.ui.nodeProperties.querySelector("#setN").disabled = "disabled";
+        sgv.graf.delNodeValue(sgv.ui.nodeProperties.querySelector("#nodeId").value, scope);
+    }
+};
+
+sgv.activateE = function () {
+    let isActive = sgv.ui.edgeProperties.querySelector("#valueCheckE").checked;
+    if (isActive) {
+        sgv.ui.edgeProperties.querySelector("#wagaE").disabled = "";
+        sgv.ui.edgeProperties.querySelector("#setE").disabled = "";
+        let val = parseFloat(sgv.ui.edgeProperties.querySelector("#wagaE").value.replace(/,/g, '.'));
+        if (val==="") {
+            val=0;
+            sgv.ui.edgeProperties.querySelector("#wagaE").value = val;
+        }
+        sgv.graf.setEdgeValue(sgv.ui.edgeProperties.querySelector("#edgeId").value, val);
+    } else {
+        sgv.ui.edgeProperties.querySelector("#wagaE").disabled = "disabled";
+        sgv.ui.edgeProperties.querySelector("#setE").disabled = "disabled";
+        sgv.graf.delEdgeValue(sgv.ui.edgeProperties.querySelector("#edgeId").value);
+    }
+};
+
+sgv.stringToScope = (data,newScope) => {
+    let r = sgv.graf.loadScopeValues(newScope,data);
+            
+    if (r.n) {
+        sgv.controlPanel.ui().querySelector("#cplDispValues").add(UI.option(newScope,newScope));
+    }
+    sgv.controlPanel.ui().querySelector("#cplDispValues").selectedIndex = r.i;
+};
+
+sgv.toGEXF = function () {
+    function download(text, name, type) {
+        //var a = document.getElementById("mysaver");
+        let a = document.createElement("a");
+        let file = new Blob([text], {type: type});
+        a.href = URL.createObjectURL(file);
+        a.download = name;
+        a.click();
+    }
+
+    var string = sgv.graf.exportGEXF();
+
+    download(string, 'graphDefinition.gexf', 'text/xml');
+};
 
 sgv.toTXT = function () {
     function download(text, name, type) {
@@ -2325,22 +2935,8 @@ sgv.toTXT = function () {
         a.download = name;
         a.click();
     }
-    ;
 
-    var string = "# type=" + sgv.graf.type + "\n";
-    string += "# size=" + sgv.graf.cols + "," + sgv.graf.rows + "," + sgv.graf.KL + "," + sgv.graf.KR + "\n";
-
-    for (const key in sgv.graf.nodes) {
-        string += key + " " + key + " ";
-        string += sgv.graf.nodes[key].value + "\n";
-    }
-
-    for (const key in sgv.graf.edges) {
-        string += sgv.graf.edges[key].begin + " " + sgv.graf.edges[key].end + " ";
-        string += sgv.graf.edges[key].value + "\n";
-    }
-
-    //console.log(string);
+    var string = sgv.graf.exportTXT();
 
     download(string, 'graphDefinition.txt', 'text/plain');
 };
@@ -2403,7 +2999,7 @@ sgv.fromTXT = function (string) {
             break;
     }
 
-    sgv.graf.fromDef(res);
+    sgv.graf.createStructureFromDef(res);
 };
 
 
@@ -2444,7 +3040,7 @@ sgv.display = function(args) {
     function createDefaultEngine() {
         return new BABYLON.Engine(sgv.canvas, true, {doNotHandleContextLost: true, preserveDrawingBuffer: true, stencil: true, disableWebGL2Support: false});
     }
-    ;
+    
 
     window.initFunction = async function () {
         var asyncEngineCreation = async function () {
@@ -2530,7 +3126,7 @@ sgv.display = function(args) {
  */
 
 "use strict";
-/* global sgv, Chimera, Pegasus, UI */
+/* global sgv, Chimera, Pegasus, UI, parserGEXF */
 
 sgv.controlPanel = new function() {
     var cpl = null;
@@ -2538,6 +3134,14 @@ sgv.controlPanel = new function() {
     return {
         init: function(id) {
             cpl = UI.createControlPanel(id);
+
+            cpl.querySelector("#cplElectronTestButton").addEventListener('click',
+                function() {
+                    //console.info("KONTROLA");
+                    let tekst = sgv.graf.exportTXT();
+                    //console.log(tekst);
+                    electronTestButtonClicked(tekst);
+                });
             
             cpl.querySelector("#cplCreateButton").addEventListener('click',
                 function() {
@@ -2596,6 +3200,11 @@ sgv.controlPanel = new function() {
             cpl.querySelector("#cplSaveButton").addEventListener('click',
                 function() {
                     sgv.toTXT();
+                });
+
+            cpl.querySelector("#cplSaveGEXFButton").addEventListener('click',
+                function() {
+                    sgv.toGEXF();
                 });
 
             cpl.querySelector('#inputfile').addEventListener('change',
@@ -2657,6 +3266,8 @@ sgv.controlPanel = new function() {
         },
         
         createGraph: function() {
+            showSplash();
+            
             if (sgv.graf!==null) {
                 this.removeGraph();
             }
@@ -2666,13 +3277,17 @@ sgv.controlPanel = new function() {
             switch ( gDesc.type ) {
                 case "chimera" :
                     sgv.graf = Chimera.createNewGraph(gDesc.size);
+                    sgv.graf.createDefaultStructure();
                     this.setModeDescription();
                     break;
                 case "pegasus" :
                     sgv.graf = Pegasus.createNewGraph(gDesc.size);
+                    sgv.graf.createDefaultStructure();
                     this.setModeDescription();
                     break;
             }
+            
+            hideSplash();
         },
         
         removeGraph: function() {
@@ -2686,18 +3301,78 @@ sgv.controlPanel = new function() {
             this.setModeSelection();
         },
         
-        loadGraph: function(file) {
-            var fr = new FileReader(); 
-            fr.onload = function(){
+//        loadGraph1: function(file) {
+//            var fr = new FileReader(); 
+//            fr.addEventListener('error', () => {
+//                console.error(`Error occurred reading file: ${file.name}`);
+//            });
+//            fr.onload = function(){
+//                if (sgv.graf!==null) {
+//                    this.removeGraph();
+//                }
+//
+//                sgv.fromTXT(fr.result);
+//
+//                sgv.controlPanel.setModeDescription();
+//            }; 
+//            fr.readAsText(file); 
+//        },
+        
+        
+        loadGraph: function(selectedFile) {
+            const name = selectedFile.name;
+            const reader = new FileReader();
+            if (selectedFile) {
+                reader.addEventListener('error', () => {
+                    console.error(`Error occurred reading file: ${selectedFile.name}`);
+                });
+
+                reader.addEventListener('load', () => {
+                    console.info(`File: ${selectedFile.name} read successfully`);
+                    //let name = selectedFile.name;
+                    if (name.endsWith("txt")) {
+                        if (sgv.graf!==null) {
+                            this.removeGraph();
+                        }
+
+                        sgv.fromTXT(reader.result);
+        
+                        console.log(sgv.graf);
+
+                        sgv.controlPanel.setModeDescription();
+                    } else if(name.endsWith("gexf")) {
+                        if (parseGEXF(reader.result)){
+                            sgv.controlPanel.setModeDescription();
+                        }
+                    } else {
+                        console.error(`Incorrect file format...`);
+                    }
+                });
+                
+                if ( name.endsWith("txt") || name.endsWith("gexf") ) {
+                    reader.readAsText(selectedFile); 
+                //reader.readAsDataURL(selectedFile);
+                } else {
+                    console.error(`Incorrect file extension...`);
+                }
+            }                    
+        },
+        
+        loadGraph2: function(name,data) {
+            if (name.endsWith("txt")) {
                 if (sgv.graf!==null) {
                     this.removeGraph();
                 }
-
-                sgv.fromTXT(fr.result);
-
+                sgv.fromTXT(data);
                 sgv.controlPanel.setModeDescription();
-            }; 
-            fr.readAsText(file); 
+            } else if(name.endsWith("gexf")) {
+                if (sgv.graf!==null) {
+                    this.removeGraph();
+                }
+                if (parseGEXF(data)){
+                    sgv.controlPanel.setModeDescription();
+                }
+            };
         }
     };
 };
@@ -2836,9 +3511,11 @@ sgv.console = new function () {
                 switch (type) {
                     case "chimera" :
                         sgv.graf = Chimera.createNewGraph(size);
+                        sgv.graf.createDefaultStructure();
                         break;
                     case "pegasus" :
                         sgv.graf = Pegasus.createNewGraph(size);
+                        sgv.graf.createDefaultStructure();
                         break;
                     default:
                         return "unknown graph type";
@@ -2970,7 +3647,7 @@ sgv.console = new function () {
                 return "too few arguments";
             }
 
-            let val = parseFloat(split1[1]);
+            let val = parseFloat(split1[1].replace(/,/g, '.'));
             // if NaN -> delete
 
             let split2 = split1[0].split('+');
@@ -2986,6 +3663,72 @@ sgv.console = new function () {
 
         function display(valId) {
             return "displayed value: " + sgv.graf.displayValues(valId);
+        }
+        
+        function limits(cmds) {
+            if (sgv.graf === null) {
+                return "no graph defined";
+            }
+
+            //let cmds = polecenie.split(" ");
+            
+            let response = "";
+            
+            if (cmds.length===1) {
+                response = "Current display limits [red, green] are set to [" + sgv.graf.redLimit+", "+sgv.graf.greenLimit+"]\n";
+                let minmax = sgv.graf.getMinMaxNodeVal();
+                response+= "\nnode values range in current scope is: [" + minmax.min + ", " + minmax.max +"] "+minmax.com;
+                minmax = sgv.graf.getMinMaxEdgeVal();
+                response+= "\nedge weights range in current scope is: [" + minmax.min + ", " + minmax.max +"] "+minmax.com;
+                return response;
+            }
+            
+            
+            switch (cmds[1]) {
+                case "set":
+                    if (cmds.length<4){
+                        return "too few arguments\nUse: limits set <min> <max>";
+                    }
+                    
+                    let min = parseFloat(cmds[2].replace(/,/g, '.'));
+                    let max = parseFloat(cmds[3].replace(/,/g, '.'));
+                    
+                    if (isNaN(min)||isNaN(max)){
+                        return "Bad arguments: <min> and <max> should be numbers.";
+                    }
+
+                    if ((min>0)||(max<0)||(min===max)){
+                        return "Bad arguments: <min> cannot be greater than zero, <max> cannot be less than zero and both values cannot be zero at the same time.";
+                    }
+
+                    sgv.graf.redLimit = min;
+                    sgv.graf.greenLimit = max;
+
+                    response = "Display limits [red, green] are set to [" + sgv.graf.redLimit+", "+sgv.graf.greenLimit+"]";
+                    
+                    break;
+//                case "red":
+//                    if (cmds.length>2){
+//                        sgv.graf.redLimit = parseFloat(cmds[2]);
+//                        response = "red limit set to " + sgv.graf.redLimit;
+//                    } else {
+//                        return "current red limit = "+sgv.graf.redLimit;
+//                    }
+//                    break;
+//                case "green":
+//                    if (cmds.length>2){
+//                        sgv.graf.greenLimit = parseFloat(cmds[2]);
+//                        response = "green limit set to " + sgv.graf.greenLimit;
+//                    } else {
+//                        return "current green limit = "+sgv.graf.greenLimit;
+//                    }
+//                    break;
+                default:
+                    return "bad arguments";
+            }
+            
+            sgv.graf.displayValues(sgv.graf.currentScope);
+            return response;
         }
         
         function getHelp(command) {
@@ -3018,6 +3761,9 @@ sgv.console = new function () {
             case "help":
             case "?":
                 result = getHelp(command[1]);
+                break;
+            case "limits":
+                result = limits(command);
                 break;
             case "create":
                 result = create(command[1], command[2]);
