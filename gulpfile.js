@@ -13,20 +13,26 @@ var concat = require('gulp-concat');
 var del = require('del');
 
 var srcfiles = [
-    //"./src/libs/jquery-3.6.0.js",
-    //"./src/libs/babylon.max.js",
-    //"./src/libs/babylon.gui.js",
+    "./src/helpers.js",
     "./src/label.js",
     "./src/node.js",
     "./src/edge.js",
+    "./src/QbDescr.js",
     "./src/graph.js",
     "./src/chimera.js",
     "./src/pegasus.js",
     "./src/UI.js",
-    "./src/io_GEXF.js",
     "./src/SimGraphVisualizer.js",
-    "./src/controlPanel.js",
-    "./src/console.js"
+    "./src/io_GEXF.js",
+    "./src/io.js",
+    "./src/dlgCPL.js",
+    "./src/dlgConsole.js",
+    "./src/dlgLoaderSplash.js",
+    "./src/dlgCreateGraph.js",
+    "./src/dlgEdgeProperties.js",
+    "./src/dlgNodeProperties.js",
+    "./src/dlgMissingNodes.js",
+    "./src/dlgAbout.js"
 ];
 
 var dstdir = "./public_html/js/";

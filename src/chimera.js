@@ -22,137 +22,87 @@ var Chimera = /** @class */ (function () {
 
     this.type = 'chimera';
 
-    this.modSize;
-    this.nbModules;
     this.cols;
     this.rows;
     this.KL;
     this.KR;
-
-
-    this.mX = {
-        '-8': 375,
-        '-7': 325,
-        '-6': 275,
-        '-5': 225,
-        '-4': 175,
-        '-3': 125,
-        '-2': 75,
-        '-1': 25,
-        '0': -25,
-        '1': -75,
-        '2': -125,
-        '3': -175,
-        '4': -225,
-        '5': -275,
-        '6': -325,
-        '7': -375
-    };
-
-    this.mmX = function (i) {
-        return -25 - 50 * i;
-    };
-
-    this.mY = {
-        '-8': 75,
-        '-7': 65,
-        '-6': 55,
-        '-5': 45,
-        '-4': 35,
-        '-3': 25,
-        '-2': 15,
-        '-1': 5,
-        '0': -5,
-        '1': -15,
-        '2': -25,
-        '3': -35,
-        '4': -45,
-        '5': -55,
-        '6': -65,
-        '7': -75
-    };
-
-    this.mmY = function (i) {
-        return -5 - 10 * i;
-    };
-
-    this.mZ = {
-        '-8': -375,
-        '-7': -325,
-        '-6': -275,
-        '-5': -225,
-        '-4': -175,
-        '-3': -125,
-        '-2': -75,
-        '-1': -25,
-        '0': 25,
-        '1': 75,
-        '2': 125,
-        '3': 175,
-        '4': 225,
-        '5': 275,
-        '6': 325,
-        '7': 375
-    };
-
-    this.mmZ = function (i) {
-        return 25 + 50 * i;
-    };
-
-
-
+    this.layers = 1;
+    
     this.maxNodeId = function () {
-        return this.cols * this.rows * (this.KL + this.KR);
+        return this.cols * this.rows * 8;
     };
 
 
-    this.connectRowModules = function (module1id, module2id) {
-        for (let i = (this.KL + 1); i <= this.modSize; i++) {
-            this.addEdge(this.modSize * module1id + i, this.modSize * module2id + i, 0.0);
-        }
+    this.connect = function (qdA, qdB, value) {
+        let idA = qdA.toNodeId(this.rows, this.cols);
+        let idB = qdB.toNodeId(this.rows, this.cols);
+
+        if ((idA in this.nodes) && (idB in this.nodes))
+            this.addEdge(idA, idB, value);
     };
 
-    this.connectColModules = function (module1id, module2id) {
-        for (let i = 1; i <= this.KL; i++) {
-            this.addEdge(this.modSize * module1id + i, this.modSize * module2id + i, 0.0);
-        }
-    };
-
-
-    this.createModule = function (moduleId) {
-        var offset = this.modSize * moduleId;
-
-        // MODULE NODES
-        for (let i = 1; i <= this.modSize; i++) {
-            this.addNode(offset + i, this.calcPosition(offset + i), 0.0);
-        }
-
-        // INTERNAL MODULE EDGES
-        for (let x = 1; x <= this.KL; x++)
-            for (let y = (this.KL + 1); y <= this.modSize; y++) {
-                this.addEdge(offset + x, offset + y, 0.0);
+    this.connectRowModules2 = function (x, y, z) {
+        for (let j = 0; j < 2; j++) {
+            for (let k = 0; k < 2; k++) {
+                this.connect(new QbDescr(x, y, z, 1, j, k), new QbDescr(x, y + 1, z, 1, j, k), getRandom(-0.5, 0.5));//0.0 );          
             }
+        }
     };
 
-    this.calcPosition = function (nodeId) {
-        var moduleId = Math.floor((nodeId - 1) / this.modSize);
-        var nodeIdInModule = Math.floor((nodeId - 1) % this.modSize);
+    this.connectColModules2 = function (x, y, z) {
+        for (let j = 0; j < 2; j++) {
+            for (let k = 0; k < 2; k++) {
+                this.connect(new QbDescr(x, y, z, 0, j, k), new QbDescr(x + 1, y, z, 0, j, k), getRandom(-0.5, 0.5));//0.0 );          
+            }
+        }
+    };
 
-        var moduleRow = Math.floor(moduleId / this.rows) - (this.rows / 2);
-        var moduleCol = Math.floor(moduleId % this.cols) - (this.cols / 2);
 
-        var newPos = new BABYLON.Vector3(this.mX[moduleRow], this.mY[moduleRow], this.mZ[moduleCol]);
-        //var newPos = new BABYLON.Vector3( this.mmX(moduleRow), this.mmY(moduleRow), this.mmZ(moduleCol) );
-
-        let off = this.getNodeOffset(nodeIdInModule);
-        newPos.addInPlace(off);
-
+    this.modulePosition = function( x, y, z ) {
+        let d = 50.0;
+        let mX = (d * ( ( this.cols - 1 ) / 2.0 ))-(d * x);
+        let mY = (d * y) - (d * ( ( this.rows - 1 ) / 2.0 ));
+        let mZ = ( d * z ) - (d*((this.layers - 1) / 2.0));
+        return new BABYLON.Vector3(mX, mZ, mY);
+    };
+    
+    this.calcPosition2 = function (x, y, z, n0) {
+        let newPos = this.modulePosition(x, y, z);
+        newPos.addInPlace(this.getNodeOffset2(n0));
         return newPos;
     };
 
-    this.getNodeOffset = function (nodeId) {
+    this.calcPosition = function (nodeId) {
+        let qd = QbDescr.fromNodeId(nodeId, this.rows, this.cols);
+        return this.calcPosition2(qd.x, qd.y, qd.z, qd.n0());
+    };
+
+    this.createModule2 = function (x, y, z) {
+        let moduleId = x + (y + z * this.rows) * this.cols;
+
+        let offset = 8 * moduleId;
+
+        // MODULE NODES
+        for (let n = 0; n < this.KL; n++) {
+            this.addNode(offset + n + 1, this.calcPosition2(x, y, z, n), NaN);
+        }
+        for (let n = 4; n < this.KR + 4; n++) {
+            this.addNode(offset + n + 1, this.calcPosition2(x, y, z, n), NaN);
+        }
+
+        // INTERNAL MODULE EDGES
+        for (let x = 0; x < this.KL; x++)
+            for (let y = 0; y < this.KR; y++) {
+                this.addEdge(offset + x + 1, offset + 4 + y + 1, getRandom(-0.5, 0.5));//0.0 );        
+            }
+    };
+
+
+
+    this.getNodeOffset2 = function (idx) {
         let nodeOffset = {
-            'classic': [new BABYLON.Vector3(15, -3, -10),
+            'classic': [
+                new BABYLON.Vector3(15, -3, -10),
                 new BABYLON.Vector3(5, -1, -10),
                 new BABYLON.Vector3(-5, 1, -10),
                 new BABYLON.Vector3(-15, 3, -10),
@@ -161,7 +111,8 @@ var Chimera = /** @class */ (function () {
                 new BABYLON.Vector3(-5, -1, 10),
                 new BABYLON.Vector3(-15, -3, 10)],
 
-            'diamond': [new BABYLON.Vector3(0, -3, 9),
+            'diamond': [
+                new BABYLON.Vector3(0, -3, 9),
                 new BABYLON.Vector3(0, -1, 3),
                 new BABYLON.Vector3(0, 1, -3),
                 new BABYLON.Vector3(0, 3, -9),
@@ -170,7 +121,8 @@ var Chimera = /** @class */ (function () {
                 new BABYLON.Vector3(-3, -1, 0),
                 new BABYLON.Vector3(-9, -3, 0)],
 
-            'triangle': [new BABYLON.Vector3(-15, -3, 9),
+            'triangle': [
+                new BABYLON.Vector3(-15, -3, 9),
                 new BABYLON.Vector3(-15, -1, 3),
                 new BABYLON.Vector3(-15, 1, -3),
                 new BABYLON.Vector3(-15, 3, -9),
@@ -180,38 +132,39 @@ var Chimera = /** @class */ (function () {
                 new BABYLON.Vector3(-9, -3, 15)]
         };
 
-        let idx = nodeId;
 
-        if (idx >= this.KL) {
-            idx -= this.KL;
-            idx += 4;
-        }
         return nodeOffset[sgv.displayMode][idx];
     };
 
+
     this.createDefaultStructure = function () {
-        //const start = performance.now();
-        for (let m = 0; m < this.nbModules; m++) {
-            this.createModule(m);
+        for (let z = 0; z < this.layers; z++) {
+            for (let y = 0; y < this.rows; y++) {
+                for (let x = 0; x < this.cols; x++) {
+                    this.createModule2(x, y, z);
+                }
+            }
         }
-        //const end = performance.now();
-        //console.log(end - start);
 
-        for (let x = 0; x < this.nbModules; x += this.rows)
-            for (let y = 1; y < this.rows; y++) {
-                this.connectRowModules(x + (y - 1), x + y);
+        for (let z = 0; z < this.layers; z++) {
+            for (let y = 0; y < (this.rows - 1); y++) {
+                for (let x = 0; x < this.cols; x++) {
+                    this.connectRowModules2(x, y, z);
+                }
             }
+        }
 
-
-        for (let y = 0; y < this.rows; y++)
-            for (let x = this.rows; x < this.nbModules; x += this.rows) {
-                this.connectColModules((x - this.rows) + y, x + y);
+        for (let z = 0; z < this.layers; z++) {
+            for (let y = 0; y < this.rows; y++) {
+                for (let x = 0; x < (this.cols - 1); x++) {
+                    this.connectColModules2(x, y, z);
+                }
             }
+        }
 
-
-        //console.log(this);
         this.showLabels(true);
     };
+
 
     this.createStructureFromDef = function (def) {
         for (let i = 0; i < def.length; i++) {
@@ -219,62 +172,26 @@ var Chimera = /** @class */ (function () {
                 let nodeId = def[i].n1;
 
                 this.addNode(nodeId, this.calcPosition(nodeId), def[i].val);
+                this.nodes[nodeId].showLabel(false);
             } else {
                 let n1 = def[i].n1;
                 let n2 = def[i].n2;
                 this.addEdge(n1, n2, def[i].val);
                 this.edges["" + def[i].n1 + "," + def[i].n2].setValue(def[i].val, 'default');
-                //let strId = "" + n1 + "," + n2;
-                //edges[strId].setValue(  );
             }
         }
-        //console.log(nodes);
     };
 
-    this.createStructureFromDef2 = function (def) {
-        for (let i = 0; i < def.length; i++) {
-            if (def[i].n1 === def[i].n2) {
-                let nodeId = def[i].n1;
-
-                this.addNode(nodeId, this.calcPosition(nodeId), 0.0);
-
-                for (const key in def[i].values) {
-                    this.nodes[nodeId].setValue(def[i].values[key], key);
-                }
-                this.nodes[nodeId].displayValue('default');
-                
-            } else {
-                let n1 = def[i].n1;
-                let n2 = def[i].n2;
-                this.addEdge(n1, n2);
-         
-                var strId = "" + n1 + "," + n2;
-                if (n2 < n1) {
-                    strId = "" + n2 + "," + n1;
-                }
-
-                for (const key in def[i].values) {
-                    this.edges[strId].setValue(def[i].values[key], key);
-                }
-                
-                this.edges[strId].displayValue('default');
-            }
-        }
-        //console.log(this.edges);
-        //console.log(nodes);
-    };
-
-
-    this.setSize = function(c, r, kl, kr) {
+    this.setSize = function(c, r, kl, kr, lay) {
         this.cols = c;
         this.rows = r;
         this.KL = kl;
         this.KR = kr;
-
-        this.nbModules = this.cols * this.rows;
-        this.modSize = this.KL + this.KR;
-
-        this.size = this.nbModules * this.modSize;
+        if (typeof lay!=='undefined') {
+            this.layers = lay;
+        } else {
+            this.layers = 1;
+        }
     };
 });
 
@@ -283,14 +200,7 @@ Chimera.prototype.constructor = Chimera;
 
 Chimera.createNewGraph = function (size) {
     var g = new Chimera();
-    g.cols = size.cols;
-    g.rows = size.rows;
-    g.KL = size.KL;
-    g.KR = size.KR;
-    g.nbModules = g.cols * g.rows;
-    g.modSize = g.KL + g.KR;
-    g.size = g.nbModules * g.modSize;
-    //g.createDefaultStructure();
+    g.setSize(size.cols, size.rows, size.KL, size.KR);
     return g;
 };
 

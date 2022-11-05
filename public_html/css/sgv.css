@@ -1,0 +1,326 @@
+#sgvWorkspaceArea {
+    float:none;
+    clear:both;
+    width:100%;
+    height:100%;
+    margin: 0;
+}
+
+#sgvRenderCanvas {
+    position:relative;
+    height: 100%;
+    width: 100%;
+    object-fit:cover;
+    /*touch-action: none;*/
+}
+
+.sgvUIwindow {
+    position:fixed;
+    left:0;
+    top:0;
+    z-index:100;
+    width: fit-content;
+    height: fit-content;
+    padding:1px;
+    display: block;
+    background: rgba(0, 0, 0, 0.3);
+    border-width: 1px;
+    border-radius: 10px;
+}
+
+.sgvUIwindow .content {
+    padding: 4px;
+    background: 0;
+    color: #fff;
+    height: auto;
+    width: auto;
+}
+
+.sgvUIwindow .title {
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #ddd;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    text-align: center;
+    font-family:sans-serif;
+    font-weight:bold;
+}
+
+.sgvUIwindow .hidebutton {
+    float: right;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #ddd;
+    font-weight:normal;
+    font-size: 10px;
+    border: 0;
+    border-radius: 10px;
+}
+
+.sgvUIwindow .delbutton {
+    width: 100%;
+    margin-top: 15px;
+    background-color: #f00;
+    color: #fff;
+    border: solid 1px #000;
+}
+
+.sgvUIwindow .actionbutton {
+    width: 45%;
+    margin-top: 15px;
+    /*margin-left: 25%;*/
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #ddd;
+    border: solid 1px #888;
+    border-radius: 5px;
+}
+
+.sgvUIwindow .setvaluebutton {
+    background-color: #080;
+    color: #fff;
+}
+
+.sgvUIwindow .setvaluebutton:disabled {
+    background-color: #888;
+    color: #aaa;
+}
+
+.sgvUIwindow #wagaN:disabled {
+    background-color: #ddd;
+    color: #ccc;
+}
+
+
+.sgvTransparentButton {
+    position:fixed;
+    left:0;
+    top:0;
+    z-index:100;
+    background-color: rgba(0.8,1.0,0.8,0.5);
+    color: white;
+    height: 48px;
+    width: 48px;
+    padding:1px;
+    border-width: 1px;
+    border-radius: 15px;
+}
+
+#sgvPanelSwitch {
+    left:10px;
+    top:10px;
+}
+
+#sgvDlgCPL {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    text-align: center;
+    width: fit-content;
+    height: fit-content;
+    top:0px;
+}
+
+#switch {
+    /*background: rgba(0, 1.0, 0, 0.5);*/
+    min-width: 400px;
+    height: 16px;
+    text-align: center;
+    vertical-align:middle;
+    color: #fff;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-top: #ddd solid 1px;
+    cursor: default;
+}
+
+#sgvMissingNodes {
+    min-width: 200px;
+    left:70px;
+    top:200px;
+    display: none;
+}
+
+#wykresy {
+    /*position:relative;
+    float:right;
+    margin-right:20px;*/
+    left:1000px;
+    top:20px;
+    background-color: #fcc;
+    width: 400px;
+    display: none;
+}
+
+#sgvConsole {
+    min-width: 200px;
+    /*position:relative;
+    float:right;
+    margin-right:20px;*/
+    left:70px;
+    top:200px;
+    /*background-color: #fcc;*/
+    width: 768px;
+    height: 260px;
+    display: none;
+}
+
+#sgvConsole #consoleHistory {
+   width: 753px;
+   height: 200px;
+   resize: none;
+    background-color: rgba(0.8,1.0,0.8,0.5);
+    color: #ddd;
+}
+
+#sgvConsole #commandline {
+   width: 753px;
+    background-color: rgba(0.8,1.0,0.8,0.5);
+    color: #ddd;
+}
+
+#sgvEdgeProperties {
+    display: none;
+}
+
+#sgvNodeProperties {
+    display: none;
+}
+
+
+.sgvTransparentPanel {
+    position:fixed;
+    left:0;
+    top:0;
+    z-index:100;
+    background-color: rgba(0.8,1.0,0.8,0.5);
+    color: white;
+    height: 48px;
+    width: 240px;
+    padding:1px;
+    border-width: 1px;
+    border-radius: 15px;
+}
+
+#sgvGraphCreateBtn {
+    position: relative;
+}
+
+#sgvGraphLoadBtn {
+    left:130px;
+    top:10px;
+}
+
+
+#sgvConsoleSwitch {
+    left:10px;
+    top:70px;
+}
+
+#sgvDispModeSwitch {
+    left:10px;
+    top:130px;
+}
+
+#cplScope {
+    text-align: center;
+    padding: 5px;
+    margin: 5px 0 5px 0;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+}
+
+dialog.sgvModalDialog {
+    width: fit-content;
+    height: fit-content;
+    transition: transform var(--ease-elastic-4);
+    transform: translateY(calc(var(--hide, 1) * 100vmin));
+}
+
+dialog.sgvModalDialog[open] {
+    --hide: 0;
+}
+
+dialog.sgvModalDialog::backdrop {
+    background: hsl(0 0% 10% / 0.5);
+    backdrop-filter: blur(2px);
+}
+
+
+dialog#sgvDlgCreateGraph {
+    background: rgba(0, 0, 0, 0.3);
+    border-width: 1px;
+    border-radius: 10px;
+}
+
+dialog.sgvModelDialog div#buttons {
+    text-align: center;
+}
+
+dialog#sgvDlgCreateGraph .content {
+    background: 0;
+    color: #fff;
+}
+
+dialog#sgvDlgCreateGraph .title {
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #ddd;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+dialog#sgvDlgCreateGraph .actionbutton {
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #ddd;
+    border: solid 1px #888;
+    border-radius: 5px;
+}
+
+
+dialog#sgvDlgAbout .content {
+    background: #fff;
+    color: #000;
+    font-family: sans-serif,arial;
+}
+
+dialog#sgvDlgAbout .content .info {
+    background: 0;
+    border-top: 2px solid #888;
+    border-bottom: 2px solid #888;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 25px;
+    color: #888;
+    font-family: sans-serif,arial;
+}
+
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+dialog#loaderSplash {
+  border:0;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.0);
+  font-size: var(--font-size-fluid-2);
+  font-weight: var(--font-weight-6);
+}
+
+dialog#loaderSplash span {
+    color: #fff;
+  /*animation: wiggle 3s infinite;
+  display: inline-block;
+  transform-origin: 65%;*/
+}
+
+dialog#loaderSplash div.loader {
+  margin: auto;
+  border: 12px solid #f3f3f3; /* Light grey */
+  border-top: 12px solid blue;
+  border-right: 12px solid green;
+  border-bottom: 12px solid red;
+  border-left: 12px solid yellow;
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  animation: spin 2s linear infinite;
+}

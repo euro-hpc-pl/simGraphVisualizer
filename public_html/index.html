@@ -2,23 +2,38 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-
-        <title>Test wizualizacji grafów</title>
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script src="https://preview.babylonjs.com/babylon.max.js"></script>
-        <script src="https://preview.babylonjs.com/gui/babylon.gui.min.js"></script>
         
+        <title>Test wizualizacji grafów</title>
+        <link href="css/sgv.css" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet">
+ 
+        <!-- Insert this line above script imports  -->
+        <script>
+            if (typeof module === 'object') {
+                window.module = module;
+                module = undefined;
+            }
+        </script>
+  
+        <script src="js/lib/jquery.3.6.0.js"></script>
+        <script src="js/lib/babylon.max.js"></script>
+        <script src="js/lib/babylon.gui.min.js"></script>
         <script src="js/sgv.js"></script>
-        <link href="sgv.css" rel="stylesheet">
         <script>
             var args = {
                 target: "workspaceDIV"
             };
         </script>
 
-        <link href="style.css" rel="stylesheet">
+        <!-- Insert this line after script imports -->
+        <script>
+            if (window.module) module = window.module
+        </script>
+
     </head>
+    
     <body onload='sgv.display(args)'>
         <div id="workspaceDIV"></div>
+        <script defer src="../../scripts/views/index.js"></script>
     </body>
 </html>

@@ -136,8 +136,9 @@ parseGEXF = function(string) {
                         //if (ss.lenght>3){
                             graphSize.cols = parseInt(ss[0]);
                             graphSize.rows = parseInt(ss[1]);
-                            graphSize.KL = parseInt(ss[2]);
-                            graphSize.KR = parseInt(ss[3]);
+                            graphSize.lays = parseInt(ss[2]);
+                            graphSize.KL = parseInt(ss[3]);
+                            graphSize.KR = parseInt(ss[4]);
                         //}
                     }  
                 } else if (attrsClass === "edge" ) {
@@ -169,11 +170,17 @@ parseGEXF = function(string) {
 
     if (graphType === "chimera"){
         sgv.graf = Chimera.createNewGraph(graphSize);
-        sgv.graf.createStructureFromDef2(def2);
-        return true;
     } else if (graphType === "pegasus"){
-        newGraph = Pegasus.createNewGraph(graphSize);
+        sgv.graf = Pegasus.createNewGraph(graphSize);
+    } else {
+        return false;
+    }
+    
+    for (const i in nodeAttrs) {
+        if (!sgv.graf.scopeOfValues.includes(nodeAttrs[i]))
+            sgv.graf.scopeOfValues.push(nodeAttrs[i]);
     }
 
-    return false;
+    sgv.graf.createStructureFromDef2(def2);
+    return true;
 };

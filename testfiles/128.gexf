@@ -6,7 +6,8 @@
   </meta>
   <graph defaultedgetype="undirected">
     <attributes class="node">
-      <attribute id="0" title="default;chimera;4,4,4,4" type="float"/>
+      <attribute id="0" title="default;chimera;4,4,1,4,4" type="float"/>
+      <attribute id="1" title="test" type="float"/>
     </attributes>
     <nodes>
       <node id="1">
@@ -17,6 +18,7 @@
       <node id="2">
         <attvalues>
           <attvalue for="0" value="0.146667"/>
+          <attvalue for="1" value="-1.0"/>
         </attvalues>
       </node>
       <node id="3">

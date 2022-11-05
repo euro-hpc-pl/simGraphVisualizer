@@ -24,10 +24,13 @@ var Graph = /** @class */ (function () {
     this.edges = {};
     this.missing = {};
     this.type = 'generic';
-    this.scopeOfValues = ['default', 'losowe'];
+    this.scopeOfValues = ['default'];
     this.currentScope = 'default';
     this.greenLimit = 1.0;
     this.redLimit = -1.0;
+
+    //this.labelsVisible = false;
+    this.labelsVisible = true;
 
     this.dispose = function () {
         for (const key in this.edges) {
@@ -52,30 +55,12 @@ var Graph = /** @class */ (function () {
     };
 
     this.addNode = function(nodeId, pos, val) {
-        this.nodes[nodeId] = new Node(this, nodeId, pos.x, pos.y, pos.z, val);
-    };
-
-    this.restoreNode = function (nodeId) {
-        this.addNode(nodeId, this.calcPosition(nodeId), this.missing[nodeId].value);
-
-        for (const key in this.missing[nodeId].edges) {
-            var nKey = parseInt(key, 10);
-            if (nKey in this.nodes) {
-                console.log("key: ", nKey, typeof (nKey));
-                if (nodeId < key) {
-                    this.addEdge(nodeId, nKey, this.missing[nodeId].edges[nKey]);
-                } else {
-                    this.addEdge(nKey, nodeId, this.missing[nodeId].edges[nKey]);
-                }
-            } else if (nKey in this.missing) {
-                this.missing[nKey].edges[nodeId] = this.missing[nodeId].edges[nKey];
-            }
+        if (typeof val!=='undefined') {
+            values = {
+                'default': val
+            };
         }
-
-        delete this.missing[nodeId];
-
-        if (Object.keys(this.missing).length === 0)
-            sgv.ui.missingNodes.style.display = "none";
+        this.nodes[nodeId] = new Node(this, nodeId, pos.x, pos.y, pos.z, values);
     };
 
     this.getKeyByValue = function(object, value) {
@@ -88,7 +73,7 @@ var Graph = /** @class */ (function () {
     
     this.exportTXT = function() {
         var string = "# type=" + this.type + "\n";
-        string += "# size=" + this.cols + "," + this.rows + "," + this.KL + "," + this.KR + "\n";
+        string += "# size=" + this.cols + "," + this.rows + "," + this.layers + "," + this.KL + "," + this.KR + "\n";
 
         for (const key in this.nodes) {
             string += key + " " + key + " ";
@@ -119,7 +104,7 @@ var Graph = /** @class */ (function () {
         for (const key in this.scopeOfValues) {
             let val = this.scopeOfValues[key];
             if (val==="default"){
-                val+= ";" + this.type + ";" + this.cols + "," + this.rows + "," + this.KL + "," + this.KR;
+                val+= ";" + this.type + ";" + this.cols + "," + this.rows + "," + this.layers + "," + this.KL + "," + this.KR;
             }
             xml += "      <attribute id=\""+key+"\" title=\""+val+"\" type=\"float\"/>\n";
         }
@@ -177,10 +162,14 @@ var Graph = /** @class */ (function () {
 
         for (const key in this.edges) {
             if (this.edges[key].begin.toString() === nodeId) {
-                removedEdges[ this.edges[key].end ] = this.edges[key].value;
+                removedEdges[ this.edges[key].end ] = {
+                    values: this.edges[key].values
+                };
                 this.delEdge(key);
             } else if (this.edges[key].end.toString() === nodeId) {
-                removedEdges[ this.edges[key].begin ] = this.edges[key].value;
+                removedEdges[ this.edges[key].begin ] = {
+                    values: this.edges[key].values
+                };
                 this.delEdge(key);
             }
         }
@@ -192,7 +181,11 @@ var Graph = /** @class */ (function () {
         var tmpEdges = this.findAndDeleteEdges(nodeId);
 
         this.missing[nodeId] = {
-            value: this.nodes[nodeId].value,
+            label: {
+                text: this.nodes[nodeId].getLabel(),
+                enabled: this.nodes[nodeId].isLabelVisible()
+            },
+            values: this.nodes[nodeId].values,
             edges: {}
         };
 
@@ -204,7 +197,42 @@ var Graph = /** @class */ (function () {
         this.nodes[nodeId].clear();
         delete this.nodes[nodeId];
 
-        sgv.addToMissing(nodeId);
+        sgv.dlgMissingNodes.addNode(nodeId);
+    };
+
+    this.restoreNode = function (nodeId) {
+        let pos = this.calcPosition(nodeId);
+        
+        this.nodes[nodeId] = new Node(this, nodeId, pos.x, pos.y, pos.z, this.missing[nodeId].values);
+        this.nodes[nodeId].setLabel(this.missing[nodeId].label.text,this.missing[nodeId].label.enabled);
+        
+        for (const key in this.missing[nodeId].edges) {
+            var nKey = parseInt(key, 10);
+            if (nKey in this.nodes) {
+                console.log("key: ", nKey, typeof (nKey));
+                var strId;
+                if (nodeId < key) {
+                    strId = "" + nodeId + "," + key;
+                    this.edges[strId] = new Edge(this, nodeId, key);
+                    //, this.missing[nodeId].edges[nKey]);
+                } else {
+                    strId = "" + key + "," + nodeId;
+                    this.edges[strId] = new Edge(this, key, nodeId);
+                    //, this.missing[nodeId].edges[nKey]);
+                }
+                for (const vKey in this.missing[nodeId].edges[nKey].values) {
+                    this.edges[strId].setValue(this.missing[nodeId].edges[nKey].values[vKey],vKey);    
+                }
+                
+            } else if (nKey in this.missing) {
+                this.missing[nKey].edges[nodeId] = this.missing[nodeId].edges[nKey];
+            }
+        }
+
+        delete this.missing[nodeId];
+
+        if (Object.keys(this.missing).length === 0)
+            sgv.dlgMissingNodes.hide();
     };
 
 
@@ -217,7 +245,7 @@ var Graph = /** @class */ (function () {
     };
 
     this.stringToStruct = (string) => {
-       if ((string===undefined)||(string===null)) return null;
+       if ((typeof string==='undefined')||(string===null)) return null;
     
         var result = {
             nodes: {},
@@ -264,7 +292,7 @@ var Graph = /** @class */ (function () {
 
     this.loadScopeValues = (scope, data) => {
         let isNew = false;
-        if ( (scope !== undefined) && ! this.scopeOfValues.includes(scope) ) {
+        if ( (typeof scope !== 'undefined') && ! this.scopeOfValues.includes(scope) ) {
             this.scopeOfValues.push(scope);
             isNew = true;
         }
@@ -285,7 +313,7 @@ var Graph = /** @class */ (function () {
     };
 
     this.addScopeOfValues = function(scope) {
-        if ( (scope !== undefined) && ! this.scopeOfValues.includes(scope) ) {
+        if ( (typeof scope !== 'undefined') && ! this.scopeOfValues.includes(scope) ) {
             this.scopeOfValues.push(scope);
             return this.scopeOfValues.indexOf(scope);
         }
@@ -293,7 +321,7 @@ var Graph = /** @class */ (function () {
     };
 
     this.delScopeOfValues = function(scope) {
-        if ( (scope !== undefined) && (scope !== 'default') ) {
+        if ( (typeof scope !== 'undefined') && (scope !== 'default') ) {
 
             let idx = this.scopeOfValues.indexOf(scope);
             if (idx!==-1) {
@@ -316,11 +344,11 @@ var Graph = /** @class */ (function () {
     };
 
     this.hasScope = function (scope) {
-        return (scope !== undefined) && this.scopeOfValues.includes(scope);
+        return (typeof scope !== 'undefined') && this.scopeOfValues.includes(scope);
     };
     
     this.displayValues = function (scope) {
-        if ( (scope === undefined) || ! this.scopeOfValues.includes(scope) ) {
+        if ( (typeof scope === 'undefined') || ! this.scopeOfValues.includes(scope) ) {
             return false;
         }
 
@@ -361,18 +389,18 @@ var Graph = /** @class */ (function () {
         this.findAndUpdateEdges(nodeId);
     };
 
-    this.setEdgeValue = function (edgeId, value) {
-        this.edges[edgeId].setValue(value);
+    this.setEdgeValue = function (edgeId, value, scope) {
+        this.edges[edgeId].setValue(value, scope);
         this.edges[edgeId].displayValue();
     };
 
-    this.delEdgeValue = function (edgeId) {
-        this.edges[edgeId].delValue();
+    this.delEdgeValue = function (edgeId, scope) {
+        this.edges[edgeId].delValue(scope);
         this.edges[edgeId].displayValue();
     };
 
-    this.edgeValue = function(edgeId) {
-        return this.edges[edgeId].getValue();
+    this.edgeValue = function(edgeId, scope) {
+        return this.edges[edgeId].getValue(scope);
     };
 
     this.setNodeValue = function (nodeId, value, scope) {
@@ -390,7 +418,7 @@ var Graph = /** @class */ (function () {
     };
 
     this.getMinMaxEdgeVal = function (scope) {
-        if ( (scope === undefined) || ! this.scopeOfValues.includes(scope) ) {
+        if ( (typeof scope === 'undefined') || ! this.scopeOfValues.includes(scope) ) {
             scope = this.currentScope;
         }
         
@@ -426,7 +454,7 @@ var Graph = /** @class */ (function () {
     };
 
     this.getMinMaxNodeVal = function (scope) {
-        if ( (scope === undefined) || ! this.scopeOfValues.includes(scope) ) {
+        if ( (typeof scope === 'undefined') || ! this.scopeOfValues.includes(scope) ) {
             scope = this.currentScope;
         }
         
@@ -497,8 +525,7 @@ var Graph = /** @class */ (function () {
     this.changeDisplayMode = function () {
         for (const key in this.nodes) {
             let pos = this.calcPosition(key);
-            this.nodes[key].position.copyFrom(pos);
-            this.nodes[key].label.plane.position.copyFrom(pos).addInPlaceFromFloats(0.0, 5.0, 0.0);
+            this.nodes[key].position = pos;
         }
 
         for (const key in this.edges) {
@@ -507,45 +534,46 @@ var Graph = /** @class */ (function () {
     };
     
     this.showLabels = function (b) {
-        if (sgv.labelsVisible) {
-            for (const key in this.nodes) {
-                this.nodes[key].showLabel(b);
-            }
+        this.labelsVisible = b;
+        for (const key in this.nodes) {
+            this.nodes[key].showLabel();
         }
     };
     
     
-    this.addScopeOfValues('losowe2');
+    this.createStructureFromDef2 = function (def) {
+        for (let i = 0; i < def.length; i++) {
+            if (def[i].n1 === def[i].n2) {
+                let nodeId = def[i].n1;
+
+                this.addNode(nodeId, this.calcPosition(nodeId), 0.0);
+
+                for (const key in def[i].values) {
+                    let scope = def[i].values[key];
+                    this.nodes[nodeId].setValue(scope, key);
+                }
+                this.nodes[nodeId].displayValue('default');
+                this.nodes[nodeId].showLabel(false);
+                
+            } else {
+                let n1 = def[i].n1;
+                let n2 = def[i].n2;
+                this.addEdge(n1, n2);
+         
+                var strId = "" + n1 + "," + n2;
+                if (n2 < n1) {
+                    strId = "" + n2 + "," + n1;
+                }
+
+                for (const key in def[i].values) {
+                    this.edges[strId].setValue(def[i].values[key], key);
+                }
+                
+                this.edges[strId].displayValue('default');
+            }
+        }
+        //console.log(this.edges);
+        //console.log(nodes);
+    };
 });
 
-function valueToColor(val) {
-    let max = sgv.graf.greenLimit;
-    let min = sgv.graf.redLimit;
-
-    if (val > 0) {
-        var r = 0;
-        var g = (val < max) ? (val / max) : 1.0;
-        var b = 1.0 - g;
-    } else if (val < 0) {
-        var r = (val > min) ? (val / min) : 1.0;
-        var g = 0;
-        var b = 1.0 - r;
-    } else {
-        var r = 0;
-        var g = 0;
-        var b = 1.0;
-    }
-
-    return new BABYLON.Color3(r, g, b);
-}
-
-
-function valueToEdgeWidth(val) {
-    var w = Math.abs(val) / 2;
-    if (w > 0.5)
-        w = 0.7;
-    else if (w < 0.1)
-        w = 0.1;
-
-    return w;
-}

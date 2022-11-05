@@ -60,7 +60,7 @@ let loadToStruct = (mypath) => {
 };
 
 let stringToStruct = (string) => {
-    if ((string===undefined)||(string===null)) return null;
+    if ((typeof string==='undefined')||(string===null)) return null;
     
     var result = {
         nodes: {},

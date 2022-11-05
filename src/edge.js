@@ -49,7 +49,7 @@ var Edge = /** @class */ (function (graf, b, e, val) {
     };
 
     this.delValue = function(scope) {
-        if (scope === undefined) {
+        if (typeof scope === 'undefined') {
             scope = this.parentGraph.currentScope;
         }
         
@@ -59,7 +59,7 @@ var Edge = /** @class */ (function (graf, b, e, val) {
     };
 
     this.getValue = function (scope) {
-        if (scope === undefined) {
+        if (typeof scope === 'undefined') {
             scope = this.parentGraph.currentScope;
         }
         
@@ -71,7 +71,7 @@ var Edge = /** @class */ (function (graf, b, e, val) {
     };
 
     this.setValue = function (val, valId) {
-        if (valId === undefined) {
+        if (typeof valId === 'undefined') {
             valId = 'default';
         }
         
@@ -99,7 +99,7 @@ var Edge = /** @class */ (function (graf, b, e, val) {
 
     this.displayValue = function (valId) {
         //console.log(valId);
-        if (valId === undefined) {
+        if (typeof valId === 'undefined') {
             valId = 'default';
         }
 
@@ -128,7 +128,7 @@ var Edge = /** @class */ (function (graf, b, e, val) {
         let edgeColor = new BABYLON.Color3(0.2, 0.2, 0.2);
         let edgeWidth = 0.1;
 
-        if (val === undefined) {
+        if (typeof val === 'undefined') {
             this.values['default'] = Number.NaN;
         } else {
             this.values['default'] = val;

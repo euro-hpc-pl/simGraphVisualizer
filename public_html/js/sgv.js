@@ -1,3 +1,62 @@
+/* global BABYLON, sgv */
+
+function valueToColor(val) {
+    if ((typeof val ==='undefined')||(val === null)|| isNaN(val)) {
+        return new BABYLON.Color3(0.2, 0.2, 0.2);
+    };
+
+    let max = sgv.graf.greenLimit;
+    let min = sgv.graf.redLimit;
+
+    if (val > 0) {
+        var r = 0;
+        var g = (val < max) ? (val / max) : 1.0;
+        var b = 1.0 - g;
+    } else if (val < 0) {
+        var r = (val > min) ? (val / min) : 1.0;
+        var g = 0;
+        var b = 1.0 - r;
+    } else {
+        var r = 0;
+        var g = 0;
+        var b = 1.0;
+    }
+
+    return new BABYLON.Color3(r, g, b);
+}
+
+
+function valueToEdgeWidth(val) {
+    if ((typeof val ==='undefined')||(val === null)|| isNaN(val)) {
+        return 0.1;
+    };
+
+    let max = Math.abs(sgv.graf.greenLimit);
+    let min = Math.abs(sgv.graf.redLimit);
+
+    max = (max>min)?max:min;
+    
+    val = Math.abs(val);
+    
+    if (val>max){
+        return 0.6;
+    }
+    
+    return 0.1 + ( val / (2.0*max) );
+}
+
+var Def2 = /*class*/( (_n1, _n2) => {
+    this.n1 = _n1;
+    this.n2 = _n2;
+    this.values = {
+            'default': NaN
+        };
+    this.label = {
+            text: null,
+            enabled: false
+        };    
+});
+
 /* 
  * Copyright 2022 Dariusz Pojda.
  *
@@ -23,17 +82,32 @@
  * @param {BABYLON.Vector3} position position over which the label is to be displayed
  * @returns {Label}
  */
-var Label = (function (labelId, txt, position) {
-    this.id = labelId;
+var Label = (function (labelId, txt, position, enabled) {
+    this.setText = async function(txt, enabled) {
+        this.text = txt;
+        
+        if (this.plane!==null)
+            this.plane.dispose();
+        
+        this.plane = this.createPlane();
+        this.plane.position = this.position.add(new BABYLON.Vector3(0.0, 5.0, 0.0));
+        this.plane.billboardMode = BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
+        this.plane.setEnabled(enabled);
+        this.plane.isPickable = false;
+    };
+    
+    this.getText = function() {
+        return this.text;
+    };
+    
+    this.setPosition = function(pos) {
+        this.position = pos;
+        
+        if (this.plane !==null)
+            this.plane.position = pos.add(new BABYLON.Vector3(0.0, 5.0, 0.0));
+    };
 
-    /**
-     * 
-     * @param {type} txt
-     * @param {type} position
-     * @returns {undefined}
-     */
-    this.createMe = async function (txt, position) {
-
+    this.createPlane = function() {
         //Set font
         var font_size = 48;
         var font = "normal " + font_size + "px Arial";
@@ -53,7 +127,7 @@ var Label = (function (labelId, txt, position) {
         tmpctx.font = font;
 
         //Set text
-        var text = txt;
+        var text = this.text;
 
         var DTWidth = tmpctx.measureText(text).width + 8;
 
@@ -64,32 +138,36 @@ var Label = (function (labelId, txt, position) {
         var mat = new BABYLON.StandardMaterial("mat", sgv.scene);
         mat.diffuseTexture = new BABYLON.DynamicTexture("DynamicTexture", {width: DTWidth, height: DTHeight}, sgv.scene, false);
         mat.diffuseTexture.drawText(text, null, null, font, "#000000", "#ffff00", true);
+        
+        var plane = BABYLON.MeshBuilder.CreatePlane(this.id + "_plane", {width: planeWidth, height: planeHeight, updatable: true}, sgv.scene);
+        plane.material = mat;
 
-        //const abstractPlane = BABYLON.Plane.FromPositionAndNormal(new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(0, 1, 0));
-        //Create plane and set dynamic texture as material
-        //this.plane = BABYLON.MeshBuilder.CreatePlane("plane", {sourcePlane: abstractPlane, sideOrientation: BABYLON.Mesh.DOUBLESIDE, width:planeWidth, height:planeHeight}, sgv.scene);
+        return plane;
+    };
 
-        this.plane = BABYLON.MeshBuilder.CreatePlane(this.id + "_plane", {width: planeWidth, height: planeHeight, updatable: true}, sgv.scene);
-        this.plane.material = mat;
-
-
+    /**
+     * @param {type} txt
+     * @param {type} position
+     * @returns {undefined}
+     */
+    this.createMe = async function (txt, position, enabled) {
+        this.plane = this.createPlane();
         this.plane.position = position.add(new BABYLON.Vector3(0.0, 5.0, 0.0));
-
-        //console.log( position, this.plane.position );
-
         this.plane.billboardMode = BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
-
-        this.plane.setEnabled(false);
-
+        this.plane.setEnabled(enabled);
         this.plane.isPickable = false;
     };
 
-    this.createMe(txt, position);
-
     this.setEnabled = function (b) {
-        this.plane.setEnabled(b);
+        if (this.plane!==null)
+            this.plane.setEnabled(b);
     };
 
+    this.text = txt;
+    this.position = position;
+    this.id = labelId;
+    this.plane = null;
+    this.createMe(txt, position, enabled);
 });
 
 
@@ -148,36 +226,45 @@ var Label2 = /** @class */ (function (labelId, txt, position) {
 "use strict";
 /* global BABYLON, greenMat, redMat, grayMat0, grayMat1, advancedTexture, sgv */
 
-const createLabel = function(id, position, scene) {
-    return new Label("q" + id, "q" + id, position, scene);
+const createLabel = function(id, position, scene, enabled) {
+    return new Label("q" + id, "q" + id, position, scene, enabled);
 };
 
-var Node = /** @class */ (function(graf, id, x, y, z, val) {
-        var name = "node:" + id;
+var Node = /** @class */ (function(graf, id, x, y, z, _values) {
+    var name = "node:" + id;
 
-        this.parentGraph = graf;
-        this.id = id;
-        this.active = true;
-        this._chckedEdges = 0;
-        
-        var mesh = sgv.defaultSphere.clone(id);
-        mesh.material = sgv.defaultSphere.material.clone();
-        mesh.position = new BABYLON.Vector3( x, y, z );
-        mesh.name = name;
-        mesh.setEnabled(true);
-        
-        this.values = {};
+    this.parentGraph = graf;
+    this.id = id;
+    this.active = true;
+    this._chckedEdges = 0;
 
-        //this.label = new Label("q" + this.id, "q" + this.id, this.mesh.position, scene);
-        this.label = createLabel(this.id, mesh.position, sgv.scene);
+    this.labelIsVisible = false;
+
+    var mesh = sgv.defaultSphere.clone(id);
+    mesh.material = sgv.defaultSphere.material.clone();
+    mesh.position = new BABYLON.Vector3( x, y, z );
+    mesh.name = name;
+    mesh.setEnabled(true);
+
+    this.values = {
+        'default' : null
+    };
+
+    for (const key in _values) {
+        this.values[key] = _values[key];
+    }
+
+    var label = createLabel(this.id, mesh.position, sgv.scene, this.labelIsVisible);
 
     Object.defineProperty(this, 'position', {
         get() {
             return mesh.position;
         },
         set(pos) {
-            mesh.position = pos;
-            //this.label.plane.position.copyFrom( pos ).addInPlaceFromFloats(0.0, 5.0, 0.0);
+            mesh.position.copyFrom(pos);
+            if (typeof label !== 'undefined') {
+                label.plane.position.copyFrom(pos).addInPlaceFromFloats(0.0, 5.0, 0.0);
+            }
         }
 
     });
@@ -185,8 +272,10 @@ var Node = /** @class */ (function(graf, id, x, y, z, val) {
     this.dispose = function() {
         mesh.dispose();
         delete mesh;
-        this.label.plane.dispose();
-        delete this.label.plane;
+        if (label.plane!==null) {
+            label.plane.dispose();
+//            delete this.label.plane;
+        }
         delete this.label;
     };
 
@@ -195,7 +284,27 @@ var Node = /** @class */ (function(graf, id, x, y, z, val) {
     };
 
     this.showLabel = function(b) {
-        this.label.setEnabled(b);
+        if (typeof b!== 'undefined') {
+            this.labelIsVisible = b;
+        }
+        
+        label.setEnabled(this.labelIsVisible && this.parentGraph.labelsVisible);
+    };
+
+    this.setLabel = function( t, b ) {
+        if (typeof b!== 'undefined') {
+            this.labelIsVisible = b;
+        }
+
+        label.setText(t, this.labelIsVisible && this.parentGraph.labelsVisible);
+    };
+
+    this.isLabelVisible = function() {
+        return this.labelIsVisible;
+    };
+
+    this.getLabel = function() {
+        return label.getText();
     };
 
     this.move = function(diff) {
@@ -215,7 +324,7 @@ var Node = /** @class */ (function(graf, id, x, y, z, val) {
     };
 
     this.getValue = function(scope) {
-        if (scope === undefined) {
+        if (typeof scope === 'undefined') {
             scope = this.parentGraph.currentScope;
         }
         
@@ -238,7 +347,7 @@ var Node = /** @class */ (function(graf, id, x, y, z, val) {
     };
 
     this.delValue = function(scope) {
-        if (scope === undefined) {
+        if (typeof scope === 'undefined') {
             scope = this.parentGraph.currentScope;
         }
         
@@ -248,28 +357,23 @@ var Node = /** @class */ (function(graf, id, x, y, z, val) {
     };
     
     this.setValue = function(val, scope) {
-        if (scope === undefined) {
+        if (typeof scope === 'undefined') {
             scope = this.parentGraph.currentScope;
         }
         this.values[scope] = val;
     };
     
     this.displayValue = function(scope) {
-        if (scope === undefined) {
+        if (typeof scope === 'undefined') {
             scope = this.parentGraph.currentScope;
         }
         
         if (scope in this.values) {
-            //mesh.material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-            mesh.material.emissiveColor = valueToColor(this.values[scope]);
+            mesh.material.emissiveColor = valueToColor( this.values[scope] );
         } else {
-            //mesh.material.specularColor = new BABYLON.Color3(0.0, 0.0, 0.0);
             mesh.material.emissiveColor = new BABYLON.Color4(0.2, 0.2, 0.2);
         }
     };
-
-    this.setValue(val);
-    //this.setValue(getRandom(-0.99, 0.99), 'losowe');
 
     this.displayValue();
 });
@@ -326,7 +430,7 @@ var Edge = /** @class */ (function (graf, b, e, val) {
     };
 
     this.delValue = function(scope) {
-        if (scope === undefined) {
+        if (typeof scope === 'undefined') {
             scope = this.parentGraph.currentScope;
         }
         
@@ -336,7 +440,7 @@ var Edge = /** @class */ (function (graf, b, e, val) {
     };
 
     this.getValue = function (scope) {
-        if (scope === undefined) {
+        if (typeof scope === 'undefined') {
             scope = this.parentGraph.currentScope;
         }
         
@@ -348,7 +452,7 @@ var Edge = /** @class */ (function (graf, b, e, val) {
     };
 
     this.setValue = function (val, valId) {
-        if (valId === undefined) {
+        if (typeof valId === 'undefined') {
             valId = 'default';
         }
         
@@ -376,7 +480,7 @@ var Edge = /** @class */ (function (graf, b, e, val) {
 
     this.displayValue = function (valId) {
         //console.log(valId);
-        if (valId === undefined) {
+        if (typeof valId === 'undefined') {
             valId = 'default';
         }
 
@@ -405,7 +509,7 @@ var Edge = /** @class */ (function (graf, b, e, val) {
         let edgeColor = new BABYLON.Color3(0.2, 0.2, 0.2);
         let edgeWidth = 0.1;
 
-        if (val === undefined) {
+        if (typeof val === 'undefined') {
             this.values['default'] = Number.NaN;
         } else {
             this.values['default'] = val;
@@ -437,6 +541,69 @@ var Edge = /** @class */ (function (graf, b, e, val) {
 });
 
 /* 
+ * Copyright 2022 darek.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+"use strict";
+
+const qD = function (x, y, z, i, j, k) {
+    return new QbDescr(x, y, z, i, j, k);
+};
+
+
+const QbDescr = /** @class */ (function (x, y, z, i, j, k) {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+    this.i = i;
+    this.j = j;
+    this.k = k;
+
+    this.n0 = function () {
+        return (((this.i << 1) + this.j) << 1) + this.k;
+    };
+    this.n1 = function () {
+        return (((this.i << 1) + this.j) << 1) + this.k + 1;
+    };
+    this.toNodeId = function (rows, cols) {
+        return 8 * (this.x + (this.y + this.z * rows) * cols) + this.n1();
+    };
+
+});
+
+QbDescr.fromNodeId = function (nodeIdA, rows, cols) {
+    let nodeId = nodeIdA - 1;
+
+    let n = nodeId % 8;
+
+    let k = n % 2;
+    let j = (n >> 1) % 2;
+    let i = (n >> 2) % 2;
+
+    let modId = nodeId >> 3;
+
+    let layerSize = cols * rows;
+    let currentLayer = Math.floor(modId / layerSize);
+    let modIdInLayer = modId % layerSize;
+    let currentRow = Math.floor(modIdInLayer / cols);
+    let currentCol = modIdInLayer % cols;
+    return new QbDescr(currentCol, currentRow, currentLayer, i, j, k);
+};
+
+
+/* 
  * Copyright 2022 Dariusz Pojda.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -462,10 +629,13 @@ var Graph = /** @class */ (function () {
     this.edges = {};
     this.missing = {};
     this.type = 'generic';
-    this.scopeOfValues = ['default', 'losowe'];
+    this.scopeOfValues = ['default'];
     this.currentScope = 'default';
     this.greenLimit = 1.0;
     this.redLimit = -1.0;
+
+    //this.labelsVisible = false;
+    this.labelsVisible = true;
 
     this.dispose = function () {
         for (const key in this.edges) {
@@ -490,30 +660,12 @@ var Graph = /** @class */ (function () {
     };
 
     this.addNode = function(nodeId, pos, val) {
-        this.nodes[nodeId] = new Node(this, nodeId, pos.x, pos.y, pos.z, val);
-    };
-
-    this.restoreNode = function (nodeId) {
-        this.addNode(nodeId, this.calcPosition(nodeId), this.missing[nodeId].value);
-
-        for (const key in this.missing[nodeId].edges) {
-            var nKey = parseInt(key, 10);
-            if (nKey in this.nodes) {
-                console.log("key: ", nKey, typeof (nKey));
-                if (nodeId < key) {
-                    this.addEdge(nodeId, nKey, this.missing[nodeId].edges[nKey]);
-                } else {
-                    this.addEdge(nKey, nodeId, this.missing[nodeId].edges[nKey]);
-                }
-            } else if (nKey in this.missing) {
-                this.missing[nKey].edges[nodeId] = this.missing[nodeId].edges[nKey];
-            }
+        if (typeof val!=='undefined') {
+            values = {
+                'default': val
+            };
         }
-
-        delete this.missing[nodeId];
-
-        if (Object.keys(this.missing).length === 0)
-            sgv.ui.missingNodes.style.display = "none";
+        this.nodes[nodeId] = new Node(this, nodeId, pos.x, pos.y, pos.z, values);
     };
 
     this.getKeyByValue = function(object, value) {
@@ -526,7 +678,7 @@ var Graph = /** @class */ (function () {
     
     this.exportTXT = function() {
         var string = "# type=" + this.type + "\n";
-        string += "# size=" + this.cols + "," + this.rows + "," + this.KL + "," + this.KR + "\n";
+        string += "# size=" + this.cols + "," + this.rows + "," + this.layers + "," + this.KL + "," + this.KR + "\n";
 
         for (const key in this.nodes) {
             string += key + " " + key + " ";
@@ -557,7 +709,7 @@ var Graph = /** @class */ (function () {
         for (const key in this.scopeOfValues) {
             let val = this.scopeOfValues[key];
             if (val==="default"){
-                val+= ";" + this.type + ";" + this.cols + "," + this.rows + "," + this.KL + "," + this.KR;
+                val+= ";" + this.type + ";" + this.cols + "," + this.rows + "," + this.layers + "," + this.KL + "," + this.KR;
             }
             xml += "      <attribute id=\""+key+"\" title=\""+val+"\" type=\"float\"/>\n";
         }
@@ -615,10 +767,14 @@ var Graph = /** @class */ (function () {
 
         for (const key in this.edges) {
             if (this.edges[key].begin.toString() === nodeId) {
-                removedEdges[ this.edges[key].end ] = this.edges[key].value;
+                removedEdges[ this.edges[key].end ] = {
+                    values: this.edges[key].values
+                };
                 this.delEdge(key);
             } else if (this.edges[key].end.toString() === nodeId) {
-                removedEdges[ this.edges[key].begin ] = this.edges[key].value;
+                removedEdges[ this.edges[key].begin ] = {
+                    values: this.edges[key].values
+                };
                 this.delEdge(key);
             }
         }
@@ -630,7 +786,11 @@ var Graph = /** @class */ (function () {
         var tmpEdges = this.findAndDeleteEdges(nodeId);
 
         this.missing[nodeId] = {
-            value: this.nodes[nodeId].value,
+            label: {
+                text: this.nodes[nodeId].getLabel(),
+                enabled: this.nodes[nodeId].isLabelVisible()
+            },
+            values: this.nodes[nodeId].values,
             edges: {}
         };
 
@@ -642,7 +802,42 @@ var Graph = /** @class */ (function () {
         this.nodes[nodeId].clear();
         delete this.nodes[nodeId];
 
-        sgv.addToMissing(nodeId);
+        sgv.dlgMissingNodes.addNode(nodeId);
+    };
+
+    this.restoreNode = function (nodeId) {
+        let pos = this.calcPosition(nodeId);
+        
+        this.nodes[nodeId] = new Node(this, nodeId, pos.x, pos.y, pos.z, this.missing[nodeId].values);
+        this.nodes[nodeId].setLabel(this.missing[nodeId].label.text,this.missing[nodeId].label.enabled);
+        
+        for (const key in this.missing[nodeId].edges) {
+            var nKey = parseInt(key, 10);
+            if (nKey in this.nodes) {
+                console.log("key: ", nKey, typeof (nKey));
+                var strId;
+                if (nodeId < key) {
+                    strId = "" + nodeId + "," + key;
+                    this.edges[strId] = new Edge(this, nodeId, key);
+                    //, this.missing[nodeId].edges[nKey]);
+                } else {
+                    strId = "" + key + "," + nodeId;
+                    this.edges[strId] = new Edge(this, key, nodeId);
+                    //, this.missing[nodeId].edges[nKey]);
+                }
+                for (const vKey in this.missing[nodeId].edges[nKey].values) {
+                    this.edges[strId].setValue(this.missing[nodeId].edges[nKey].values[vKey],vKey);    
+                }
+                
+            } else if (nKey in this.missing) {
+                this.missing[nKey].edges[nodeId] = this.missing[nodeId].edges[nKey];
+            }
+        }
+
+        delete this.missing[nodeId];
+
+        if (Object.keys(this.missing).length === 0)
+            sgv.dlgMissingNodes.hide();
     };
 
 
@@ -655,7 +850,7 @@ var Graph = /** @class */ (function () {
     };
 
     this.stringToStruct = (string) => {
-       if ((string===undefined)||(string===null)) return null;
+       if ((typeof string==='undefined')||(string===null)) return null;
     
         var result = {
             nodes: {},
@@ -702,7 +897,7 @@ var Graph = /** @class */ (function () {
 
     this.loadScopeValues = (scope, data) => {
         let isNew = false;
-        if ( (scope !== undefined) && ! this.scopeOfValues.includes(scope) ) {
+        if ( (typeof scope !== 'undefined') && ! this.scopeOfValues.includes(scope) ) {
             this.scopeOfValues.push(scope);
             isNew = true;
         }
@@ -723,7 +918,7 @@ var Graph = /** @class */ (function () {
     };
 
     this.addScopeOfValues = function(scope) {
-        if ( (scope !== undefined) && ! this.scopeOfValues.includes(scope) ) {
+        if ( (typeof scope !== 'undefined') && ! this.scopeOfValues.includes(scope) ) {
             this.scopeOfValues.push(scope);
             return this.scopeOfValues.indexOf(scope);
         }
@@ -731,7 +926,7 @@ var Graph = /** @class */ (function () {
     };
 
     this.delScopeOfValues = function(scope) {
-        if ( (scope !== undefined) && (scope !== 'default') ) {
+        if ( (typeof scope !== 'undefined') && (scope !== 'default') ) {
 
             let idx = this.scopeOfValues.indexOf(scope);
             if (idx!==-1) {
@@ -754,11 +949,11 @@ var Graph = /** @class */ (function () {
     };
 
     this.hasScope = function (scope) {
-        return (scope !== undefined) && this.scopeOfValues.includes(scope);
+        return (typeof scope !== 'undefined') && this.scopeOfValues.includes(scope);
     };
     
     this.displayValues = function (scope) {
-        if ( (scope === undefined) || ! this.scopeOfValues.includes(scope) ) {
+        if ( (typeof scope === 'undefined') || ! this.scopeOfValues.includes(scope) ) {
             return false;
         }
 
@@ -799,18 +994,18 @@ var Graph = /** @class */ (function () {
         this.findAndUpdateEdges(nodeId);
     };
 
-    this.setEdgeValue = function (edgeId, value) {
-        this.edges[edgeId].setValue(value);
+    this.setEdgeValue = function (edgeId, value, scope) {
+        this.edges[edgeId].setValue(value, scope);
         this.edges[edgeId].displayValue();
     };
 
-    this.delEdgeValue = function (edgeId) {
-        this.edges[edgeId].delValue();
+    this.delEdgeValue = function (edgeId, scope) {
+        this.edges[edgeId].delValue(scope);
         this.edges[edgeId].displayValue();
     };
 
-    this.edgeValue = function(edgeId) {
-        return this.edges[edgeId].getValue();
+    this.edgeValue = function(edgeId, scope) {
+        return this.edges[edgeId].getValue(scope);
     };
 
     this.setNodeValue = function (nodeId, value, scope) {
@@ -828,7 +1023,7 @@ var Graph = /** @class */ (function () {
     };
 
     this.getMinMaxEdgeVal = function (scope) {
-        if ( (scope === undefined) || ! this.scopeOfValues.includes(scope) ) {
+        if ( (typeof scope === 'undefined') || ! this.scopeOfValues.includes(scope) ) {
             scope = this.currentScope;
         }
         
@@ -864,7 +1059,7 @@ var Graph = /** @class */ (function () {
     };
 
     this.getMinMaxNodeVal = function (scope) {
-        if ( (scope === undefined) || ! this.scopeOfValues.includes(scope) ) {
+        if ( (typeof scope === 'undefined') || ! this.scopeOfValues.includes(scope) ) {
             scope = this.currentScope;
         }
         
@@ -935,8 +1130,7 @@ var Graph = /** @class */ (function () {
     this.changeDisplayMode = function () {
         for (const key in this.nodes) {
             let pos = this.calcPosition(key);
-            this.nodes[key].position.copyFrom(pos);
-            this.nodes[key].label.plane.position.copyFrom(pos).addInPlaceFromFloats(0.0, 5.0, 0.0);
+            this.nodes[key].position = pos;
         }
 
         for (const key in this.edges) {
@@ -945,48 +1139,49 @@ var Graph = /** @class */ (function () {
     };
     
     this.showLabels = function (b) {
-        if (sgv.labelsVisible) {
-            for (const key in this.nodes) {
-                this.nodes[key].showLabel(b);
-            }
+        this.labelsVisible = b;
+        for (const key in this.nodes) {
+            this.nodes[key].showLabel();
         }
     };
     
     
-    this.addScopeOfValues('losowe2');
+    this.createStructureFromDef2 = function (def) {
+        for (let i = 0; i < def.length; i++) {
+            if (def[i].n1 === def[i].n2) {
+                let nodeId = def[i].n1;
+
+                this.addNode(nodeId, this.calcPosition(nodeId), 0.0);
+
+                for (const key in def[i].values) {
+                    let scope = def[i].values[key];
+                    this.nodes[nodeId].setValue(scope, key);
+                }
+                this.nodes[nodeId].displayValue('default');
+                this.nodes[nodeId].showLabel(false);
+                
+            } else {
+                let n1 = def[i].n1;
+                let n2 = def[i].n2;
+                this.addEdge(n1, n2);
+         
+                var strId = "" + n1 + "," + n2;
+                if (n2 < n1) {
+                    strId = "" + n2 + "," + n1;
+                }
+
+                for (const key in def[i].values) {
+                    this.edges[strId].setValue(def[i].values[key], key);
+                }
+                
+                this.edges[strId].displayValue('default');
+            }
+        }
+        //console.log(this.edges);
+        //console.log(nodes);
+    };
 });
 
-function valueToColor(val) {
-    let max = sgv.graf.greenLimit;
-    let min = sgv.graf.redLimit;
-
-    if (val > 0) {
-        var r = 0;
-        var g = (val < max) ? (val / max) : 1.0;
-        var b = 1.0 - g;
-    } else if (val < 0) {
-        var r = (val > min) ? (val / min) : 1.0;
-        var g = 0;
-        var b = 1.0 - r;
-    } else {
-        var r = 0;
-        var g = 0;
-        var b = 1.0;
-    }
-
-    return new BABYLON.Color3(r, g, b);
-}
-
-
-function valueToEdgeWidth(val) {
-    var w = Math.abs(val) / 2;
-    if (w > 0.5)
-        w = 0.7;
-    else if (w < 0.1)
-        w = 0.1;
-
-    return w;
-}
 
 /* 
  * Copyright 2022 Dariusz Pojda.
@@ -1012,137 +1207,87 @@ var Chimera = /** @class */ (function () {
 
     this.type = 'chimera';
 
-    this.modSize;
-    this.nbModules;
     this.cols;
     this.rows;
     this.KL;
     this.KR;
-
-
-    this.mX = {
-        '-8': 375,
-        '-7': 325,
-        '-6': 275,
-        '-5': 225,
-        '-4': 175,
-        '-3': 125,
-        '-2': 75,
-        '-1': 25,
-        '0': -25,
-        '1': -75,
-        '2': -125,
-        '3': -175,
-        '4': -225,
-        '5': -275,
-        '6': -325,
-        '7': -375
-    };
-
-    this.mmX = function (i) {
-        return -25 - 50 * i;
-    };
-
-    this.mY = {
-        '-8': 75,
-        '-7': 65,
-        '-6': 55,
-        '-5': 45,
-        '-4': 35,
-        '-3': 25,
-        '-2': 15,
-        '-1': 5,
-        '0': -5,
-        '1': -15,
-        '2': -25,
-        '3': -35,
-        '4': -45,
-        '5': -55,
-        '6': -65,
-        '7': -75
-    };
-
-    this.mmY = function (i) {
-        return -5 - 10 * i;
-    };
-
-    this.mZ = {
-        '-8': -375,
-        '-7': -325,
-        '-6': -275,
-        '-5': -225,
-        '-4': -175,
-        '-3': -125,
-        '-2': -75,
-        '-1': -25,
-        '0': 25,
-        '1': 75,
-        '2': 125,
-        '3': 175,
-        '4': 225,
-        '5': 275,
-        '6': 325,
-        '7': 375
-    };
-
-    this.mmZ = function (i) {
-        return 25 + 50 * i;
-    };
-
-
-
+    this.layers = 1;
+    
     this.maxNodeId = function () {
-        return this.cols * this.rows * (this.KL + this.KR);
+        return this.cols * this.rows * 8;
     };
 
 
-    this.connectRowModules = function (module1id, module2id) {
-        for (let i = (this.KL + 1); i <= this.modSize; i++) {
-            this.addEdge(this.modSize * module1id + i, this.modSize * module2id + i, 0.0);
-        }
+    this.connect = function (qdA, qdB, value) {
+        let idA = qdA.toNodeId(this.rows, this.cols);
+        let idB = qdB.toNodeId(this.rows, this.cols);
+
+        if ((idA in this.nodes) && (idB in this.nodes))
+            this.addEdge(idA, idB, value);
     };
 
-    this.connectColModules = function (module1id, module2id) {
-        for (let i = 1; i <= this.KL; i++) {
-            this.addEdge(this.modSize * module1id + i, this.modSize * module2id + i, 0.0);
-        }
-    };
-
-
-    this.createModule = function (moduleId) {
-        var offset = this.modSize * moduleId;
-
-        // MODULE NODES
-        for (let i = 1; i <= this.modSize; i++) {
-            this.addNode(offset + i, this.calcPosition(offset + i), 0.0);
-        }
-
-        // INTERNAL MODULE EDGES
-        for (let x = 1; x <= this.KL; x++)
-            for (let y = (this.KL + 1); y <= this.modSize; y++) {
-                this.addEdge(offset + x, offset + y, 0.0);
+    this.connectRowModules2 = function (x, y, z) {
+        for (let j = 0; j < 2; j++) {
+            for (let k = 0; k < 2; k++) {
+                this.connect(new QbDescr(x, y, z, 1, j, k), new QbDescr(x, y + 1, z, 1, j, k), getRandom(-0.5, 0.5));//0.0 );          
             }
+        }
     };
 
-    this.calcPosition = function (nodeId) {
-        var moduleId = Math.floor((nodeId - 1) / this.modSize);
-        var nodeIdInModule = Math.floor((nodeId - 1) % this.modSize);
+    this.connectColModules2 = function (x, y, z) {
+        for (let j = 0; j < 2; j++) {
+            for (let k = 0; k < 2; k++) {
+                this.connect(new QbDescr(x, y, z, 0, j, k), new QbDescr(x + 1, y, z, 0, j, k), getRandom(-0.5, 0.5));//0.0 );          
+            }
+        }
+    };
 
-        var moduleRow = Math.floor(moduleId / this.rows) - (this.rows / 2);
-        var moduleCol = Math.floor(moduleId % this.cols) - (this.cols / 2);
 
-        var newPos = new BABYLON.Vector3(this.mX[moduleRow], this.mY[moduleRow], this.mZ[moduleCol]);
-        //var newPos = new BABYLON.Vector3( this.mmX(moduleRow), this.mmY(moduleRow), this.mmZ(moduleCol) );
-
-        let off = this.getNodeOffset(nodeIdInModule);
-        newPos.addInPlace(off);
-
+    this.modulePosition = function( x, y, z ) {
+        let d = 50.0;
+        let mX = (d * ( ( this.cols - 1 ) / 2.0 ))-(d * x);
+        let mY = (d * y) - (d * ( ( this.rows - 1 ) / 2.0 ));
+        let mZ = ( d * z ) - (d*((this.layers - 1) / 2.0));
+        return new BABYLON.Vector3(mX, mZ, mY);
+    };
+    
+    this.calcPosition2 = function (x, y, z, n0) {
+        let newPos = this.modulePosition(x, y, z);
+        newPos.addInPlace(this.getNodeOffset2(n0));
         return newPos;
     };
 
-    this.getNodeOffset = function (nodeId) {
+    this.calcPosition = function (nodeId) {
+        let qd = QbDescr.fromNodeId(nodeId, this.rows, this.cols);
+        return this.calcPosition2(qd.x, qd.y, qd.z, qd.n0());
+    };
+
+    this.createModule2 = function (x, y, z) {
+        let moduleId = x + (y + z * this.rows) * this.cols;
+
+        let offset = 8 * moduleId;
+
+        // MODULE NODES
+        for (let n = 0; n < this.KL; n++) {
+            this.addNode(offset + n + 1, this.calcPosition2(x, y, z, n), NaN);
+        }
+        for (let n = 4; n < this.KR + 4; n++) {
+            this.addNode(offset + n + 1, this.calcPosition2(x, y, z, n), NaN);
+        }
+
+        // INTERNAL MODULE EDGES
+        for (let x = 0; x < this.KL; x++)
+            for (let y = 0; y < this.KR; y++) {
+                this.addEdge(offset + x + 1, offset + 4 + y + 1, getRandom(-0.5, 0.5));//0.0 );        
+            }
+    };
+
+
+
+    this.getNodeOffset2 = function (idx) {
         let nodeOffset = {
-            'classic': [new BABYLON.Vector3(15, -3, -10),
+            'classic': [
+                new BABYLON.Vector3(15, -3, -10),
                 new BABYLON.Vector3(5, -1, -10),
                 new BABYLON.Vector3(-5, 1, -10),
                 new BABYLON.Vector3(-15, 3, -10),
@@ -1151,7 +1296,8 @@ var Chimera = /** @class */ (function () {
                 new BABYLON.Vector3(-5, -1, 10),
                 new BABYLON.Vector3(-15, -3, 10)],
 
-            'diamond': [new BABYLON.Vector3(0, -3, 9),
+            'diamond': [
+                new BABYLON.Vector3(0, -3, 9),
                 new BABYLON.Vector3(0, -1, 3),
                 new BABYLON.Vector3(0, 1, -3),
                 new BABYLON.Vector3(0, 3, -9),
@@ -1160,7 +1306,8 @@ var Chimera = /** @class */ (function () {
                 new BABYLON.Vector3(-3, -1, 0),
                 new BABYLON.Vector3(-9, -3, 0)],
 
-            'triangle': [new BABYLON.Vector3(-15, -3, 9),
+            'triangle': [
+                new BABYLON.Vector3(-15, -3, 9),
                 new BABYLON.Vector3(-15, -1, 3),
                 new BABYLON.Vector3(-15, 1, -3),
                 new BABYLON.Vector3(-15, 3, -9),
@@ -1170,38 +1317,39 @@ var Chimera = /** @class */ (function () {
                 new BABYLON.Vector3(-9, -3, 15)]
         };
 
-        let idx = nodeId;
 
-        if (idx >= this.KL) {
-            idx -= this.KL;
-            idx += 4;
-        }
         return nodeOffset[sgv.displayMode][idx];
     };
 
+
     this.createDefaultStructure = function () {
-        //const start = performance.now();
-        for (let m = 0; m < this.nbModules; m++) {
-            this.createModule(m);
+        for (let z = 0; z < this.layers; z++) {
+            for (let y = 0; y < this.rows; y++) {
+                for (let x = 0; x < this.cols; x++) {
+                    this.createModule2(x, y, z);
+                }
+            }
         }
-        //const end = performance.now();
-        //console.log(end - start);
 
-        for (let x = 0; x < this.nbModules; x += this.rows)
-            for (let y = 1; y < this.rows; y++) {
-                this.connectRowModules(x + (y - 1), x + y);
+        for (let z = 0; z < this.layers; z++) {
+            for (let y = 0; y < (this.rows - 1); y++) {
+                for (let x = 0; x < this.cols; x++) {
+                    this.connectRowModules2(x, y, z);
+                }
             }
+        }
 
-
-        for (let y = 0; y < this.rows; y++)
-            for (let x = this.rows; x < this.nbModules; x += this.rows) {
-                this.connectColModules((x - this.rows) + y, x + y);
+        for (let z = 0; z < this.layers; z++) {
+            for (let y = 0; y < this.rows; y++) {
+                for (let x = 0; x < (this.cols - 1); x++) {
+                    this.connectColModules2(x, y, z);
+                }
             }
+        }
 
-
-        //console.log(this);
         this.showLabels(true);
     };
+
 
     this.createStructureFromDef = function (def) {
         for (let i = 0; i < def.length; i++) {
@@ -1209,62 +1357,26 @@ var Chimera = /** @class */ (function () {
                 let nodeId = def[i].n1;
 
                 this.addNode(nodeId, this.calcPosition(nodeId), def[i].val);
+                this.nodes[nodeId].showLabel(false);
             } else {
                 let n1 = def[i].n1;
                 let n2 = def[i].n2;
                 this.addEdge(n1, n2, def[i].val);
                 this.edges["" + def[i].n1 + "," + def[i].n2].setValue(def[i].val, 'default');
-                //let strId = "" + n1 + "," + n2;
-                //edges[strId].setValue(  );
             }
         }
-        //console.log(nodes);
     };
 
-    this.createStructureFromDef2 = function (def) {
-        for (let i = 0; i < def.length; i++) {
-            if (def[i].n1 === def[i].n2) {
-                let nodeId = def[i].n1;
-
-                this.addNode(nodeId, this.calcPosition(nodeId), 0.0);
-
-                for (const key in def[i].values) {
-                    this.nodes[nodeId].setValue(def[i].values[key], key);
-                }
-                this.nodes[nodeId].displayValue('default');
-                
-            } else {
-                let n1 = def[i].n1;
-                let n2 = def[i].n2;
-                this.addEdge(n1, n2);
-         
-                var strId = "" + n1 + "," + n2;
-                if (n2 < n1) {
-                    strId = "" + n2 + "," + n1;
-                }
-
-                for (const key in def[i].values) {
-                    this.edges[strId].setValue(def[i].values[key], key);
-                }
-                
-                this.edges[strId].displayValue('default');
-            }
-        }
-        //console.log(this.edges);
-        //console.log(nodes);
-    };
-
-
-    this.setSize = function(c, r, kl, kr) {
+    this.setSize = function(c, r, kl, kr, lay) {
         this.cols = c;
         this.rows = r;
         this.KL = kl;
         this.KR = kr;
-
-        this.nbModules = this.cols * this.rows;
-        this.modSize = this.KL + this.KR;
-
-        this.size = this.nbModules * this.modSize;
+        if (typeof lay!=='undefined') {
+            this.layers = lay;
+        } else {
+            this.layers = 1;
+        }
     };
 });
 
@@ -1273,14 +1385,7 @@ Chimera.prototype.constructor = Chimera;
 
 Chimera.createNewGraph = function (size) {
     var g = new Chimera();
-    g.cols = size.cols;
-    g.rows = size.rows;
-    g.KL = size.KL;
-    g.KR = size.KR;
-    g.nbModules = g.cols * g.rows;
-    g.modSize = g.KL + g.KR;
-    g.size = g.nbModules * g.modSize;
-    //g.createDefaultStructure();
+    g.setSize(size.cols, size.rows, size.KL, size.KR);
     return g;
 };
 
@@ -1302,83 +1407,12 @@ Chimera.createNewGraph = function (size) {
  */
 
 "use strict";
-/* global BABYLON, sgv, Graph */
-
-const qD = function (x, y, z, i, j, k) {
-    return new QbDescr(x, y, z, i, j, k);
-};
-
-
-const QbDescr = /** @class */ (function (x, y, z, i, j, k) {
-    this.x = x;
-    this.y = y;
-    this.z = z;
-    this.i = i;
-    this.j = j;
-    this.k = k;
-
-    this.n0 = function () {
-        return (((this.i << 1) + this.j) << 1) + this.k;
-    };
-    this.n1 = function () {
-        return (((this.i << 1) + this.j) << 1) + this.k + 1;
-    };
-    this.toNodeId = function (rows, cols) {
-        return 8 * (this.x + (this.y + this.z * rows) * cols) + this.n1();
-    };
-
-});
-
-QbDescr.fromNodeId = function (nodeIdA, rows, cols) {
-    let nodeId = nodeIdA - 1;
-
-    let n = nodeId % 8;
-
-    let k = n % 2;
-    let j = (n >> 1) % 2;
-    let i = (n >> 2) % 2;
-
-    let modId = nodeId >> 3;
-
-    let layerSize = cols * rows;
-    let currentLayer = Math.floor(modId / layerSize);
-    let modIdInLayer = modId % layerSize;
-    let currentRow = Math.floor(modIdInLayer / cols);
-    let currentCol = modIdInLayer % cols;
-    return new QbDescr(currentCol, currentRow, currentLayer, i, j, k);
-};
-
-
+/* global BABYLON, sgv, Graph, QbDescr */
 
 var Pegasus = /** @class */ (function () {
-    Graph.call(this);
+    Chimera.call(this);
 
     this.type = 'pegasus';
-
-    this.modSize;
-    this.nbModules;
-    this.cols;
-    this.rows;
-    this.KL;
-    this.KR;
-    this.layers;
-
-    this.setSize = function (c, r, kl, kr) {
-        this.cols = c;
-        this.rows = r;
-        this.KL = kl;
-        this.KR = kr;
-        this.layers = 3;
-
-        this.nbModules = this.cols * this.rows * this.layers;
-        this.modSize = this.KL + this.KR;
-
-        this.size = this.nbModules * this.modSize;
-    };
-
-    this.maxNodeId = function () {
-        return this.cols * this.rows * 8;
-    };
 
     this.createDefaultStructure = function () {
         for (let z = 0; z < this.layers; z++) {
@@ -1389,7 +1423,6 @@ var Pegasus = /** @class */ (function () {
             }
         }
 
-
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < (this.rows - 1); y++) {
                 for (let x = 0; x < this.cols; x++) {
@@ -1397,7 +1430,6 @@ var Pegasus = /** @class */ (function () {
                 }
             }
         }
-
 
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < this.rows; y++) {
@@ -1417,17 +1449,6 @@ var Pegasus = /** @class */ (function () {
 
         this.showLabels(true);
     };
-
-
-
-    this.connect = function (qdA, qdB, value) {
-        let idA = qdA.toNodeId(this.rows, this.cols);
-        let idB = qdB.toNodeId(this.rows, this.cols);
-
-        if ((idA in this.nodes) && (idB in this.nodes))
-            this.addEdge(idA, idB, value);
-    };
-
 
 
     this.connectEvenMoreIdioticPegasusEdges = function (x, y, z) {
@@ -1466,36 +1487,6 @@ var Pegasus = /** @class */ (function () {
     };
 
 
-    this.connectRowModules2 = function (x, y, z) {
-        for (let j = 0; j < 2; j++) {
-            for (let k = 0; k < 2; k++) {
-                this.connect(new QbDescr(x, y, z, 1, j, k), new QbDescr(x, y + 1, z, 1, j, k), getRandom(-0.5, 0.5));//0.0 );          
-            }
-        }
-    };
-
-
-//    connectRowModules(module1id, module2id) {
-//        for (let i=(this.KL+1); i<=this.modSize; i++) {
-//            this.addEdge(this.modSize*module1id + i, this.modSize*module2id + i, 0.0);
-//        }
-//    }
-
-    this.connectColModules2 = function (x, y, z) {
-        for (let j = 0; j < 2; j++) {
-            for (let k = 0; k < 2; k++) {
-                this.connect(new QbDescr(x, y, z, 0, j, k), new QbDescr(x + 1, y, z, 0, j, k), getRandom(-0.5, 0.5));//0.0 );          
-            }
-        }
-    };
-
-//    connectColModules(module1id, module2id) {
-//        for (let i=1; i<=this.KL; i++) {
-//            this.addEdge(this.modSize*module1id + i, this.modSize*module2id + i, 0.0);
-//        }
-//    }
-
-
     this.connectInternalPegasusEdges = function (x, y, z) {
         let moduleId = x + (y + z * this.rows) * this.cols;
 
@@ -1518,212 +1509,6 @@ var Pegasus = /** @class */ (function () {
             }
         }
     };
-
-    this.createModule2 = function (x, y, z) {
-        let moduleId = x + (y + z * this.rows) * this.cols;
-
-        let offset = 8 * moduleId;
-
-        // MODULE NODES
-        for (let n = 0; n < this.KL; n++) {
-            this.addNode(offset + n + 1, this.calcPosition2(x, y, z, n), getRandom(-1.0, 1.0));//0.0 );
-        }
-        for (let n = 4; n < this.KR + 4; n++) {
-            this.addNode(offset + n + 1, this.calcPosition2(x, y, z, n), getRandom(-1.0, 1.0));//0.0 );
-        }
-
-        // INTERNAL MODULE EDGES
-        for (let x = 0; x < this.KL; x++)
-            for (let y = 0; y < this.KR; y++) {
-                this.addEdge(offset + x + 1, offset + 4 + y + 1, getRandom(-0.5, 0.5));//0.0 );        
-            }
-
-        this.connectInternalPegasusEdges(x, y, z);
-    };
-
-
-
-    this.mX = {
-        '-8': 375,
-        '-7': 325,
-        '-6': 275,
-        '-5': 225,
-        '-4': 175,
-        '-3': 125,
-        '-2': 75,
-        '-1': 25,
-        '0': -25,
-        '1': -75,
-        '2': -125,
-        '3': -175,
-        '4': -225,
-        '5': -275,
-        '6': -325,
-        '7': -375
-    };
-
-    this.mmX = function (i) {
-        return -25 - 50 * i;
-    };
-
-    this.mY = {
-        '-8': 75,
-        '-7': 65,
-        '-6': 55,
-        '-5': 45,
-        '-4': 35,
-        '-3': 25,
-        '-2': 15,
-        '-1': 5,
-        '0': -5,
-        '1': -15,
-        '2': -25,
-        '3': -35,
-        '4': -45,
-        '5': -55,
-        '6': -65,
-        '7': -75
-    };
-
-    this.mmY = function (i) {
-        return -5 - 10 * i;
-    };
-
-    this.mZ = {
-        '-8': -375,
-        '-7': -325,
-        '-6': -275,
-        '-5': -225,
-        '-4': -175,
-        '-3': -125,
-        '-2': -75,
-        '-1': -25,
-        '0': 25,
-        '1': 75,
-        '2': 125,
-        '3': 175,
-        '4': 225,
-        '5': 275,
-        '6': 325,
-        '7': 375
-    };
-
-    this.mmZ = function (i) {
-        return 25 + 50 * i;
-    };
-
-
-
-    this.getNodeOffset = function (nodeId) {
-        //console.log(nodeId);
-
-        let nodeOffset = [
-            new BABYLON.Vector3(15, -3, -10),
-            new BABYLON.Vector3(5, -1, -10),
-            new BABYLON.Vector3(-5, 1, -10),
-            new BABYLON.Vector3(-15, 3, -10),
-            new BABYLON.Vector3(15, 3, 10),
-            new BABYLON.Vector3(5, 1, 10),
-            new BABYLON.Vector3(-5, -1, 10),
-            new BABYLON.Vector3(-15, -3, 10)
-        ];
-
-        let idx = nodeId;
-        if (idx < this.KL) {
-            return nodeOffset[idx];
-        } else {
-            idx -= this.KL;
-            idx += 4;
-            return nodeOffset[idx];
-        }
-    };
-
-    this.getNodeOffset2 = function (idx) {
-        //console.log(nodeId);
-
-//        let nodeOffset = [
-//            new BABYLON.Vector3(  15, -3, -10),
-//            new BABYLON.Vector3(   5, -1, -10),
-//            new BABYLON.Vector3(  -5,  1, -10),
-//            new BABYLON.Vector3( -15,  3, -10),
-//            new BABYLON.Vector3(  15,  3,  10),
-//            new BABYLON.Vector3(   5,  1,  10),
-//            new BABYLON.Vector3(  -5, -1,  10),
-//            new BABYLON.Vector3( -15, -3,  10)
-//        ];
-
-        let nodeOffset = {
-            'classic': [new BABYLON.Vector3(15, -3, -10),
-                new BABYLON.Vector3(5, -1, -10),
-                new BABYLON.Vector3(-5, 1, -10),
-                new BABYLON.Vector3(-15, 3, -10),
-                new BABYLON.Vector3(15, 3, 10),
-                new BABYLON.Vector3(5, 1, 10),
-                new BABYLON.Vector3(-5, -1, 10),
-                new BABYLON.Vector3(-15, -3, 10)],
-
-            'diamond': [new BABYLON.Vector3(0, -3, 9),
-                new BABYLON.Vector3(0, -1, 3),
-                new BABYLON.Vector3(0, 1, -3),
-                new BABYLON.Vector3(0, 3, -9),
-                new BABYLON.Vector3(9, 3, 0),
-                new BABYLON.Vector3(3, 1, 0),
-                new BABYLON.Vector3(-3, -1, 0),
-                new BABYLON.Vector3(-9, -3, 0)],
-
-            'triangle': [new BABYLON.Vector3(-15, -3, 9),
-                new BABYLON.Vector3(-15, -1, 3),
-                new BABYLON.Vector3(-15, 1, -3),
-                new BABYLON.Vector3(-15, 3, -9),
-                new BABYLON.Vector3(9, 3, 15),
-                new BABYLON.Vector3(3, 1, 15),
-                new BABYLON.Vector3(-3, -1, 15),
-                new BABYLON.Vector3(-9, -3, 15)]
-        };
-
-
-        return nodeOffset[sgv.displayMode][idx];
-    };
-
-
-    this.calcPosition = function (nodeId) {
-        let qd = QbDescr.fromNodeId(nodeId, this.rows, this.cols);
-
-        return this.calcPosition2(qd.x, qd.y, qd.z, qd.n0());
-    };
-
-
-    this.calcPosition2 = function (x, y, z, n) {
-        var newPos = new BABYLON.Vector3(this.mmX(x), this.mmY(x), this.mmZ(y));
-
-        newPos.addInPlace(new BABYLON.Vector3(0.0, 40.0 * z, 0.0));
-
-        //console.log(n);
-        newPos.addInPlace(this.getNodeOffset2(n));
-
-        return newPos;
-    };
-
-
-
-    this.createStructureFromDef = function (def) {
-        for (let i = 0; i < def.length; i++) {
-            if (def[i].n1 === def[i].n2) {
-                let nodeId = def[i].n1;
-
-                let qb = QbDescr.fromNodeId(nodeId, this.rows, this.cols);
-                this.addNode(nodeId, this.calcPosition2(qb.x, qb.y, qb.z, qb.n0()), def[i].val);
-            } else {
-                let n1 = def[i].n1;
-                let n2 = def[i].n2;
-                this.addEdge(n1, n2, def[i].val);
-                //let strId = "" + n1 + "," + n2;
-                //this.edges[strId].setValue(  );
-            }
-        }
-        //console.log(this.nodes);
-    };
-
 });
 
 Pegasus.prototype = Object.create(Pegasus.prototype);
@@ -1731,168 +1516,39 @@ Pegasus.prototype.constructor = Pegasus;
 
 Pegasus.createNewGraph = function (size) {
     var g = new Pegasus();
-
-    g.cols = size.cols;
-    g.rows = size.rows;
-    g.KL = size.KL;
-    g.KR = size.KR;
-
-    g.layers = 3;
-
-    g.nbModules = g.cols * g.rows * g.layers;
-
-    g.modSize = g.KL + g.KR;
-
-    g.size = g.nbModules * g.modSize;
-
-    //g.createDefaultStructure();
-
+    if (typeof size.lays!=='undefined') {
+        g.setSize(size.cols, size.rows, size.KL, size.KR, size.lays);
+    } else {
+        g.setSize(size.cols, size.rows, size.KL, size.KR);
+    }
     return g;
 };
-
-/* 
- * Copyright 2022 Dariusz Pojda.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 
 /* global sgv */
 
 var UI = (function () {
     
+//    this.graphCreateBtn = UI.createTransparentBtn('CREATE','sgvGraphCreateBtn',()=>{
+//        sgv.dlgCreateGraph.show();
+//    });
+//
+//    this.graphCreateBtn = UI.createTransparentBtn('LOAD','sgvGraphLoadBtn',()=>{
+//        sgv.dlgCreateGraph.showLoad();
+//    });
     
-    this.panelSwitch = UI.createPanelSwitch();
-    this.panelSwitch.addEventListener('click', function () {
-        sgv.controlPanel.switchPanel();
-    });
+//    this.panelSwitch = UI.createPanelSwitch();
+//    this.panelSwitch.addEventListener('click', function () {
+//        sgv.dlgCPL.switchPanel();
+//    });
+
     this.consoleSwitch = UI.createConsoleSwitch();
     this.consoleSwitch.addEventListener('click', function () {
-        sgv.console.switchConsole();
+        sgv.dlgConsole.switchConsole();
     });
     this.dispModeSwitch = UI.createDispModeSwitch();
     this.dispModeSwitch.addEventListener('click', function () {
         sgv.switchDisplayMode();
     });
-
-    this.nodeProperties = UI.createNodeProperties();
-    this.nodeProperties.querySelector(".hidebutton").addEventListener('click', function () {
-        sgv.cancelN();
-    });
-    this.nodeProperties.querySelector("#nsSelectN").addEventListener('change', function () {
-        sgv.changeScopeN();
-    });
-    this.nodeProperties.querySelector("#valueCheckN").addEventListener('click', function () {
-        sgv.activateN();
-    });
-    this.nodeProperties.querySelector("#setN").addEventListener('click', function () {
-        sgv.edycjaN();
-    });
-    this.nodeProperties.querySelector("#connectN").addEventListener('click', function () {
-        sgv.connectNodes();
-    });
-    this.nodeProperties.querySelector("#connectSelectN").addEventListener('click', function () {
-        sgv.connectSelectN();
-    });
-    this.nodeProperties.querySelector(".delbutton").addEventListener('click', function () {
-        sgv.usunN();
-    });
-
-
-    this.edgeProperties = UI.createEdgeProperties();
-    this.edgeProperties.querySelector(".hidebutton").addEventListener('click', function () {
-        sgv.cancelE();
-    });
-    this.edgeProperties.querySelector("#valueCheckE").addEventListener('click', function () {
-        sgv.activateE();
-    });
-    this.edgeProperties.querySelector("#setE").addEventListener('click', function () {
-        sgv.edycjaE();
-    });
-    this.edgeProperties.querySelector(".delbutton").addEventListener('click', function () {
-        sgv.usunE();
-    });
-
-    this.missingNodes = UI.createMissing('sgvMissingNodes');
-    this.missingNodes.querySelector(".delbutton").addEventListener('click', function () {
-        sgv.delMissing();
-    });
-
-    //this.wykresy = UI.createGraphs('wykresy');
-    
-    
-    this.oknoN = {
-        show : function (nodeId, x, y) {
-            var xOffset = sgv.canvas.clientLeft;
-
-            sgv.ui.nodeProperties.querySelector(".titleText").textContent = "Node q" + nodeId;
-            sgv.ui.nodeProperties.querySelector("#nodeId").value = nodeId;
-
-
-            let nss = sgv.ui.nodeProperties.querySelector("#nsSelectN");
-
-            var length = nss.options.length;
-            for (let i = length - 1; i >= 0; i--) {
-                nss.options[i] = null;
-            }
-
-            for (const key in sgv.graf.scopeOfValues) {
-                var opt = document.createElement('option');
-                opt.value = key;
-                opt.innerHTML = sgv.graf.scopeOfValues[key];
-                if ( sgv.graf.currentScope === sgv.graf.scopeOfValues[key]) {
-                    opt.selected = "selected";
-                }
-                nss.appendChild(opt);
-            }
-
-
-
-            let currentValue = sgv.graf.nodeValue(nodeId);
-            if ((currentValue===null)||isNaN(currentValue)) {
-                sgv.ui.nodeProperties.querySelector("#valueCheckN").checked = "";
-                sgv.ui.nodeProperties.querySelector("#wagaN").value = null;
-                sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "disabled";
-                sgv.ui.nodeProperties.querySelector("#setN").disabled = "disabled";
-            } else {
-                sgv.ui.nodeProperties.querySelector("#valueCheckN").checked = "checked";
-                sgv.ui.nodeProperties.querySelector("#wagaN").value = currentValue;
-                sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "";
-                sgv.ui.nodeProperties.querySelector("#setN").disabled = "";
-            }
-
-            let select = sgv.ui.nodeProperties.querySelector("#destN");
-
-            var length = select.options.length;
-            for (let i = length - 1; i >= 0; i--) {
-                select.options[i] = null;
-            }
-
-            for (const key in sgv.graf.nodes) {
-                //console.log(nodeId, key);
-                if (key.toString() !== nodeId.toString()) {
-                    var opt = document.createElement('option');
-                    opt.value = key;
-                    opt.innerHTML = "q" + key;
-                    select.appendChild(opt);
-                }
-            }
-
-            sgv.ui.nodeProperties.style.top = y + "px";
-            sgv.ui.nodeProperties.style.left = (xOffset + x) + "px";
-            sgv.ui.nodeProperties.style.display = "block";
-        }
-    };
-    
 });
 
 UI.tag = function(_tag, _attrs, _props ) {
@@ -1913,6 +1569,23 @@ UI.span = function(_text, _attrs) {
     return UI.tag("span", _attrs, {'textContent': _text} );
 };
 
+UI.selectByKey = function(_select, _key) {
+    let i = UI.findOption(_select, _key.toString());
+    if ( i>-1 ) {
+        _select.selectedIndex = i;
+        return true;
+    }
+    return false;
+};
+
+UI.clearSelect = function(_select,_deleteFirst) {
+    const first = _deleteFirst?0:1;
+    for(var i=first; i<_select.options.length; i++) {
+        _select.removeChild(_select.options[i]);
+        i--; // options have now less element, then decrease i
+    }
+};
+
 UI.findOption = function(_select,_value) {
     for (var i= 0; i<_select.options.length; i++) {
         if (_select.options[i].value===_value) {
@@ -1922,10 +1595,14 @@ UI.findOption = function(_select,_value) {
     return -1;
 };
 
-UI.option = function(_value, _text) {
+UI.option = function(_value, _text, _selected) {
     var o = document.createElement("option");
     o.value = _value;
     o.text = _text;
+    
+    if (typeof _selected!=='undefined')
+        o.selected = _selected?'selected':'';
+    
     return o;
 };
 
@@ -1944,10 +1621,10 @@ UI.newInput = function (_type, _value, _class, _id) {
     var o = document.createElement("input");
     o.setAttribute("type", _type);
     o.value = _value;
-    if ((_class !== undefined) && (_class !== "")) {
+    if ((typeof _class !== 'undefined') && (_class !== "")) {
         o.setAttribute("class", _class);
     }
-    if ((_id !== undefined) && (_id !== "")) {
+    if ((typeof _id !== 'undefined') && (_id !== "")) {
         o.setAttribute("id", _id);
     }
     return o;
@@ -1973,79 +1650,58 @@ UI.createTitlebar = function (title, closebuttonVisible) {
 UI.createEmptyWindow = function (_class, _id, _title, _closebuttonVisible ) {//, _createContentDIV, _hiddenInput) {
     var o = document.createElement("div");
     
-    if ((_class !== undefined) && (_class !== "")) {
+    if ((typeof _class !== 'undefined') && (_class !== "")) {
         o.setAttribute("class", _class);
     }
-    if ((_id !== undefined) && (_id !== "")) {
+    if ((typeof _id !== 'undefined') && (_id !== "")) {
         o.setAttribute("id", _id);
     }
 
     let t = UI.createTitlebar(_title, _closebuttonVisible);
+
+    
+    o.offset = {x:0,y:0};
+    o.isDown = false;
+    
+    t.addEventListener('mouseover', function() {
+        t.style.cursor='pointer';
+        movable = true;
+    });
+
+    t.addEventListener('mouseout', function() {
+        movable = false;
+    });
+
+    t.addEventListener('mousedown', function (e) {
+        o.isDown = movable;
+        o.offset = {
+            x: o.offsetLeft - e.clientX,
+            y: o.offsetTop - e.clientY
+        };
+    }, true);
+
+    t.addEventListener('mouseup', function () {
+        o.isDown = false;
+    }, true);
+
+    document.addEventListener('mousemove', function (event) {
+        event.preventDefault();
+        if (o.isDown) {
+            let mousePosition = {
+                x: event.clientX,
+                y: event.clientY
+            };
+
+            o.style.left = (mousePosition.x + o.offset.x) + 'px';
+            o.style.top = (mousePosition.y + o.offset.y) + 'px';
+        }
+    }, true);
+    
     o.appendChild(t);
     
     return o;
 };
 
-
-UI.createNodeProperties = function () {
-    var o = UI.createEmptyWindow("sgvUIwindow", "sgvNodeProperties", "Node: q1", true);
-
-    o.appendChild(UI.newInput("hidden", "0", "", "nodeId"));
-
-    var d = document.createElement("div");
-    d.setAttribute("class", "content");
-
-    var nss = document.createElement("select");
-    nss.setAttribute("id", "nsSelectN");
-//    for (const n in sgv.graf.scopeOfValues)
-//        nss.appendChild(UI.tag("option", { 'value': n } ) );
-    
-    d.innerHTML += 'Scope: ';
-    d.appendChild(nss);
-    d.appendChild(document.createElement("br"));
-    d.appendChild(UI.newInput("checkbox", "", "", "valueCheckN"));
-    d.appendChild(UI.newInput("number", "0", "", "wagaN"));
-    d.appendChild(UI.newInput("button", "set", "setvaluebutton", "setN"));
-    d.appendChild(document.createElement("br"));
-    d.appendChild(UI.newInput("button", "connect to...", "", "connectN"));
-
-    var s = document.createElement("select");
-    s.setAttribute("id", "destN");
-
-    d.appendChild(s);
-
-    d.appendChild(UI.newInput("button", "^", "", "connectSelectN"));
-    d.appendChild(document.createElement("br"));
-    d.appendChild(UI.newInput("button", "delete", "delbutton", ""));
-
-    o.appendChild(d);
-
-    document.body.appendChild(o);
-    return o;
-};
-
-UI.createEdgeProperties = function () {
-    var o = UI.createEmptyWindow("sgvUIwindow", "sgvEdgeProperties", "Edge: q1 &lt;---&gt; q2", true);
-
-    o.innerHTML += '<input id="edgeId" type="hidden" value="0"> \
-        <div class="content"> \
-            <input type="checkbox" value="" id="valueCheckE"><input id="wagaE" type="number" value="0"><input class="setvaluebutton" id="setE" type="button" value="set"> \
-            <br/><input class="delbutton" type="button" value="delete"> \
-        </div>';
-    document.body.appendChild(o);
-    return o;
-};
-
-UI.createMissing = function (id) {
-    var o = UI.createEmptyWindow("sgvUIwindow", id, "removed nodes", false);
-
-    o.innerHTML += '<div class="content"><div id="misN"></div> \
-        <input class="delbutton" type="button" value="clear history"> \
-        </div>';
-
-    document.body.appendChild(o);
-    return o;
-};
 
 UI.createGraphs = function (id) {
     var o = UI.createEmptyWindow("sgvUIwindow", id, "graphs", false);
@@ -2056,83 +1712,6 @@ UI.createGraphs = function (id) {
     return o;
 };
 
-UI.createConsole = function (id) {
-    var o = UI.createEmptyWindow("sgvUIwindow", id, "console", true);
-
-    o.innerHTML += '<div class="content"> \
-            <textarea id="consoleHistory" readonly></textarea> \
-            <input type="text" id="commandline"> \
-        </div> \
-        <div style="background-color:blue;height:5px;width:15px;float:right"></div><div style="background-color:green;height:5px;width:15px;float:left"></div><div style="background-color:red;height:5px;width:auto"></div>';
-    document.body.appendChild(o);
-    return o;
-};
-
-UI.createControlPanel = function (id) {
-    divSel = function () {
-        var divSel = UI.tag( "div", { "class": "content", "id": "graphSelection" });
-        divSel.style.display = "block";
-        divSel.innerHTML = '<div>graph: <select id="graphType"><option value="chimera">chimera</option><option value="pegasus">pegasus</option></select> \
-            size: <select id="graphCols"><option selected="selected" value="4">4</option><option value="8">8</option><option value="12">12</option><option value="16">16</option></select> \
-            x <select id="graphRows"><option selected="selected" value="4">4</option><option value="8">8</option><option value="12">12</option><option value="16">16</option></select> \
-            K <select id="graphKL"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option selected="selected" value="4">4</option></select> \
-            , <select id="graphKR"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option selected="selected" value="4">4</option></select> \
-            </div><div><input class="" id="cplCreateButton" name="createButton" type="button" value="Create default"></div> \
-            <div>Read from .txt file: <input id="inputfile" type="file"></div>';
-        return divSel;
-    };
-
-    divDesc = function () {
-        var divDesc = UI.tag("div", {"class": "content", "id": "graphDescription"});
- 
-        divDesc.innerHTML = "Current graph type: ";
-        divDesc.appendChild( UI.span("unknown", {'id':"dscr_type"}) );
-
-        divDesc.innerHTML += ', size: <span id="dscr_cols">0</span>x<span id="dscr_rows">0</span>xK<sub><span id="dscr_KL">0</span>,<span id="dscr_KR">0</span></sub><br/> \
-                Number of nodes: <span id="dscr_nbNodes">0</span>, number of edges: <span id="dscr_nbEdges">0</span>';
-      
-        
-        let divNS = UI.tag( "div", {'class': "sgvD1", 'id': "cplDivNS" }, {'textContent': "add new scope: "} );
-        divNS.appendChild( UI.tag("input", { 'type': "button", 'class': "sgvC", 'id': "cplSkipAddScope", 'value': "<" } ) );
-        divNS.appendChild( UI.tag("input", { 'type': "text", 'id': "cplAddScopeInput", 'value': "newScope" } ) );
-        divNS.appendChild( UI.tag("input", { 'type': "button", 'class': "sgvC", 'id': "cplAcceptAddScope",'value': "+" } ) );
-        divNS.style.display = "none";
-        
-        let scopeSelect = UI.tag( "select", {'id': "cplDispValues" } );
-        scopeSelect.add( UI.option( "default", "default" ) );
-        scopeSelect.add( UI.option( "losowe", "losowe" ) );
-        scopeSelect.add( UI.option( "losowe2", "losowe2" ) );
-
-        let divDS = UI.tag( "div", {'class': "sgvD1", 'id': "cplDivDS" }, {'textContent': "current scope: "} );
-        divDS.appendChild(scopeSelect);
-        divDS.appendChild( UI.tag("input", { 'type': "button", 'class': "sgvC", 'id': "cplAddScope", 'value': "+" } ) );
-        divDS.appendChild( UI.tag("input", { 'type': "button", 'class': "sgvC", 'id': "cplDelScope", 'value': "-" } ) );
-
-        let scope = UI.tag( "div", {'class': "sgvSelectBox", 'id': "cplScope" } );
-        scope.appendChild(divNS);
-        scope.appendChild(divDS);
-        
-        divDesc.appendChild(scope);
-        
-        divDesc.appendChild( UI.tag("input", { 'class': "actionbutton", 'id': "cplSaveButton", 'type': "button", 'value': "save to TXT" } ) );
-        divDesc.appendChild( UI.tag("input", { 'class': "actionbutton", 'id': "cplSaveGEXFButton", 'type': "button", 'value': "save to GEXF" } ) );
-        divDesc.appendChild( UI.tag("input", { 'class': "delbutton", 'id': "cplDeleteButton", 'type': "button", 'value': "clear workspace" } ) );
-
-        divDesc.appendChild( UI.tag("input", { 'class': "actionbutton", 'id': "cplElectronTestButton", 'type': "button", 'value': ">>> TEST <<<" } ) );
-
-        divDesc.style.display = "none";
-        return divDesc;
-    };
-
-    var o = UI.createEmptyWindow("sgvUIwindow", id, "control panel", true);
-
-    o.appendChild(divSel());
-    o.appendChild(divDesc());
-
-    document.body.appendChild(o);
-
-    return o;
-};
 
 UI.createPanelSwitch = function () {
     let btn = UI.newInput("button", "CPL", "sgvTransparentButton", "sgvPanelSwitch");
@@ -2155,6 +1734,451 @@ UI.createDispModeSwitch = function () {
             });
     document.body.appendChild(btn);
     return btn;
+};
+
+
+UI.createTransparentBtn = function (txt, id, onclick) {
+    let btn = UI.tag( "input", {
+                'type':     "button",
+                'value':    txt,
+                'class':    "sgvTransparentButton",
+                'id':       id
+            });
+    document.body.appendChild(btn);
+
+    if (typeof onclick === 'function'){
+        btn.addEventListener('click', function () {
+            onclick();
+        });
+    }
+
+    return btn;
+};
+
+
+/* 
+ * Copyright 2022 Dariusz Pojda.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/* global global, BABYLON, URL, Chimera, Pegasus, UI, parserGEXF */
+"use strict";
+
+var getRandom = function(min, max) {
+    return (min + (Math.random() * (max - min)));
+};
+
+var sgv = (typeof exports === "undefined") ? (function sgv() {}) : (exports);
+if (typeof global !== "undefined") {
+    global.sgv = sgv;
+}
+
+sgv.version = "0.1.0";
+sgv.engine = null;
+sgv.scene = null;
+sgv.camera = null;
+sgv.graf = null;
+sgv.displayMode = 'classic';
+
+sgv.createScene = function () {
+    function createCamera() {
+        sgv.camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(0, 0, 0), sgv.scene);
+        //camera.setPosition(new BABYLON.Vector3(10, 100, 200));
+        sgv.camera.setPosition(new BABYLON.Vector3(166, 150, 0));
+        sgv.camera.attachControl(sgv.canvas, true);
+
+        sgv.camera.inputs.attached.pointers.panningSensibility = 25;
+
+        sgv.camera.upperBetaLimit = (Math.PI / 2) * 0.99;
+        sgv.camera.inertia = 0.5;
+    };
+
+    function createLights() {
+        var light = new BABYLON.SpotLight("Spot0", new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(0, 0, 1), 1.8, 0.01, sgv.scene);
+        //light.diffuse = new BABYLON.Color3(1, 1, 1);
+        //light.specular = new BABYLON.Color3(1, 1, 1);
+
+        light.intensity = 0.75;
+        light.parent = sgv.camera;
+        light.position = new BABYLON.Vector3(0, 0, 0);
+        //light.radius = Math.PI;// / 2);
+    };
+
+    function createDefaultObjects() {
+//        function createMaterials() {
+//            sgv.grayMat0 = new BABYLON.StandardMaterial("grayMat0", sgv.scene);
+//            sgv.grayMat0.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+//            sgv.grayMat0.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
+//            sgv.grayMat0.emissiveColor = new BABYLON.Color3(0.5, 0.5, 0.5);
+//
+//            sgv.grayMat1 = new BABYLON.StandardMaterial("grayMat1", sgv.scene);
+//            sgv.grayMat1.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+//            sgv.grayMat1.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+//            sgv.grayMat1.emissiveColor = new BABYLON.Color3(0, 0, 0);
+//
+//
+//            sgv.redMat = new BABYLON.StandardMaterial("redMat", sgv.scene);
+//            sgv.redMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+//            sgv.redMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+//            sgv.redMat.emissiveColor = BABYLON.Color3.Red();
+//
+//            sgv.greenMat = new BABYLON.StandardMaterial("greenMat", sgv.scene);
+//            sgv.greenMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+//            sgv.greenMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+//            sgv.greenMat.emissiveColor = new BABYLON.Color3(0, 0.3, 0);
+//
+//            sgv.blueMat = new BABYLON.StandardMaterial("blueMat", sgv.scene);
+//            sgv.blueMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+//            sgv.blueMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+//            sgv.blueMat.emissiveColor = BABYLON.Color3.Blue();
+//
+//            sgv.purpleMat = new BABYLON.StandardMaterial("purpleMat", sgv.scene);
+//            sgv.purpleMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+//            sgv.purpleMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+//            sgv.purpleMat.emissiveColor = BABYLON.Color3.Purple();
+//
+//            sgv.groundMaterial = new BABYLON.StandardMaterial("ground", sgv.scene);
+//            sgv.groundMaterial.specularColor = BABYLON.Color3.Black();
+//        };
+//        createMaterials();
+
+        //sgv.defaultSphere = BABYLON.MeshBuilder.CreateBox("defaultSphere", {size: 3}, sgv.scene);
+        sgv.defaultSphere = BABYLON.MeshBuilder.CreateSphere("defaultSphere", {diameter: 3, segments: 8, updatable: true}, sgv.scene);
+        sgv.defaultSphere.material = new BABYLON.StandardMaterial("mat", sgv.scene);
+        sgv.defaultSphere.material.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+        sgv.defaultSphere.material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+        sgv.defaultSphere.material.emissiveColor = new BABYLON.Color4(1.0, 1.0, 0.0);
+        sgv.defaultSphere.setEnabled(false);
+    };
+    
+    
+    sgv.scene = new BABYLON.Scene(sgv.engine);
+
+    createCamera();
+    createLights();
+
+    createDefaultObjects();
+    
+    sgv.advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+    sgv.nodeToConnect = 0;
+
+    sgv.addEventsListeners();
+    
+    sgv.scene.clearColor = new BABYLON.Color3(0.7, 0.7, 0.7);
+};
+
+sgv.switchDisplayMode = function () {
+    if (sgv.displayMode === 'classic') {
+        sgv.displayMode = 'triangle';
+    } else if (sgv.displayMode === 'triangle') {
+        sgv.displayMode = 'diamond';
+    } else {
+        sgv.displayMode = 'classic';
+    }
+
+    if (sgv.graf !== null) {
+        sgv.graf.changeDisplayMode();
+    }
+};
+
+
+sgv.addEventsListeners = function () {
+    var startingPoint;
+    var currentMesh;
+    var ground = null;//BABYLON.MeshBuilder.CreateGround("ground", {width:10*graf.N+20, height:10*graf.N+20}, scene, false);
+    //ground.material = groundMaterial;
+
+    function getGroundPosition()
+    {
+        var pickinfo = sgv.scene.pick(sgv.scene.pointerX, sgv.scene.pointerY, function (mesh) {
+            return mesh === ground;
+        });
+        //var pickinfo = scene.pick(scene.pointerX, scene.pointerY, function (mesh) { return mesh != null; });
+        if (pickinfo.hit) {
+            return pickinfo.pickedPoint;
+        }
+
+        return null;
+    };
+
+    function pointerDblTap(mesh) {
+        var n2 = mesh.name.split(":");
+        if (n2[0] === "edge")
+        {
+            sgv.graf.edgeDoubleClicked(n2[1]);
+        }
+    };
+
+    function pointerDown(event) {
+        console.log("POINTER.DOWN");
+        currentMesh = event.pickInfo.pickedMesh;
+
+        startingPoint = getGroundPosition();
+        if (startingPoint)
+        { // we need to disconnect camera from canvas
+            setTimeout(function () {
+                sgv.camera.detachControl(sgv.canvas);
+            }, 0);
+        }
+    };
+
+    function onPointerUp() {
+        if (sgv.graf !== null) {
+            sgv.graf.showLabels(true);
+        }
+        if (startingPoint) {
+            sgv.camera.attachControl(sgv.canvas, true);
+            startingPoint = null;
+
+            return;
+        }
+    };
+
+    function onPointerMove() {
+        if (sgv.graf === null)
+            return;
+
+        //graf.updateNodeLabels();
+
+        if (!startingPoint) {
+            return;
+        }
+        var current = getGroundPosition();
+        if (!current) {
+            return;
+        }
+
+        var diff = current.subtract(startingPoint);
+
+        var n2 = currentMesh.name.split(":");
+        if (n2[0] === "node")
+        {
+            sgv.graf.moveNode(parseInt(n2[1], 10), diff);
+
+            startingPoint = current;
+        }
+    };
+
+
+    function onPointerTap(pointerInfo) {
+        function onLMBtap(pointerInfo) {
+            function onMeshPicked(mesh) {
+                console.log("mesh picked: " + mesh.name);
+                var n2 = mesh.name.split(":");
+                if (n2[0] === "edge") {
+                    //sgv.pokazOkienkoE(n2[1], sgv.scene.pointerX, sgv.scene.pointerY);
+                    sgv.dlgEdgeProperties.show(n2[1], sgv.scene.pointerX, sgv.scene.pointerY);
+                    
+                } else if (n2[0] === "node") {
+                    //sgv.pokazOkienkoN(parseInt(n2[1], 10), sgv.scene.pointerX, sgv.scene.pointerY);
+                    sgv.dlgNodeProperties.show(parseInt(n2[1], 10), sgv.scene.pointerX, sgv.scene.pointerY);
+                } else {
+                    //sgv.cancelE();
+                    sgv.dlgEdgeProperties.hide();
+                    sgv.dlgNodeProperties.hide();
+                }
+            }
+            ;
+
+            console.log("LEFT");
+            if (sgv.nodeToConnect !== 0) {
+                if (pointerInfo.pickInfo.hit) {
+                    var n2 = pointerInfo.pickInfo.pickedMesh.name.split(":");
+                    if (n2[0] === "node") {
+                        let strId1 = "" + sgv.nodeToConnect + "," + parseInt(n2[1], 10);
+                        let strId2 = "" + parseInt(n2[1], 10) + "," + sgv.nodeToConnect;
+                        if (!(strId1 in sgv.graf.edges) && !(strId2 in sgv.graf.edges))
+                            sgv.graf.addEdge(sgv.nodeToConnect, parseInt(n2[1], 10), 0.5);
+                        else
+                            console.log("edge already exists");
+                    }
+                }
+                sgv.nodeToConnect = 0;
+            } else {
+                if (pointerInfo.pickInfo.hit) {
+                    onMeshPicked(pointerInfo.pickInfo.pickedMesh);
+                } else {
+                    //sgv.cancelE();
+                    sgv.dlgEdgeProperties.hide();
+                    sgv.dlgNodeProperties.hide();
+                }
+            }
+        }
+
+        function onMMBtap(pointerInfo) {
+            console.log("MIDDLE");
+            if (pointerInfo.pickInfo.hit) {
+                var n2 = pointerInfo.pickInfo.pickedMesh.name.split(":");
+                if (n2[0] === "node") {
+                    if (sgv.nodeToConnect === 0) {
+                        sgv.nodeToConnect = parseInt(n2[1], 10);
+                    } else {
+                        let strId1 = "" + sgv.nodeToConnect + "," + parseInt(n2[1], 10);
+                        let strId2 = "" + parseInt(n2[1], 10) + "," + sgv.nodeToConnect;
+                        if (!(strId1 in sgv.graf.edges) && !(strId2 in sgv.graf.edges))
+                            sgv.graf.addEdge(sgv.nodeToConnect, parseInt(n2[1], 10), 0.5);
+                        else
+                            console.log("edge already exists");
+                        sgv.nodeToConnect = 0;
+                    }
+                }
+            }
+        }
+
+        function onRMBtap(pointerInfo) {
+            console.log("RIGHT");
+        }
+
+        switch (pointerInfo.event.button) {
+            case 0:
+                onLMBtap(pointerInfo);
+                break;
+            case 1:
+                onMMBtap(pointerInfo);
+                break;
+            case 2:
+                onRMBtap(pointerInfo);
+                break;
+        }
+    };
+
+    sgv.scene.onPointerObservable.add(function (pointerInfo) {
+        switch (pointerInfo.type) {
+            case BABYLON.PointerEventTypes.POINTERTAP:
+                onPointerTap(pointerInfo);
+                break;
+            case BABYLON.PointerEventTypes.POINTERDOUBLETAP:
+                if (pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh !== ground) {
+                    pointerDblTap(pointerInfo.pickInfo.pickedMesh);
+                }
+                break;
+            case BABYLON.PointerEventTypes.POINTERDOWN:
+                if (pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh !== ground) {
+                    pointerDown(pointerInfo);
+                }
+
+                if (sgv.graf !== null) {
+                    sgv.graf.showLabels(false);
+                }
+
+                break;
+            case BABYLON.PointerEventTypes.POINTERUP:
+                onPointerUp();
+                break;
+            case BABYLON.PointerEventTypes.POINTERMOVE:
+                onPointerMove();
+                break;
+        }
+    });
+};
+
+
+sgv.display = function(args) {
+    if ((typeof args === 'undefined') || (typeof args !== 'object')) {
+        args = {};
+    }
+
+    sgv.ui = new UI();
+
+
+    let targetDIV = null;
+    if ('target' in args) {
+        targetDIV = document.getElementById(args.target);
+    }
+
+    // no args.target or HTML element not exists
+    if (targetDIV === null) {
+        targetDIV = document.createElement("div");
+        targetDIV.setAttribute("id", "sgvWorkspaceArea");
+        document.body.appendChild(targetDIV);
+    }
+
+    // add canvas to targeDIV
+    sgv.canvas = document.createElement("canvas");
+    sgv.canvas.setAttribute("id", "sgvRenderCanvas");
+    targetDIV.appendChild(sgv.canvas);
+
+    sgv.advancedTexture = null;
+    sgv.sceneToRender = null;
+
+    function createDefaultEngine() {
+        return new BABYLON.Engine(sgv.canvas, true, {doNotHandleContextLost: true, preserveDrawingBuffer: true, stencil: true, disableWebGL2Support: false});
+    }
+    
+
+    window.initFunction = async function () {
+        var asyncEngineCreation = async function () {
+            try {
+                return createDefaultEngine();
+            } catch (e) {
+                console.log("the available createEngine function failed. Creating the default engine instead");
+                return createDefaultEngine();
+            }
+        };
+
+        sgv.engine = await asyncEngineCreation();
+
+        if (!sgv.engine)
+            throw 'engine should not be null.';
+
+        sgv.engine.enableOfflineSupport = false;
+
+        sgv.createScene();
+    };
+
+    initFunction().then( function() {
+        sgv.sceneToRender = sgv.scene;
+        sgv.engine.runRenderLoop(function () {
+            if (sgv.sceneToRender && sgv.sceneToRender.activeCamera) {
+                sgv.sceneToRender.render();
+            }
+        });
+    });
+
+    // Resize
+    window.addEventListener("resize",
+            function () {
+                sgv.engine.resize();
+            });
+
+    desktopInit();
+};
+
+//=========================================
+// functions overriden
+// in desktop scripts
+//
+desktopInit = ()=>{};
+//showSplash = ()=>{};
+//hideSplash = ()=>{};
+
+function  showSplash() {
+    sgv.dlgLoaderSplash.show();
+};
+
+function hideSplash() {
+    setTimeout(function () {
+        sgv.dlgLoaderSplash.hide();
+    }, 200);
+};
+
+function showSplashAndRun(f) {
+    showSplash();
+    setTimeout(()=>{
+        f();
+        hideSplash();
+    }, 100);
 };
 
 
@@ -2296,8 +2320,9 @@ parseGEXF = function(string) {
                         //if (ss.lenght>3){
                             graphSize.cols = parseInt(ss[0]);
                             graphSize.rows = parseInt(ss[1]);
-                            graphSize.KL = parseInt(ss[2]);
-                            graphSize.KR = parseInt(ss[3]);
+                            graphSize.lays = parseInt(ss[2]);
+                            graphSize.KL = parseInt(ss[3]);
+                            graphSize.KR = parseInt(ss[4]);
                         //}
                     }  
                 } else if (attrsClass === "edge" ) {
@@ -2329,625 +2354,59 @@ parseGEXF = function(string) {
 
     if (graphType === "chimera"){
         sgv.graf = Chimera.createNewGraph(graphSize);
-        sgv.graf.createStructureFromDef2(def2);
-        return true;
     } else if (graphType === "pegasus"){
-        newGraph = Pegasus.createNewGraph(graphSize);
-    }
-
-    return false;
-};
-
-/* 
- * Copyright 2022 Dariusz Pojda.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/* global global, BABYLON, URL, Chimera, Pegasus, UI, parserGEXF */
-"use strict";
-
-var getRandom = function(min, max) {
-    return (min + (Math.random() * (max - min)));
-};
-
-var sgv = (typeof exports === "undefined") ? (function sgv() {}) : (exports);
-if (typeof global !== "undefined") {
-    global.sgv = sgv;
-}
-
-sgv.version = "0.1.0";
-sgv.engine = null;
-sgv.scene = null;
-sgv.camera = null;
-sgv.graf = null;
-sgv.displayMode = 'classic';
-sgv.labelsVisible = false;//true;
-
-sgv.createCamera = function () {
-    sgv.camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(0, 0, 0), sgv.scene);
-    //camera.setPosition(new BABYLON.Vector3(10, 100, 200));
-    sgv.camera.setPosition(new BABYLON.Vector3(166, 150, 0));
-    sgv.camera.attachControl(sgv.canvas, true);
-
-    sgv.camera.inputs.attached.pointers.panningSensibility = 25;
-    
-    sgv.camera.upperBetaLimit = (Math.PI / 2) * 0.99;
-    sgv.camera.inertia = 0.5;
-};
-
-sgv.createLights = function () {
-    var light = new BABYLON.SpotLight("Spot0", new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(0, 0, 1), 1.8, 0.01, sgv.scene);
-    //light.diffuse = new BABYLON.Color3(1, 1, 1);
-    //light.specular = new BABYLON.Color3(1, 1, 1);
-
-    light.intensity = 0.75;
-    light.parent = sgv.camera;
-    light.position = new BABYLON.Vector3(0, 0, 0);
-    //light.radius = Math.PI;// / 2);
-};
-
-sgv.createMaterials = function () {
-    sgv.grayMat0 = new BABYLON.StandardMaterial("grayMat0", sgv.scene);
-    sgv.grayMat0.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sgv.grayMat0.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
-    sgv.grayMat0.emissiveColor = new BABYLON.Color3(0.5, 0.5, 0.5);
-
-    sgv.grayMat1 = new BABYLON.StandardMaterial("grayMat1", sgv.scene);
-    sgv.grayMat1.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sgv.grayMat1.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sgv.grayMat1.emissiveColor = new BABYLON.Color3(0, 0, 0);
-
-
-    sgv.redMat = new BABYLON.StandardMaterial("redMat", sgv.scene);
-    sgv.redMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sgv.redMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sgv.redMat.emissiveColor = BABYLON.Color3.Red();
-
-    sgv.greenMat = new BABYLON.StandardMaterial("greenMat", sgv.scene);
-    sgv.greenMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sgv.greenMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sgv.greenMat.emissiveColor = new BABYLON.Color3(0, 0.3, 0);
-
-    sgv.blueMat = new BABYLON.StandardMaterial("blueMat", sgv.scene);
-    sgv.blueMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sgv.blueMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sgv.blueMat.emissiveColor = BABYLON.Color3.Blue();
-
-    sgv.purpleMat = new BABYLON.StandardMaterial("purpleMat", sgv.scene);
-    sgv.purpleMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sgv.purpleMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sgv.purpleMat.emissiveColor = BABYLON.Color3.Purple();
-
-    sgv.groundMaterial = new BABYLON.StandardMaterial("ground", sgv.scene);
-    sgv.groundMaterial.specularColor = BABYLON.Color3.Black();
-};
-
-sgv.createDefaultObjects = () => {
-    sgv.createMaterials();
-    
-    //this.mesh = BABYLON.MeshBuilder.CreateBox(name, {size: 3}, scene);
-    //this.mesh = BABYLON.MeshBuilder.CreateDisc(name, {radius: 16, tessellation: 3}, scene);
-    //this.mesh = BABYLON.MeshBuilder.CreatePlane(name, {width:3, height:3}, scene);
-    //this.mesh.billboardMode = BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
-    sgv.defaultSphere = BABYLON.MeshBuilder.CreateSphere("defaultSphere", {diameter: 3, segments: 8, updatable: true}, sgv.scene);
-    sgv.defaultSphere.material = new BABYLON.StandardMaterial("mat", sgv.scene);
-    sgv.defaultSphere.material.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sgv.defaultSphere.material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sgv.defaultSphere.material.emissiveColor = new BABYLON.Color4(0.2, 0.2, 0.2);
-    sgv.defaultSphere.setEnabled(false);
-};
-
-sgv.createScene = function () {
-    sgv.scene = new BABYLON.Scene(sgv.engine);
-
-    sgv.createCamera();
-    sgv.createLights();
-
-    sgv.createDefaultObjects();
-    
-    sgv.advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-    sgv.nodeToConnect = 0;
-
-    sgv.addEventsListeners();
-    
-    sgv.scene.clearColor = new BABYLON.Color3(0.7, 0.7, 0.7);
-    //sgv.scene.executeWhenReady(() => {
-    //    console.log("ready");
-    //});
-};
-
-sgv.switchDisplayMode = function () {
-    if (sgv.displayMode === 'classic') {
-        sgv.displayMode = 'triangle';
-    } else if (sgv.displayMode === 'triangle') {
-        sgv.displayMode = 'diamond';
+        sgv.graf = Pegasus.createNewGraph(graphSize);
     } else {
-        sgv.displayMode = 'classic';
+        return false;
     }
-
-    if (sgv.graf !== null) {
-        sgv.graf.changeDisplayMode();
-    }
-};
-
-
-sgv.addEventsListeners = function () {
-    var startingPoint;
-    var currentMesh;
-    var ground = null;//BABYLON.MeshBuilder.CreateGround("ground", {width:10*graf.N+20, height:10*graf.N+20}, scene, false);
-    //ground.material = groundMaterial;
-
-    function getGroundPosition()
-    {
-        var pickinfo = sgv.scene.pick(sgv.scene.pointerX, sgv.scene.pointerY, function (mesh) {
-            return mesh === ground;
-        });
-        //var pickinfo = scene.pick(scene.pointerX, scene.pointerY, function (mesh) { return mesh != null; });
-        if (pickinfo.hit) {
-            return pickinfo.pickedPoint;
-        }
-
-        return null;
-    }
-    ;
-
-    function pointerDblTap(mesh) {
-        var n2 = mesh.name.split(":");
-        if (n2[0] === "edge")
-        {
-            sgv.graf.edgeDoubleClicked(n2[1]);
-        }
-    }
-    ;
-
-    function pointerDown(event) {
-        console.log("POINTER.DOWN");
-        currentMesh = event.pickInfo.pickedMesh;
-
-        startingPoint = getGroundPosition();
-        if (startingPoint)
-        { // we need to disconnect camera from canvas
-            setTimeout(function () {
-                sgv.camera.detachControl(sgv.canvas);
-            }, 0);
-        }
-    }
-    ;
-
-    function onPointerUp() {
-        if (sgv.graf !== null) {
-            sgv.graf.showLabels(true);
-        }
-        if (startingPoint) {
-            sgv.camera.attachControl(sgv.canvas, true);
-            startingPoint = null;
-
-            return;
-        }
-    }
-    ;
-
-    function onPointerMove() {
-        if (sgv.graf === null)
-            return;
-
-        //graf.updateNodeLabels();
-
-        if (!startingPoint) {
-            return;
-        }
-        var current = getGroundPosition();
-        if (!current) {
-            return;
-        }
-
-        var diff = current.subtract(startingPoint);
-
-        var n2 = currentMesh.name.split(":");
-        if (n2[0] === "node")
-        {
-            sgv.graf.moveNode(parseInt(n2[1], 10), diff);
-
-            startingPoint = current;
-        }
-    }
-    ;
-
-
-    function onPointerTap(pointerInfo) {
-        function onLMBtap(pointerInfo) {
-            function onMeshPicked(mesh) {
-                console.log("mesh picked: " + mesh.name);
-                var n2 = mesh.name.split(":");
-                if (n2[0] === "edge") {
-                    sgv.pokazOkienkoE(n2[1], sgv.scene.pointerX, sgv.scene.pointerY);
-                } else if (n2[0] === "node") {
-                    sgv.pokazOkienkoN(parseInt(n2[1], 10), sgv.scene.pointerX, sgv.scene.pointerY);
-                    //sgv.ui.oknoN.show(parseInt(n2[1], 10), sgv.scene.pointerX, sgv.scene.pointerY);
-                } else {
-                    sgv.cancelE();
-                    sgv.cancelN();
-                }
-            }
-            ;
-
-            console.log("LEFT");
-            if (sgv.nodeToConnect !== 0) {
-                if (pointerInfo.pickInfo.hit) {
-                    var n2 = pointerInfo.pickInfo.pickedMesh.name.split(":");
-                    if (n2[0] === "node") {
-                        let strId1 = "" + sgv.nodeToConnect + "," + parseInt(n2[1], 10);
-                        let strId2 = "" + parseInt(n2[1], 10) + "," + sgv.nodeToConnect;
-                        if (!(strId1 in sgv.graf.edges) && !(strId2 in sgv.graf.edges))
-                            sgv.graf.addEdge(sgv.nodeToConnect, parseInt(n2[1], 10), 0.5);
-                        else
-                            console.log("edge already exists");
-                    }
-                }
-                sgv.nodeToConnect = 0;
-            } else {
-                if (pointerInfo.pickInfo.hit) {
-                    onMeshPicked(pointerInfo.pickInfo.pickedMesh);
-                } else {
-                    sgv.cancelE();
-                    sgv.cancelN();
-                }
-            }
-        }
-
-        function onMMBtap(pointerInfo) {
-            console.log("MIDDLE");
-            if (pointerInfo.pickInfo.hit) {
-                var n2 = pointerInfo.pickInfo.pickedMesh.name.split(":");
-                if (n2[0] === "node") {
-                    if (sgv.nodeToConnect === 0) {
-                        sgv.nodeToConnect = parseInt(n2[1], 10);
-                    } else {
-                        let strId1 = "" + sgv.nodeToConnect + "," + parseInt(n2[1], 10);
-                        let strId2 = "" + parseInt(n2[1], 10) + "," + sgv.nodeToConnect;
-                        if (!(strId1 in sgv.graf.edges) && !(strId2 in sgv.graf.edges))
-                            sgv.graf.addEdge(sgv.nodeToConnect, parseInt(n2[1], 10), 0.5);
-                        else
-                            console.log("edge already exists");
-                        sgv.nodeToConnect = 0;
-                    }
-                }
-            }
-        }
-
-        function onRMBtap(pointerInfo) {
-            console.log("RIGHT");
-        }
-
-        switch (pointerInfo.event.button) {
-            case 0:
-                onLMBtap(pointerInfo);
-                break;
-            case 1:
-                onMMBtap(pointerInfo);
-                break;
-            case 2:
-                onRMBtap(pointerInfo);
-                break;
-        }
-    }
-    ;
-
-    sgv.scene.onPointerObservable.add(function (pointerInfo) {
-        switch (pointerInfo.type) {
-            case BABYLON.PointerEventTypes.POINTERTAP:
-                onPointerTap(pointerInfo);
-                break;
-            case BABYLON.PointerEventTypes.POINTERDOUBLETAP:
-                if (pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh !== ground) {
-                    pointerDblTap(pointerInfo.pickInfo.pickedMesh);
-                }
-                break;
-            case BABYLON.PointerEventTypes.POINTERDOWN:
-                if (pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh !== ground) {
-                    pointerDown(pointerInfo);
-                }
-
-                if (sgv.graf !== null) {
-                    sgv.graf.showLabels(false);
-                }
-
-                break;
-            case BABYLON.PointerEventTypes.POINTERUP:
-                onPointerUp();
-                break;
-            case BABYLON.PointerEventTypes.POINTERMOVE:
-                onPointerMove();
-                break;
-        }
-    });
-
-
-};
-
-sgv.connectSelectN = function () {
-    sgv.nodeToConnect = parseInt(sgv.ui.nodeProperties.querySelector("#nodeId").value, 10);
-    sgv.ui.nodeProperties.style.display = "none";
-};
-
-sgv.connectNodes = function () {
-    var node1 = sgv.ui.nodeProperties.querySelector("#nodeId").value;
-    var node2 = sgv.ui.nodeProperties.querySelector("#destN").value;
-
-    if (sgv.graf !== null) {
-        sgv.graf.addEdge(node1, node2);
-    }
-};
-
-sgv.addToMissing = function (nodeId) {
-    let win = sgv.ui.missingNodes.querySelector("#misN");
     
-    let i = UI.newInput("button", " q" + nodeId + " ", "", "rest" + nodeId );
-    
-    i.addEventListener('click', function () {
-        sgv.restoreNode(nodeId);
-    });
-    win.appendChild(i);
-
-    this.ui.missingNodes.style.display = "block";
-};
-
-sgv.restoreNode = function (nodeId) {
-    sgv.graf.restoreNode(nodeId);
-
-    var but = sgv.ui.missingNodes.querySelector("#rest" + nodeId);
-    but.parentNode.removeChild(but);
-};
-
-sgv.delMissing = function () {
-    var win = sgv.ui.missingNodes.querySelector("#misN");
-    win.innerHTML = "";
-
-    if (sgv.graf !== null) {
-        sgv.graf.missing = {};
+    for (const i in nodeAttrs) {
+        if (!sgv.graf.scopeOfValues.includes(nodeAttrs[i]))
+            sgv.graf.scopeOfValues.push(nodeAttrs[i]);
     }
 
-    this.ui.missingNodes.style.display = "none";
+    sgv.graf.createStructureFromDef2(def2);
+    return true;
 };
 
-sgv.pokazOkienkoE = function (edgeId, x, y) {
-    var xOffset = this.canvas.clientLeft;
-
-    sgv.ui.edgeProperties.querySelector(".titleText").innerHTML = "Edge q" + sgv.graf.edges[edgeId].begin + " &lt;---&gt; q" + sgv.graf.edges[edgeId].end;
-    sgv.ui.edgeProperties.querySelector("#edgeId").value = edgeId;
-    
-    let currentValue = sgv.graf.edgeValue(edgeId);
-    if (currentValue===null) {
-        sgv.ui.edgeProperties.querySelector("#valueCheckE").checked = "";
-        sgv.ui.edgeProperties.querySelector("#wagaE").value = null;
-        sgv.ui.edgeProperties.querySelector("#wagaE").disabled = "disabled";
-        sgv.ui.edgeProperties.querySelector("#setE").disabled = "disabled";
-    } else {
-        sgv.ui.edgeProperties.querySelector("#valueCheckE").checked = "checked";
-        sgv.ui.edgeProperties.querySelector("#wagaE").value = currentValue;
-        sgv.ui.edgeProperties.querySelector("#wagaE").disabled = "";
-        sgv.ui.edgeProperties.querySelector("#setE").disabled = "";
-    }
-
-    
-    //sgv.ui.edgeProperties.querySelector("#wagaE").value = sgv.graf.edgeValue(edgeId);
-
-    sgv.ui.edgeProperties.style.top = y + "px";
-    sgv.ui.edgeProperties.style.left = (xOffset + x) + "px";
-    sgv.ui.edgeProperties.style.display = "block";
-};
-
-sgv.pokazOkienkoN = function (nodeId, x, y) {
-    var xOffset = this.canvas.clientLeft;
-
-    sgv.ui.nodeProperties.querySelector(".titleText").textContent = "Node q" + nodeId;
-    sgv.ui.nodeProperties.querySelector("#nodeId").value = nodeId;
-    
-    
-    let nss = sgv.ui.nodeProperties.querySelector("#nsSelectN");
-
-    var length = nss.options.length;
-    for (let i = length - 1; i >= 0; i--) {
-        nss.options[i] = null;
-    }
-
-    for (const key in sgv.graf.scopeOfValues) {
-        var opt = document.createElement('option');
-        opt.value = key;
-        opt.innerHTML = sgv.graf.scopeOfValues[key];
-        if ( sgv.graf.currentScope === sgv.graf.scopeOfValues[key]) {
-            opt.selected = "selected";
-        }
-        nss.appendChild(opt);
-    }
-
-    
-    
-    let currentValue = sgv.graf.nodeValue(nodeId);
-    if ((currentValue===null)||isNaN(currentValue)) {
-        sgv.ui.nodeProperties.querySelector("#valueCheckN").checked = "";
-        sgv.ui.nodeProperties.querySelector("#wagaN").value = null;
-        sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "disabled";
-        sgv.ui.nodeProperties.querySelector("#setN").disabled = "disabled";
-    } else {
-        sgv.ui.nodeProperties.querySelector("#valueCheckN").checked = "checked";
-        sgv.ui.nodeProperties.querySelector("#wagaN").value = currentValue;
-        sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "";
-        sgv.ui.nodeProperties.querySelector("#setN").disabled = "";
-    }
-        
-    let select = sgv.ui.nodeProperties.querySelector("#destN");
-
-    var length = select.options.length;
-    for (let i = length - 1; i >= 0; i--) {
-        select.options[i] = null;
-    }
-
-    for (const key in sgv.graf.nodes) {
-        //console.log(nodeId, key);
-        if (key.toString() !== nodeId.toString()) {
-            var opt = document.createElement('option');
-            opt.value = key;
-            opt.innerHTML = "q" + key;
-            select.appendChild(opt);
-        }
-    }
-
-    sgv.ui.nodeProperties.style.top = y + "px";
-    sgv.ui.nodeProperties.style.left = (xOffset + x) + "px";
-    sgv.ui.nodeProperties.style.display = "block";
-};
-
-
-sgv.usunE = function () {
-    sgv.graf.delEdge(sgv.ui.edgeProperties.querySelector("#edgeId").value);
-    sgv.ui.edgeProperties.style.display = "none";
-};
-
-sgv.usunN = function () {
-    sgv.graf.delNode(sgv.ui.nodeProperties.querySelector("#nodeId").value);
-    sgv.ui.nodeProperties.style.display = "none";
-};
-
-sgv.cancelE = function () {
-    sgv.ui.edgeProperties.style.display = "none";
-};
-
-sgv.cancelN = function () {
-    sgv.ui.nodeProperties.style.display = "none";
-};
-
-sgv.changeScopeN = function () {
-    console.log('changeScopeN: ' + event.target.value);
-    
-    let nodeId = sgv.ui.nodeProperties.querySelector("#nodeId").value;
-    
-    let currentValue = sgv.graf.nodeValue(nodeId,sgv.graf.scopeOfValues[event.target.value]);
-    if ((currentValue===null)||isNaN(currentValue)) {
-        console.log('NULL');
-        sgv.ui.nodeProperties.querySelector("#valueCheckN").checked = "";
-        sgv.ui.nodeProperties.querySelector("#wagaN").value = null;
-        sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "disabled";
-        sgv.ui.nodeProperties.querySelector("#setN").disabled = "disabled";
-    } else {
-        console.log('NOT NULL');
-        sgv.ui.nodeProperties.querySelector("#valueCheckN").checked = "checked";
-        sgv.ui.nodeProperties.querySelector("#wagaN").value = currentValue;
-        sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "";
-        sgv.ui.nodeProperties.querySelector("#setN").disabled = "";
-    }
-};
-
-
-sgv.edycjaE = function () {
-    let id = sgv.ui.edgeProperties.querySelector("#edgeId").value;
-    let val = parseFloat(sgv.ui.edgeProperties.querySelector("#wagaE").value.replace(/,/g, '.'));
-    sgv.graf.setEdgeValue(id, val);
-    sgv.ui.edgeProperties.style.display = "none";
-};
-
-sgv.edycjaN = function () {
-    let id = sgv.ui.nodeProperties.querySelector("#nodeId").value;
-    let val = parseFloat(sgv.ui.nodeProperties.querySelector("#wagaN").value.replace(/,/g, '.'));
-    let scope = sgv.graf.scopeOfValues[sgv.ui.nodeProperties.querySelector("#nsSelectN").value];
-    sgv.graf.setNodeValue(id, val, scope);
-    sgv.ui.nodeProperties.style.display = "none";
-};
-
-sgv.activateN = function () {
-    let scope = sgv.graf.scopeOfValues[sgv.ui.nodeProperties.querySelector("#nsSelectN").value];
-    let isActive = sgv.ui.nodeProperties.querySelector("#valueCheckN").checked;
-    if (isActive) {
-        sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "";
-        sgv.ui.nodeProperties.querySelector("#setN").disabled = "";
-        let val = parseFloat(sgv.ui.nodeProperties.querySelector("#wagaN").value.replace(/,/g, '.'));
-        if (val==="") {
-            val=0;
-            sgv.ui.nodeProperties.querySelector("#wagaN").value = val;
-        }
-        sgv.graf.setNodeValue(sgv.ui.nodeProperties.querySelector("#nodeId").value, val, scope);
-    } else {
-        sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "disabled";
-        sgv.ui.nodeProperties.querySelector("#setN").disabled = "disabled";
-        sgv.graf.delNodeValue(sgv.ui.nodeProperties.querySelector("#nodeId").value, scope);
-    }
-};
-
-sgv.activateE = function () {
-    let isActive = sgv.ui.edgeProperties.querySelector("#valueCheckE").checked;
-    if (isActive) {
-        sgv.ui.edgeProperties.querySelector("#wagaE").disabled = "";
-        sgv.ui.edgeProperties.querySelector("#setE").disabled = "";
-        let val = parseFloat(sgv.ui.edgeProperties.querySelector("#wagaE").value.replace(/,/g, '.'));
-        if (val==="") {
-            val=0;
-            sgv.ui.edgeProperties.querySelector("#wagaE").value = val;
-        }
-        sgv.graf.setEdgeValue(sgv.ui.edgeProperties.querySelector("#edgeId").value, val);
-    } else {
-        sgv.ui.edgeProperties.querySelector("#wagaE").disabled = "disabled";
-        sgv.ui.edgeProperties.querySelector("#setE").disabled = "disabled";
-        sgv.graf.delEdgeValue(sgv.ui.edgeProperties.querySelector("#edgeId").value);
-    }
-};
+/* global sgv, UI, URL, Chimera, Pegasus */
 
 sgv.stringToScope = (data,newScope) => {
     let r = sgv.graf.loadScopeValues(newScope,data);
             
     if (r.n) {
-        sgv.controlPanel.ui().querySelector("#cplDispValues").add(UI.option(newScope,newScope));
+        sgv.dlgCPL.addScope(newScope);
     }
-    sgv.controlPanel.ui().querySelector("#cplDispValues").selectedIndex = r.i;
+    sgv.dlgCPL.selScope(newScope);
 };
 
+function download(text, name, type) {
+    //var a = document.getElementById("mysaver");
+    let a = document.createElement("a");
+    let file = new Blob([text], {type: type});
+    a.href = URL.createObjectURL(file);
+    a.download = name;
+    a.click();
+}
+
 sgv.toGEXF = function () {
-    function download(text, name, type) {
-        //var a = document.getElementById("mysaver");
-        let a = document.createElement("a");
-        let file = new Blob([text], {type: type});
-        a.href = URL.createObjectURL(file);
-        a.download = name;
-        a.click();
-    }
-
     var string = sgv.graf.exportGEXF();
-
     download(string, 'graphDefinition.gexf', 'text/xml');
 };
 
 sgv.toTXT = function () {
-    function download(text, name, type) {
-        //var a = document.getElementById("mysaver");
-        let a = document.createElement("a");
-        let file = new Blob([text], {type: type});
-        a.href = URL.createObjectURL(file);
-        a.download = name;
-        a.click();
-    }
-
     var string = sgv.graf.exportTXT();
-
     download(string, 'graphDefinition.txt', 'text/plain');
 };
 
 
-sgv.fromTXT = function (string) {
+
+sgv.fromTXT_BACK = function (string) {
     var res = [];
     var lines = string.split("\n");
 
-    var gDesc = sgv.controlPanel.getGraphTypeAndSize();
-
+    var gDesc = {};
+    
     var parseComment = function (string) {
         var command = string.split("=");
         if (command[0] === 'type') {
@@ -2990,391 +2449,430 @@ sgv.fromTXT = function (string) {
         lines.shift();
     }
 
-    switch (gDesc.type) {
+    if (typeof gDesc.type==='undefined') {
+        sgv.dlgCreateGraph.show('load', res);
+    } else {
+        sgv.createGraph( gDesc, res );
+    }
+};
+
+
+sgv.fromTXT = function (string) {
+    var res = [];
+    var lines = string.split("\n");
+
+    var gDesc = {};
+    
+    var parseComment = function (string) {
+        var command = string.split("=");
+        if (command[0] === 'type') {
+            gDesc.type = command[1];
+        } else if (command[0] === 'size') {
+            var size = command[1].split(",");
+            if (size.length >= 5) {
+                gDesc.size = {
+                    cols: parseInt(size[0], 10),
+                    rows: parseInt(size[1], 10),
+                    lays: parseInt(size[2], 10),
+                    KL: parseInt(size[3], 10),
+                    KR: parseInt(size[4], 10)
+                };
+            } else if (size.length === 4) {
+                gDesc.size = {
+                    cols: parseInt(size[0], 10),
+                    rows: parseInt(size[1], 10),
+                    lays: 1,
+                    KL: parseInt(size[2], 10),
+                    KR: parseInt(size[3], 10)
+                };
+            }
+        }
+    };
+
+    var parseData = function (string) {
+        var line = string.split(" ");
+        if (line.length === 3) {
+            return {
+                n1: parseInt(line[0], 10),
+                n2: parseInt(line[1], 10),
+                val: parseFloat(line[2], 10)
+            };
+        } else {
+            return null;
+        }
+    };
+
+    while (lines.length > 0) {
+        if (lines[0][0] !== '#')
+        {
+            var d = parseData(lines[0]);
+            if (d !== null) {
+                res.push(d);
+            }
+        } else {
+            var line = lines[0].split(" ");
+            parseComment(line[1]);
+        }
+        lines.shift();
+    }
+
+    if (typeof gDesc.type==='undefined') {
+        sgv.dlgCreateGraph.show('load', res);
+    } else {
+        sgv.createGraph( gDesc, res );
+    }
+};
+
+
+
+sgv.loadGraph = function(selectedFile) {
+    const name = selectedFile.name;
+    const reader = new FileReader();
+    if (selectedFile) {
+        reader.addEventListener('error', () => {
+            console.error(`Error occurred reading file: ${selectedFile.name}`);
+        });
+
+        reader.addEventListener('load', () => {
+            console.info(`File: ${selectedFile.name} read successfully`);
+            //let name = selectedFile.name;
+            if (name.endsWith("txt")) {
+                if (sgv.graf!==null) {
+                    sgv.removeGraph();
+                }
+                sgv.fromTXT(reader.result);
+            } else if(name.endsWith("gexf")) {
+                if (parseGEXF(reader.result)){
+                    sgv.setModeDescription();
+                }
+            } else {
+                console.error(`Incorrect file format...`);
+            }
+        });
+
+        if ( name.endsWith("txt") || name.endsWith("gexf") ) {
+            reader.readAsText(selectedFile); 
+
+            //reader.readAsDataURL(selectedFile);
+        } else {
+            console.error(`Incorrect file extension...`);
+        }
+    }                    
+};
+        
+sgv.loadGraph2 = function(name,data) {
+    if (name.endsWith("txt")) {
+        if (sgv.graf!==null) {
+            sgv.removeGraph();
+        }
+        sgv.fromTXT(data);
+        //sgv.setModeDescription();
+    } else if(name.endsWith("gexf")) {
+        if (sgv.graf!==null) {
+            sgv.removeGraph();
+        }
+        if (parseGEXF(data)){
+            sgv.setModeDescription();
+        }
+    };
+};
+
+"use strict";
+/* global sgv, Chimera, Pegasus, UI, parserGEXF */
+
+
+sgv.dlgCPL = new function() {
+    var com, sel, des;
+    var selectScope;
+    
+    var elm = createDialog();
+    
+    window.addEventListener('load',()=>{
+        window.document.body.appendChild(elm);
+    });
+
+    function createDialog() {
+        let elm = UI.tag( "dialog", { "class": "sgvUIwindow", "id": "sgvDlgCPL" });
+        
+        function divSel() {
+            var divSel = UI.tag( "div", { "class": "content", "id": "graphSelection" });
+            divSel.style.display = "block";
+            
+//            crB = UI.createTransparentBtn('CREATE','sgvGraphCreateBtn',()=>{
+//                sgv.dlgCreateGraph.show();
+//            });
+//
+//            divSel.appendChild(crB);
+            
+            divSel.innerHTML += '<div><div><input class="" id="cplCreateButton" name="createButton" type="button" value="Create default"></div> \
+                <div>Read from .txt file: <input id="inputfile" type="file"></div>';
+            return divSel;
+        };
+
+        
+        function divDesc() {
+            function createInfoBlock() {
+                var i = UI.tag("div", {});
+
+                i.innerHTML = "Current graph type: ";
+                i.appendChild( UI.span("unknown", {'id':"dscr_type"}) );
+
+                i.innerHTML += ', size: <span id="dscr_cols">0</span>x<span id="dscr_rows">0</span>xK<sub><span id="dscr_KL">0</span>,<span id="dscr_KR">0</span></sub><br/> \
+                        Number of nodes: <span id="dscr_nbNodes">0</span>, number of edges: <span id="dscr_nbEdges">0</span>';
+
+                return i;
+            }
+
+            var divDesc = UI.tag("div", {"class": "content", "id": "graphDescription"});
+
+            divDesc.appendChild(createInfoBlock());
+
+            let divNS = UI.tag( "div", {'class': "sgvD1", 'id': "cplDivNS" }, {'textContent': "add new scope: "} );
+            divNS.appendChild( UI.tag("input", { 'type': "button", 'class': "sgvC", 'id': "cplSkipAddScope", 'value': "<" } ) );
+            divNS.appendChild( UI.tag("input", { 'type': "text", 'id': "cplAddScopeInput", 'value': "newScope" } ) );
+            divNS.appendChild( UI.tag("input", { 'type': "button", 'class': "sgvC", 'id': "cplAcceptAddScope",'value': "+" } ) );
+            divNS.style.display = "none";
+
+            let divDS = UI.tag( "div", {'class': "sgvD1", 'id': "cplDivDS" }, {'textContent': "current scope: "} );
+            
+            selectScope = UI.tag( "select", {'id': "cplDispValues" } );
+            selectScope.addEventListener('change', () => {
+                sgv.graf.displayValues(selectScope.value);
+            });
+            divDS.appendChild( selectScope );
+
+            divDS.appendChild( UI.tag("input", { 'type': "button", 'class': "sgvC", 'id': "cplAddScope", 'value': "+" } ) );
+            divDS.appendChild( UI.tag("input", { 'type': "button", 'class': "sgvC", 'id': "cplDelScope", 'value': "-" } ) );
+
+            
+            let scope = UI.tag( "div", {'class': "sgvSelectBox", 'id': "cplScope" } );
+            scope.appendChild(divNS);
+            scope.appendChild(divDS);
+            divDesc.appendChild(scope);
+
+
+            divDesc.appendChild( UI.tag("input", { 'class': "actionbutton", 'id': "cplSaveButton", 'type': "button", 'value': "save to TXT" } ) );
+            divDesc.appendChild( UI.tag("input", { 'class': "actionbutton", 'id': "cplSaveGEXFButton", 'type': "button", 'value': "save to GEXF" } ) );
+            divDesc.appendChild( UI.tag("input", { 'class': "delbutton", 'id': "cplDeleteButton", 'type': "button", 'value': "clear workspace" } ) );
+
+            divDesc.style.display = "none";
+            return divDesc;
+        };
+
+        sel = divSel();
+        des = divDesc();
+        
+        com = UI.tag('div', {});
+        com.style.display = 'block';
+        
+        com.appendChild(sel);
+        com.appendChild(des);
+        
+        elm.appendChild(com);
+
+        elm.querySelector("#cplCreateButton").addEventListener('click',
+            function() {
+                sgv.dlgCreateGraph.show();
+            });
+
+        elm.querySelector("#cplDeleteButton").addEventListener('click',
+            function() {
+                sgv.removeGraph();
+            });
+
+
+        elm.querySelector("#cplSkipAddScope").addEventListener('click',
+            function() {
+                elm.querySelector("#cplDivNS").style.display = "none";
+                elm.querySelector("#cplDivDS").style.display = "block";
+            });
+
+        elm.querySelector("#cplAcceptAddScope").addEventListener('click',
+            function() {
+                let scope = elm.querySelector("#cplAddScopeInput").value;
+                let idx = sgv.graf.addScopeOfValues(scope);
+
+                if (idx>=0) {
+                    elm.querySelector("#cplDispValues").add(UI.option(scope,scope));
+                    elm.querySelector("#cplDispValues").selectedIndex = idx;
+                    sgv.graf.displayValues(scope);
+                }
+
+                elm.querySelector("#cplDivNS").style.display = "none";
+                elm.querySelector("#cplDivDS").style.display = "inline";
+            });
+
+        elm.querySelector("#cplAddScope").addEventListener('click',
+            function() {
+                elm.querySelector("#cplDivNS").style.display = "inline";
+                elm.querySelector("#cplDivDS").style.display = "none";
+            });
+
+        elm.querySelector("#cplDelScope").addEventListener('click',
+            function() {
+                const select = elm.querySelector("#cplDispValues"); 
+
+                let idx = sgv.graf.delScopeOfValues(select.value);
+
+                if (  idx >= 0 ) {
+                    select.remove(select.selectedIndex);
+                    select.selectedIndex = idx;
+                }
+            });
+
+        elm.querySelector("#cplSaveButton").addEventListener('click',
+            function() {
+                sgv.toTXT();
+            });
+
+        elm.querySelector("#cplSaveGEXFButton").addEventListener('click',
+            function() {
+                sgv.toGEXF();
+            });
+
+        elm.querySelector('#inputfile').addEventListener('change',
+            function () {
+                showSplashAndRun(()=>{
+                    sgv.loadGraph(this.files[0]);
+                });
+            });
+
+        var swt = UI.tag('div', {'id':'switch'});
+        
+        swt.addEventListener('click',() => {
+           switchDialog(); 
+        });
+        
+        swt.innerHTML = '. . .';
+        elm.appendChild(swt);
+        
+        elm.style.display = 'block';
+        
+        return elm;
+    };
+    
+    function showDialog() {
+        com.style.display = "block";
+    };
+    
+    function hideDialog() {
+        com.style.display = "none";
+    };
+    
+    function switchDialog() {
+        com.style.display = (com.style.display === "none")?"block":"none";
+    };
+    
+    function addScopeX(scope,idx) {
+        selectScope.add(UI.option(scope,scope));
+        selectScope.selectedIndex = idx;
+    }
+    
+    function delScopeX(scope,idx2) {
+        let i = UI.findOption(selectScope, scope);
+        if ( i>-1 ) {
+            selectScope.remove(i);
+        }
+        selectScope.selectedIndex = idx2;
+    }
+    
+    function selScopeX(scope) {
+        let i = UI.findOption(selectScope, scope);
+        if ( i>-1 ) {
+            selectScope.selectedIndex = i;
+        }
+    }
+    
+    function setModeSelectionX() {
+        sel.style.display = "block";
+        des.style.display = "none";
+    };
+
+
+    function setModeDescriptionX() {
+        function refreshScopes() {
+            if (sgv.graf!==null){
+                UI.clearSelect(selectScope, true);
+                for (const key in sgv.graf.scopeOfValues) {
+                    let scope = sgv.graf.scopeOfValues[key];
+                    let opt = UI.option(scope, scope);
+                    if ( sgv.graf.currentScope === sgv.graf.scopeOfValues[key]) {
+                        opt.selected = "selected";
+                    }
+                    selectScope.appendChild(opt);
+                }
+            }
+        }
+
+        function updateInfoBlock() {
+            elm.querySelector("#dscr_type").textContent = sgv.graf.type;
+            elm.querySelector("#dscr_cols").textContent = sgv.graf.cols;
+            elm.querySelector("#dscr_rows").textContent = sgv.graf.rows;
+            elm.querySelector("#dscr_KL").textContent = sgv.graf.KL;
+            elm.querySelector("#dscr_KR").textContent = sgv.graf.KR;
+            elm.querySelector("#dscr_nbNodes").textContent = Object.keys(sgv.graf.nodes).length;
+            elm.querySelector("#dscr_nbEdges").textContent = Object.keys(sgv.graf.edges).length;
+        };
+
+        updateInfoBlock();
+        refreshScopes();
+
+        sel.style.display = "none";
+        des.style.display = "block";
+    };
+
+
+    return {
+        ui:  function() {
+            return elm;
+        },
+        show: showDialog,
+        hide: hideDialog,
+        switchPanel: switchDialog,
+        setModeDescription: setModeDescriptionX,
+        setModeSelection: setModeSelectionX,
+        addScope: addScopeX,
+        delScope: delScopeX,
+        selScope: selScopeX
+    };
+};
+
+sgv.setModeSelection = sgv.dlgCPL.setModeSelection;
+sgv.setModeDescription = sgv.dlgCPL.setModeDescription;
+
+sgv.removeGraph = function() {
+    if (sgv.graf!==null) {
+        sgv.graf.dispose();
+        //delete graf;
+        sgv.graf = null;
+    }
+
+    sgv.dlgMissingNodes.delAll();
+    sgv.setModeSelection();
+};
+
+sgv.createGraph = function(gDesc, res) {
+    if (sgv.graf!==null) {
+        sgv.removeGraph();
+    }
+
+    switch ( gDesc.type ) {
         case "chimera" :
             sgv.graf = Chimera.createNewGraph(gDesc.size);
             break;
         case "pegasus" :
             sgv.graf = Pegasus.createNewGraph(gDesc.size);
             break;
+        default:
+            return;
     }
 
-    sgv.graf.createStructureFromDef(res);
-};
-
-
-//=======================
-
-
-sgv.display = function(args) {
-    if ((typeof args === 'undefined') || (typeof args !== 'object')) {
-        args = {};
-    }
-
-    sgv.ui = new UI();
-
-
-    let targetDIV = null;
-    if ('target' in args) {
-        targetDIV = document.getElementById(args.target);
-    }
-
-    // no args.target or HTML element not exists
-    if (targetDIV === null) {
-        targetDIV = document.createElement("div");
-        targetDIV.setAttribute("id", "sgvWorkspaceArea");
-        document.body.appendChild(targetDIV);
-    }
-
-    // add canvas to targeDIV
-    sgv.canvas = document.createElement("canvas");
-    sgv.canvas.setAttribute("id", "sgvRenderCanvas");
-    targetDIV.appendChild(sgv.canvas);
-
-    sgv.console.initConsole("sgvConsole");
-    sgv.controlPanel.init("sgvControlPanel"); // ID okienka !!!
-
-    sgv.advancedTexture = null;
-    sgv.sceneToRender = null;
-
-    function createDefaultEngine() {
-        return new BABYLON.Engine(sgv.canvas, true, {doNotHandleContextLost: true, preserveDrawingBuffer: true, stencil: true, disableWebGL2Support: false});
-    }
+    if (typeof res === 'undefined')
+        sgv.graf.createDefaultStructure();
+    else
+        sgv.graf.createStructureFromDef(res);
     
-
-    window.initFunction = async function () {
-        var asyncEngineCreation = async function () {
-            try {
-                return createDefaultEngine();
-            } catch (e) {
-                console.log("the available createEngine function failed. Creating the default engine instead");
-                return createDefaultEngine();
-            }
-        };
-
-        sgv.engine = await asyncEngineCreation();
-
-        if (!sgv.engine)
-            throw 'engine should not be null.';
-
-        sgv.engine.enableOfflineSupport = false;
-
-        sgv.createScene();
-    };
-
-    initFunction().then( function() {
-        sgv.sceneToRender = sgv.scene;
-        sgv.engine.runRenderLoop(function () {
-            if (sgv.sceneToRender && sgv.sceneToRender.activeCamera) {
-                sgv.sceneToRender.render();
-            }
-        });
-    });
-
-    // Resize
-    window.addEventListener("resize",
-            function () {
-                sgv.engine.resize();
-            });
-
-};
-
-
-
-//var createSPS = function () {
-//
-//};
-//
-//window.onload = function (e) {
-//    myConsole.initConsole();
-//};
-
-//$(document).ready(function () {
-//    // Executes when the HTML document is loaded and the DOM is ready
-//    console.log("ready!");
-//});
-
-//$(window).on("load", function () {
-//
-//    // Executes when complete page is fully loaded, including
-//    // all frames, objects and images
-//    console.log("Window is loaded");
-//});
-
-//var sgv = new SimGraphVisualizer;
-
-
-
-//var graf = sgv.graf;
-//var scene = sgv.scene;
-
-//export { sgv };
-/* 
- * Copyright 2022 Dariusz Pojda.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-"use strict";
-/* global sgv, Chimera, Pegasus, UI, parserGEXF */
-
-sgv.controlPanel = new function() {
-    var cpl = null;
-    
-    return {
-        init: function(id) {
-            cpl = UI.createControlPanel(id);
-
-            cpl.querySelector("#cplElectronTestButton").addEventListener('click',
-                function() {
-                    //console.info("KONTROLA");
-                    let tekst = sgv.graf.exportTXT();
-                    //console.log(tekst);
-                    electronTestButtonClicked(tekst);
-                });
-            
-            cpl.querySelector("#cplCreateButton").addEventListener('click',
-                function() {
-                    sgv.controlPanel.createGraph();
-                });
-
-            cpl.querySelector("#cplDeleteButton").addEventListener('click',
-                function() {
-                    sgv.controlPanel.removeGraph();
-                });
-
-            cpl.querySelector("#cplDispValues").addEventListener('change',
-                function() {
-                    sgv.graf.displayValues(this.value);
-                });
-
-            cpl.querySelector("#cplSkipAddScope").addEventListener('click',
-                function() {
-                    cpl.querySelector("#cplDivNS").style.display = "none";
-                    cpl.querySelector("#cplDivDS").style.display = "block";
-                });
-
-            cpl.querySelector("#cplAcceptAddScope").addEventListener('click',
-                function() {
-                    let scope = cpl.querySelector("#cplAddScopeInput").value;
-                    let idx = sgv.graf.addScopeOfValues(scope);
-                    
-                    if (idx>=0) {
-                        cpl.querySelector("#cplDispValues").add(UI.option(scope,scope));
-                        cpl.querySelector("#cplDispValues").selectedIndex = idx;
-                        sgv.graf.displayValues(scope);
-                    }
-                    
-                    cpl.querySelector("#cplDivNS").style.display = "none";
-                    cpl.querySelector("#cplDivDS").style.display = "inline";
-                });
-
-            cpl.querySelector("#cplAddScope").addEventListener('click',
-                function() {
-                    cpl.querySelector("#cplDivNS").style.display = "inline";
-                    cpl.querySelector("#cplDivDS").style.display = "none";
-                });
-
-            cpl.querySelector("#cplDelScope").addEventListener('click',
-                function() {
-                    const select = cpl.querySelector("#cplDispValues"); 
-
-                    let idx = sgv.graf.delScopeOfValues(select.value);
-                    
-                    if (  idx >= 0 ) {
-                        select.remove(select.selectedIndex);
-                        select.selectedIndex = idx;
-                    }
-                });
-
-            cpl.querySelector("#cplSaveButton").addEventListener('click',
-                function() {
-                    sgv.toTXT();
-                });
-
-            cpl.querySelector("#cplSaveGEXFButton").addEventListener('click',
-                function() {
-                    sgv.toGEXF();
-                });
-
-            cpl.querySelector('#inputfile').addEventListener('change',
-                function () {
-                    sgv.controlPanel.loadGraph(this.files[0]);
-                });
-
-            //console.log(cpl);
-        },
-        
-        show: function(b) {
-            cpl.style.display = (isUndefined(b)||(b!==0))?"block":"none";
-        },
-
-        hide: function(b) {
-            cpl.style.display = (isUndefined(b)||(b!==0))?"none":"block";
-        },
-
-        ui: function() {
-            return cpl;
-        },
-        
-        switchPanel: function() {
-            cpl.style.display = (cpl.style.display === "none")?"block":"none";
-        },
-
-        setModeSelection: function() {
-            document.getElementById("graphSelection").style.display = "block";
-            document.getElementById("graphDescription").style.display = "none";
-        },
-        
-        setModeDescription: function() {
-            document.getElementById("graphSelection").style.display = "none";
-            document.getElementById("graphDescription").style.display = "block";
-
-            this.updateDescription();
-        },
-        
-        updateDescription: function() {
-            document.getElementById("dscr_type").textContent = sgv.graf.type;
-            document.getElementById("dscr_cols").textContent = sgv.graf.cols;
-            document.getElementById("dscr_rows").textContent = sgv.graf.rows;
-            document.getElementById("dscr_KL").textContent = sgv.graf.KL;
-            document.getElementById("dscr_KR").textContent = sgv.graf.KR;
-            document.getElementById("dscr_nbNodes").textContent = Object.keys(sgv.graf.nodes).length;
-            document.getElementById("dscr_nbEdges").textContent = Object.keys(sgv.graf.edges).length;
-        },
-        
-        getGraphTypeAndSize() {
-            return {
-                type: document.getElementById("graphType").value,
-                size: {
-                    cols: parseInt(document.getElementById("graphCols").value, 10),
-                    rows: parseInt(document.getElementById("graphRows").value, 10),
-                    KL: parseInt(document.getElementById("graphKL").value, 10),
-                    KR: parseInt(document.getElementById("graphKR").value, 10)
-                }
-            };
-        },
-        
-        createGraph: function() {
-            showSplash();
-            
-            if (sgv.graf!==null) {
-                this.removeGraph();
-            }
-
-            let gDesc = this.getGraphTypeAndSize();
-
-            switch ( gDesc.type ) {
-                case "chimera" :
-                    sgv.graf = Chimera.createNewGraph(gDesc.size);
-                    sgv.graf.createDefaultStructure();
-                    this.setModeDescription();
-                    break;
-                case "pegasus" :
-                    sgv.graf = Pegasus.createNewGraph(gDesc.size);
-                    sgv.graf.createDefaultStructure();
-                    this.setModeDescription();
-                    break;
-            }
-            
-            hideSplash();
-        },
-        
-        removeGraph: function() {
-            if (sgv.graf!==null) {
-                sgv.graf.dispose();
-                //delete graf;
-                sgv.graf = null;
-            }
-
-            sgv.delMissing();
-            this.setModeSelection();
-        },
-        
-//        loadGraph1: function(file) {
-//            var fr = new FileReader(); 
-//            fr.addEventListener('error', () => {
-//                console.error(`Error occurred reading file: ${file.name}`);
-//            });
-//            fr.onload = function(){
-//                if (sgv.graf!==null) {
-//                    this.removeGraph();
-//                }
-//
-//                sgv.fromTXT(fr.result);
-//
-//                sgv.controlPanel.setModeDescription();
-//            }; 
-//            fr.readAsText(file); 
-//        },
-        
-        
-        loadGraph: function(selectedFile) {
-            const name = selectedFile.name;
-            const reader = new FileReader();
-            if (selectedFile) {
-                reader.addEventListener('error', () => {
-                    console.error(`Error occurred reading file: ${selectedFile.name}`);
-                });
-
-                reader.addEventListener('load', () => {
-                    console.info(`File: ${selectedFile.name} read successfully`);
-                    //let name = selectedFile.name;
-                    if (name.endsWith("txt")) {
-                        if (sgv.graf!==null) {
-                            this.removeGraph();
-                        }
-
-                        sgv.fromTXT(reader.result);
-        
-                        console.log(sgv.graf);
-
-                        sgv.controlPanel.setModeDescription();
-                    } else if(name.endsWith("gexf")) {
-                        if (parseGEXF(reader.result)){
-                            sgv.controlPanel.setModeDescription();
-                        }
-                    } else {
-                        console.error(`Incorrect file format...`);
-                    }
-                });
-                
-                if ( name.endsWith("txt") || name.endsWith("gexf") ) {
-                    reader.readAsText(selectedFile); 
-                //reader.readAsDataURL(selectedFile);
-                } else {
-                    console.error(`Incorrect file extension...`);
-                }
-            }                    
-        },
-        
-        loadGraph2: function(name,data) {
-            if (name.endsWith("txt")) {
-                if (sgv.graf!==null) {
-                    this.removeGraph();
-                }
-                sgv.fromTXT(data);
-                sgv.controlPanel.setModeDescription();
-            } else if(name.endsWith("gexf")) {
-                if (sgv.graf!==null) {
-                    this.removeGraph();
-                }
-                if (parseGEXF(data)){
-                    sgv.controlPanel.setModeDescription();
-                }
-            };
-        }
-    };
+    sgv.setModeDescription();
 };
 
 /* 
@@ -3396,12 +2894,103 @@ sgv.controlPanel = new function() {
 "use strict";
 /* global scene, sgv, Chimera, Pegasus, UI */
 
-sgv.console = new function () {
+sgv.dlgConsole = new function () {
     var isDown;
     var cmdHistory = [];
     var cmdHistoryPtr = -1;
     var movable = false;
-    let ui;
+    
+    var ui = createUI("sgvConsole");
+    initConsole();
+
+    window.addEventListener('load',()=>{
+        window.document.body.appendChild(ui);
+    });
+
+    function initConsole() {
+        let domCmdline = ui.querySelector("#commandline");
+
+        domCmdline.addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                let txtarea = document.getElementById("consoleHistory");
+                //txtarea.disabled = false;
+                txtarea.textContent += "> " + domCmdline.value + "\n";
+
+                txtarea.textContent += parseCommand(domCmdline.value) + "\n";
+
+                txtarea.scrollTop = txtarea.scrollHeight;
+                //txtarea.disabled = true;
+
+                if (cmdHistory.length > 10)
+                    cmdHistory.shift();
+                cmdHistory.push(domCmdline.value);
+                cmdHistoryPtr = cmdHistory.length;
+
+                domCmdline.value = "";
+            } else if (event.keyCode === 38) {
+                if (cmdHistoryPtr > 0) {
+                    cmdHistoryPtr--;
+                    domCmdline.value = cmdHistory[cmdHistoryPtr];
+                }
+            } else if (event.keyCode === 40) {
+                if (cmdHistoryPtr < cmdHistory.length) {
+                    domCmdline.value = cmdHistory[cmdHistoryPtr];
+                    cmdHistoryPtr++;
+                } else {
+                    domCmdline.value = "";
+                }
+            }
+        });
+
+        ui.querySelector(".hidebutton").addEventListener('click', function() { sgv.dlgConsole.hideConsole(); });
+
+        let titlebar = ui.querySelector(".title");
+        var offset;
+
+        titlebar.addEventListener('mouseover', function() {
+            ui.querySelector(".title").style.cursor='pointer';
+            movable = true;
+        });
+
+        titlebar.addEventListener('mouseout', function() {
+            movable = false;
+        });
+
+        titlebar.addEventListener('mousedown', function (e) {
+            isDown = movable;
+            offset = {
+                x: ui.offsetLeft - e.clientX,
+                y: ui.offsetTop - e.clientY
+            };
+        }, true);
+
+        titlebar.addEventListener('mouseup', function () {
+            isDown = false;
+        }, true);
+
+        document.addEventListener('mousemove', function (event) {
+            event.preventDefault();
+            if (isDown) {
+                let mousePosition = {
+                    x: event.clientX,
+                    y: event.clientY
+                };
+
+                ui.style.left = (mousePosition.x + offset.x) + 'px';
+                ui.style.top = (mousePosition.y + offset.y) + 'px';
+            }
+        }, true);
+    };
+
+    function createUI(id) {
+        var o = UI.createEmptyWindow("sgvUIwindow", id, "console", true);
+
+        o.innerHTML += '<div class="content"> \
+                <textarea id="consoleHistory" readonly></textarea> \
+                <input type="text" id="commandline"> \
+            </div>';
+        return o;
+    };
 
     function parseCommand(line) {
         function set(node, value) {
@@ -3451,26 +3040,17 @@ sgv.console = new function () {
                         let idx = sgv.graf.addScopeOfValues(scope);
 
                         if (idx>=0) {
-                            sgv.controlPanel.ui().querySelector("#cplDispValues").add(UI.option(scope,scope));
-                            sgv.controlPanel.ui().querySelector("#cplDispValues").selectedIndex = idx;
+                            sgv.dlgCPL.addScope(scope,idx);
                             sgv.graf.displayValues(scope);
                         }
                         
                         return "Added scope "+scope;
                         break;
                     case "delete":
-                        const select = sgv.controlPanel.ui().querySelector("#cplDispValues"); 
-
                         let idx2 = sgv.graf.delScopeOfValues(scope);
                     
                         if (  idx2 >= 0 ) {
-                            let i = UI.findOption(select, scope);
-                            if ( i>-1 ) {
-                                select.remove(i);
-                            }
-
-                            select.selectedIndex = idx2;
-
+                            sgv.dlgCPL.delScope(scope, idx2);
                             return "Deleted scope "+scope+", current scope: "+sgv.graf.currentScope;
                         }
 
@@ -3479,11 +3059,7 @@ sgv.console = new function () {
                     case "set":
                         if (sgv.graf.hasScope(scope)) {
                             if ( sgv.graf.displayValues(scope) ) {
-                                const select = sgv.controlPanel.ui().querySelector("#cplDispValues"); 
-                                let i = UI.findOption(select, scope);
-                                if ( i>-1 ) {
-                                    select.selectedIndex = i;
-                                }
+                                sgv.dlgCPL.selScope(scope);
                             }
                             
                             return "Current scope: "+sgv.graf.currentScope;
@@ -3521,7 +3097,7 @@ sgv.console = new function () {
                         return "unknown graph type";
                 }
 
-                sgv.controlPanel.setModeDescription();
+                sgv.setModeDescription();
 
                 return "graph created";
             } else {
@@ -3531,7 +3107,7 @@ sgv.console = new function () {
         }
 
         function clear() {
-            sgv.controlPanel.removeGraph();
+            sgv.removeGraph();
             return "graph removed";
         }
 
@@ -3823,84 +3399,849 @@ sgv.console = new function () {
 
         hideConsole: function () {
             ui.style.display = "none";
-        },
-
-        initConsole: function (id) {
-            ui = UI.createConsole(id);
-
-            let domCmdline = ui.querySelector("#commandline");
-            
-            domCmdline.addEventListener("keydown", function(event) {
-                if (event.key === "Enter") {
-                    let txtarea = document.getElementById("consoleHistory");
-                    //txtarea.disabled = false;
-                    txtarea.textContent += "> " + domCmdline.value + "\n";
-
-                    txtarea.textContent += parseCommand(domCmdline.value) + "\n";
-
-                    txtarea.scrollTop = txtarea.scrollHeight;
-                    //txtarea.disabled = true;
-
-                    if (cmdHistory.length > 10)
-                        cmdHistory.shift();
-                    cmdHistory.push(domCmdline.value);
-                    cmdHistoryPtr = cmdHistory.length;
-
-                    domCmdline.value = "";
-                } else if (event.keyCode === 38) {
-                    if (cmdHistoryPtr > 0) {
-                        cmdHistoryPtr--;
-                        domCmdline.value = cmdHistory[cmdHistoryPtr];
-                    }
-                } else if (event.keyCode === 40) {
-                    if (cmdHistoryPtr < cmdHistory.length) {
-                        domCmdline.value = cmdHistory[cmdHistoryPtr];
-                        cmdHistoryPtr++;
-                    } else {
-                        domCmdline.value = "";
-                    }
-                }
-            });
-
-            ui.querySelector(".hidebutton").addEventListener('click', function() { sgv.console.hideConsole(); });
-
-            let titlebar = ui.querySelector(".title");
-            var offset;
-            
-            titlebar.addEventListener('mouseover', function() {
-                ui.querySelector(".title").style.cursor='pointer';
-                movable = true;
-            });
-            
-            titlebar.addEventListener('mouseout', function() {
-                movable = false;
-            });
-
-            titlebar.addEventListener('mousedown', function (e) {
-                isDown = movable;
-                offset = {
-                    x: ui.offsetLeft - e.clientX,
-                    y: ui.offsetTop - e.clientY
-                };
-            }, true);
-
-            titlebar.addEventListener('mouseup', function () {
-                isDown = false;
-            }, true);
-
-            document.addEventListener('mousemove', function (event) {
-                event.preventDefault();
-                if (isDown) {
-                    let mousePosition = {
-                        x: event.clientX,
-                        y: event.clientY
-                    };
-
-                    ui.style.left = (mousePosition.x + offset.x) + 'px';
-                    ui.style.top = (mousePosition.y + offset.y) + 'px';
-                }
-            }, true);
         }
-
     };
 };
+/* global sgv, UI */
+
+sgv.dlgLoaderSplash = new function() {
+    var ui = null;
+
+    function createDialog() {
+        if (ui===null) {
+            ui = UI.tag( "dialog", { "class": "sgvModalDialog", "id": "loaderSplash" });
+        }
+        
+        ui.innerHTML = '<span>working hard for you</span><div class="loader"></div><span>... please wait ...</span>';
+
+        ui.style.display = "none";
+        window.document.body.appendChild(ui);
+    };
+
+    function showDialog() {
+        if (ui===null) createDialog();
+        if (ui.open) ui.close();
+        
+        ui.style.display = "block";
+        ui.showModal();
+    };
+
+    function hideDialog() {
+        ui.close();
+        ui.style.display = "none";
+    };
+
+    return {
+        show: showDialog,
+        hide: hideDialog
+    };
+};
+
+
+
+/* global sgv, UI */
+
+sgv.dlgCreateGraph = new function() {
+    var selectGraphType;
+    var selectGraphCols, selectGraphRows, selectGraphLays;
+    var selectGraphKL, selectGraphKR;
+    
+    var ui = createUI();
+
+    window.addEventListener('load',()=>{
+        window.document.body.appendChild(ui);
+    });
+
+    function createUI() {
+        let ui = UI.tag( "dialog", { "class": "sgvUIwindow sgvModalDialog", "id": "sgvDlgCreateGraph" });
+
+        let t = UI.createTitlebar("Create graph", false);
+        ui.appendChild(t);
+
+        let divSel = UI.tag( "div", { "class": "content", "id": "graphSelection" });
+
+        divSel.appendChild(UI.tag('div',{'id':'description'}));
+        let g = UI.tag('div',{'id':'description'});
+
+        g.style['text-align']='center';
+
+        selectGraphType = UI.tag('select',{'id':'graphType'});
+        selectGraphType.appendChild(UI.option('chimera','chimera'));
+        selectGraphType.appendChild(UI.option('pegasus','pegasus'));
+
+        selectGraphType.addEventListener('change', (e)=>{
+            if (e.target.value === 'chimera') {
+                selectGraphLays.selectedIndex = 0;
+                selectGraphLays.disabled = 'disabled';
+            } else {
+                selectGraphLays.disabled = '';
+            }
+        });
+        g.appendChild(UI.tag('label',{'for':'graphType'},{'innerHTML':'graph type: '}));
+        g.appendChild(selectGraphType);
+
+        g.appendChild(UI.tag('hr'));
+        
+        selectGraphCols = UI.tag('select',{'id':'graphCols'});
+        selectGraphCols.appendChild(UI.option('4','4',true));
+        selectGraphCols.appendChild(UI.option('8','8'));
+        selectGraphCols.appendChild(UI.option('12','12'));
+        selectGraphCols.appendChild(UI.option('16','16'));
+
+        g.appendChild(UI.tag('label',{'for':'graphCols'},{'innerHTML':' columns: '}));
+        g.appendChild(selectGraphCols);
+
+        selectGraphRows = UI.tag('select',{'id':'graphRows'});
+        selectGraphRows.appendChild(UI.option('4','4',true));
+        selectGraphRows.appendChild(UI.option('8','8'));
+        selectGraphRows.appendChild(UI.option('12','12'));
+        selectGraphRows.appendChild(UI.option('16','16'));
+
+        g.appendChild(UI.tag('label',{'for':'graphRows'},{'innerHTML':' rows: '}));
+        g.appendChild(selectGraphRows);
+
+//        editGraphLays = UI.tag('input', {
+//            'type':'number',
+//            'id':'graphLays',
+//            'value':1,
+//            'min':'1',
+//            'max':'9'
+//        });
+//        editGraphLays.style.width = '3em';
+
+        selectGraphLays = UI.tag('select',{'id':'graphLays'});
+        selectGraphLays.appendChild(UI.option('1','1',true));
+        for (let i=2; i<10; i++ ) {
+            selectGraphLays.appendChild(UI.option(i,i));
+        }
+        selectGraphLays.disabled = 'disabled';
+        g.appendChild(UI.tag('label',{'for':'graphLays'},{'innerHTML':' layers: '}));
+        g.appendChild(selectGraphLays);
+
+        g.appendChild(UI.tag('hr'));
+
+        selectGraphKL = UI.tag('select',{'id':'graphKL'});
+        selectGraphKL.appendChild(UI.option('1','1'));
+        selectGraphKL.appendChild(UI.option('2','2'));
+        selectGraphKL.appendChild(UI.option('3','3'));
+        selectGraphKL.appendChild(UI.option('4','4',true));
+
+        g.appendChild(UI.tag('label',{'for':'graphKL'},{'innerHTML':'module size: K = '}));
+        g.appendChild(selectGraphKL);
+
+        selectGraphKR = UI.tag('select',{'id':'graphKR'});
+        selectGraphKR.appendChild(UI.option('1','1'));
+        selectGraphKR.appendChild(UI.option('2','2'));
+        selectGraphKR.appendChild(UI.option('3','3'));
+        selectGraphKR.appendChild(UI.option('4','4',true));
+
+        g.appendChild(UI.tag('label',{'for':'graphKR'},{'innerHTML':', '}));
+        g.appendChild(selectGraphKR);
+
+        divSel.appendChild(g);
+
+        divSel.appendChild(UI.tag('div',{'id':'buttons'}));
+
+        ui.appendChild(divSel);
+
+        ui.style.display = "none";
+        
+        return ui;
+    };
+    
+    function showDialog( type, res ) {
+        if (type==='load') {
+            ui.querySelector("#buttons").innerHTML = 
+                '<input class="actionbutton" id="cplCancelButton" name="cancelButton" type="button" value="Cancel"> \
+                 <input class="actionbutton" id="cplCreateButton" name="createButton" type="button" value="Load">';
+
+            ui.querySelector(".titleText").textContent = "Load graph";
+
+        } else {
+            ui.querySelector("#buttons").innerHTML = 
+                '<input class="actionbutton" id="cplCancelButton" name="cancelButton" type="button" value="Cancel"> \
+                 <input class="actionbutton" id="cplCreateButton" name="createButton" type="button" value="Create">';
+
+            ui.querySelector(".titleText").textContent = "New graph";
+        }
+
+        ui.style.display = "block";
+        ui.querySelector("#cplCreateButton").addEventListener('click', ()=>{
+            showSplashAndRun(()=>{
+                hideDialog();
+                setTimeout(()=>{
+                    sgv.createGraph( getGraphTypeAndSize(), res );
+                }, 100);
+            });
+        } );
+
+        ui.querySelector("#cplCancelButton").addEventListener('click', ()=>{
+            hideDialog();
+        } );
+
+        ui.showModal();
+    };
+
+    function hideDialog() {
+        ui.close();
+        ui.style.display = "none";
+    };
+    
+    function getGraphTypeAndSize() {
+        return {
+            type: ui.querySelector("#graphType").value,
+            size: {
+                cols: parseInt(ui.querySelector("#graphCols").value, 10),
+                rows: parseInt(ui.querySelector("#graphRows").value, 10),
+                lays: parseInt(ui.querySelector("#graphLays").value, 10),
+                KL: parseInt(ui.querySelector("#graphKL").value, 10),
+                KR: parseInt(ui.querySelector("#graphKR").value, 10)
+            }
+        };
+    };
+        
+    return {
+        show: showDialog,
+        hide: hideDialog
+    };
+};
+
+
+
+/* global sgv, UI */
+
+sgv.dlgEdgeProperties = new function() {
+    var precontent, content, zeroInfo;
+    var hidEdgeId;
+    var selectEdgeId, selectScope;
+    var checkValueE, editWagaE;
+    var btnSetE, btnDeleteE;
+
+    var ui = createUI();
+    
+    window.addEventListener('load',()=>{
+        window.document.body.appendChild(ui);
+    });
+
+    function createUI() {
+        let ui = UI.createEmptyWindow("sgvUIwindow", "sgvEdgeProperties", "Edge properties", true);
+        
+        ui.querySelector(".hidebutton").addEventListener('click', function () {
+            hideDialog();
+        });
+
+        hidEdgeId = UI.newInput('hidden', '0', '', 'edgeId');
+        ui.appendChild(hidEdgeId);
+
+        precontent = UI.tag("div", {'class':'content'});
+
+        selectEdgeId = UI.tag('select',{'id':'selectEdgeId'});
+        selectEdgeId.appendChild(UI.tag('option',{'value':0,'selected':true},{'innerHTML':'-- id --'}));
+        selectEdgeId.addEventListener('change', function () {
+            selectedEdgeId();
+        });
+        precontent.appendChild(UI.tag('label',{'for':'selectEdgeId'},{'innerHTML':'Edge: '}));
+        precontent.appendChild(selectEdgeId);
+
+        ui.appendChild(precontent);
+
+        content = UI.tag("div", {'class':'content'});
+        ui.appendChild(content);
+
+        content.appendChild(UI.tag('label',{'for':'nsSelectE'},{'innerHTML':'Scope: '}));
+
+        selectScope = UI.tag('select',{'id':'nsSelectE'});
+        selectScope.addEventListener('change', function () {
+            changeScopeE();
+        });
+        content.appendChild(selectScope);
+
+
+        content.appendChild(document.createElement("br"));
+
+        checkValueE = UI.newInput("checkbox", "", "", "valueCheckE");
+        checkValueE.addEventListener('click', function () {
+            activateE();
+        });
+        content.appendChild(checkValueE);
+
+        editWagaE = UI.newInput("number", "0", "", "wagaE");
+        content.appendChild(editWagaE);
+
+        btnSetE = UI.newInput("button", "set", "setvaluebutton", "setE");
+        btnSetE.addEventListener('click', function () {
+            edycjaE();
+        });
+        content.appendChild(btnSetE);
+
+        btnDeleteE = UI.newInput("button", "delete", "delbutton", "");
+        btnDeleteE.addEventListener('click', function () {
+            usunE();
+        });
+        content.appendChild(btnDeleteE);
+
+        content.style['min-width'] = '240px'; 
+        content.style['min-height'] = '105px'; 
+
+
+        zeroInfo = UI.tag("div", {'class':'content'});
+        zeroInfo.innerHTML = "Select an edge, please.";
+        zeroInfo.style['min-width'] = '240px'; 
+        zeroInfo.style['min-height'] = '105px'; 
+        ui.appendChild(zeroInfo);
+        
+        return ui;
+    };
+
+    function showDialog(edgeId, x, y) {
+        if (typeof edgeId !== 'undefined') {
+            edgeId = edgeId.toString();
+            hidEdgeId.value = edgeId;
+        } else {
+            edgeId = hidEdgeId.value;
+        }
+        
+        if ( edgeId === '0' ) {
+            content.style.display = 'none';
+            zeroInfo.style.display = 'block';
+            return;
+        } else {
+            zeroInfo.style.display = 'none';
+            content.style.display = 'block';
+        }
+
+        UI.clearSelect(selectEdgeId, false);
+        for (const key in sgv.graf.edges) {
+            selectEdgeId.appendChild(UI.tag('option',{'value':key},{'innerHTML':"q" + sgv.graf.edges[key].begin + " - q" + sgv.graf.edges[key].end}));
+        }
+        UI.selectByKey( selectEdgeId, edgeId );
+
+        UI.clearSelect(selectScope, true);
+        for (const key in sgv.graf.scopeOfValues) {
+            let opt = UI.tag('option',{'value':key},{'innerHTML':sgv.graf.scopeOfValues[key]});
+            if ( sgv.graf.currentScope === sgv.graf.scopeOfValues[key]) {
+                opt.selected = "selected";
+            }
+            selectScope.appendChild(opt);
+        }
+
+        let currentValue = sgv.graf.edgeValue(edgeId);
+        if (currentValue===null) {
+            checkValueE.checked = "";
+            editWagaE.value = null;
+            editWagaE.disabled = "disabled";
+            btnSetE.disabled = "disabled";
+        } else {
+            checkValueE.checked = "checked";
+            editWagaE.value = currentValue;
+            editWagaE.disabled = "";
+            btnSetE.disabled = "";
+        }
+
+        if ((typeof x!=='undefined')&&(typeof y!=='undefined')) {
+            let xOffset = sgv.canvas.clientLeft;
+            ui.style.top = y + "px";
+            ui.style.left = (xOffset + x) + "px";
+        }
+
+        ui.style.display = "block";
+    };
+
+
+    function hideDialog() {
+        if (ui!==null) ui.style.display = "none";
+    };
+
+    function selectedEdgeId() {
+        showDialog(event.target.value);
+    }
+
+    function changeScopeE() {
+        let scopeId = event.target.value;
+
+        let edgeId = ui.querySelector("#edgeId").value;
+
+        let currentValue = sgv.graf.edgeValue(edgeId,sgv.graf.scopeOfValues[scopeId]);
+        
+        if ((currentValue===null)||isNaN(currentValue)) {
+            console.log('NULL');
+            checkValueE.checked = "";
+            editWagaE.value = null;
+            editWagaE.disabled = "disabled";
+            btnSetE.disabled = "disabled";
+        } else {
+            console.log('NOT NULL');
+            checkValueE.checked = "checked";
+            editWagaE.value = currentValue;
+            editWagaE.disabled = "";
+            btnSetE.disabled = "";
+        }
+    };
+
+
+
+    function usunE() {
+        sgv.graf.delEdge(ui.querySelector("#edgeId").value);
+        ui.style.display = "none";
+    };
+
+    function edycjaE() {
+        let id = ui.querySelector("#edgeId").value;
+        let val = parseFloat(editWagaE.value.replace(/,/g, '.'));
+        let scope = sgv.graf.scopeOfValues[selectScope.value];
+        
+        sgv.graf.setEdgeValue(id, val, scope);
+        ui.style.display = "none";
+    };
+
+    function activateE() {
+        let isActive = checkValueE.checked;
+        let scope = sgv.graf.scopeOfValues[selectScope.value];
+        if (isActive) {
+            editWagaE.disabled = "";
+            btnSetE.disabled = "";
+            let val = parseFloat(editWagaE.value.replace(/,/g, '.'));
+            if (val==="") {
+                val=0;
+                editWagaE.value = val;
+            }
+            sgv.graf.setEdgeValue(ui.querySelector("#edgeId").value, val, scope);
+        } else {
+            editWagaE.disabled = "disabled";
+            btnSetE.disabled = "disabled";
+            sgv.graf.delEdgeValue(ui.querySelector("#edgeId").value, scope);
+        }
+    };
+
+    return {
+        show: showDialog,
+        hide: hideDialog,
+        isVisible: () => {
+            return (ui!==null)&&(ui.style.display === "block");
+        }
+    };
+};
+/* global UI, sgv */
+
+sgv.dlgNodeProperties = new function() {
+   
+    var hidNodeId;
+    var selectNodeId, selectScope, checkValueN, editWagaN;
+    var btnSetN, btnConnectN, selectDestN, btnConnectSelectN;
+    var checkLabelN, editLabelN;
+    var content, zeroInfo;
+    
+    var ui = createUI();
+
+    window.addEventListener('load',()=>{
+        window.document.body.appendChild(ui);
+    });
+
+    function createUI() {
+        let ui = UI.createEmptyWindow("sgvUIwindow", "sgvNodeProperties", "Node properties", true);
+
+        ui.querySelector(".hidebutton").addEventListener('click', function () {
+            hideDialog();
+        });
+        
+        
+        hidNodeId = UI.newInput('hidden', '0', '', 'nodeId');
+        ui.appendChild(hidNodeId);
+
+        var precontent = UI.tag("div", {'class':'content'});
+
+        selectNodeId = UI.tag('select',{'id':'selectNodeId'});
+        selectNodeId.appendChild(UI.tag('option',{'value':0,'selected':true},{'innerHTML':'-- id --'}));
+        selectNodeId.addEventListener('change', function () {
+            selectedNodeId();
+        });
+        precontent.appendChild(UI.tag('label',{'for':'selectNodeId'},{'innerHTML':'Node: '}));
+        precontent.appendChild(selectNodeId);
+
+        ui.appendChild(precontent);
+
+
+        content = UI.tag("div", {'class':'content'});
+
+        var labelBlock = UI.tag("div");
+        checkLabelN = UI.newInput("checkbox", "", "", "checkLabelN");
+        checkLabelN.addEventListener('click', function (e) {
+            let checked = e.target.checked;
+
+            editLabelN.disabled = checked?"":"disabled";
+            sgv.graf.nodes[hidNodeId.value].showLabel(checked);
+        });
+        labelBlock.appendChild(UI.tag('label',{'for':'checkLabelN'},{'innerHTML':'Label: '}));
+        labelBlock.appendChild(checkLabelN);
+
+        editLabelN = UI.newInput("text", "", "", "editLabelN");
+        editLabelN.addEventListener('change', function (e) {
+            sgv.graf.nodes[hidNodeId.value].setLabel(e.target.value, true);
+        });
+        labelBlock.appendChild(editLabelN);
+        
+        content.appendChild(labelBlock);
+
+
+        selectScope = UI.tag('select',{'id':'nsSelectN'});
+        selectScope.addEventListener('change', function () {
+            changeScopeN();
+        });
+        content.appendChild(UI.tag('label',{'for':'nsSelectN'},{'innerHTML':'Scope: '}));
+        content.appendChild(selectScope);
+        
+        content.appendChild(document.createElement("br"));
+
+        checkValueN = UI.newInput("checkbox", "", "", "valueCheckN");
+        checkValueN.addEventListener('click', function () {
+            activateN();
+        });
+        content.appendChild(checkValueN);
+        
+        editWagaN = UI.newInput("number", "0", "", "wagaN");
+        content.appendChild(editWagaN);
+        
+        btnSetN = UI.newInput("button", "set", "setvaluebutton", "setN");
+        btnSetN.addEventListener('click', function () {
+            edycjaN();
+        });
+        content.appendChild(btnSetN);
+        
+        
+        content.appendChild(document.createElement("br"));
+        
+        btnConnectN = UI.newInput("button", "connect to...", "", "connectN");
+        btnConnectN.addEventListener('click', function () {
+            connectNodes();
+        });
+        content.appendChild(btnConnectN);
+
+        selectDestN = UI.tag('select',{'id':'destN'});
+        content.appendChild(selectDestN);
+
+        btnConnectSelectN = UI.newInput("button", "^", "", "connectSelectN");
+        btnConnectSelectN.addEventListener('click', function () {
+            connectSelectN();
+        });
+        content.appendChild(btnConnectSelectN);
+
+        content.appendChild(document.createElement("br"));
+
+        btnDeleteNode = UI.newInput("button", "delete", "delbutton", "");
+        btnDeleteNode.addEventListener('click', function () {
+            usunN();
+        });
+        content.appendChild(btnDeleteNode);
+
+        content.style['min-width'] = '240px'; 
+        content.style['min-height'] = '105px'; 
+
+        ui.appendChild(content);
+
+        zeroInfo = UI.tag("div", {'class':'content'});
+        zeroInfo.innerHTML = "Select a node, please.";
+        zeroInfo.style['min-width'] = '240px'; 
+        zeroInfo.style['min-height'] = '105px'; 
+        ui.appendChild(zeroInfo);
+        
+        return ui;
+    }
+
+
+    function showDialog(nodeId, x, y) {
+        if (typeof nodeId !== 'undefined') {
+            nodeId = nodeId.toString();
+            hidNodeId.value = nodeId;
+        } else {
+            nodeId = hidNodeId.value;
+        }
+
+        if ( nodeId === '0' ) {
+            content.style.display = 'none';
+            zeroInfo.style.display = 'block';
+            return;
+        } else {
+            zeroInfo.style.display = 'none';
+            content.style.display = 'block';
+        }
+
+        hidNodeId.value = nodeId;
+
+        editLabelN.value = sgv.graf.nodes[nodeId].getLabel();
+        if ( sgv.graf.nodes[nodeId].isLabelVisible() ) {
+            checkLabelN.checked = "checked";
+            editLabelN.disabled = "";
+        } else {
+            checkLabelN.checked = "";
+            editLabelN.disabled = "disabled";
+        }
+
+        UI.clearSelect(selectScope, true);
+        for (const key in sgv.graf.scopeOfValues) {
+            var opt = UI.tag('option',{'value':key},{'innerHTML':sgv.graf.scopeOfValues[key]});
+            if ( sgv.graf.currentScope === sgv.graf.scopeOfValues[key]) {
+                opt.selected = "selected";
+            }
+            selectScope.appendChild(opt);
+        }
+
+
+        let currentValue = sgv.graf.nodeValue(nodeId);
+        if ((currentValue===null)||isNaN(currentValue)) {
+            ui.querySelector("#valueCheckN").checked = "";
+            ui.querySelector("#wagaN").value = null;
+            ui.querySelector("#wagaN").disabled = "disabled";
+            ui.querySelector("#setN").disabled = "disabled";
+        } else {
+            ui.querySelector("#valueCheckN").checked = "checked";
+            ui.querySelector("#wagaN").value = currentValue;
+            ui.querySelector("#wagaN").disabled = "";
+            ui.querySelector("#setN").disabled = "";
+        }
+
+        UI.clearSelect(selectDestN, true);
+        UI.clearSelect(selectNodeId, false);
+
+        for (const key in sgv.graf.nodes) {
+            let isDifferentId = (key.toString() !== nodeId.toString());
+
+            selectNodeId.appendChild(UI.tag('option',{'value':key},{'innerHTML':"q" + key}));
+            
+            if (isDifferentId) {
+                 selectDestN.appendChild(UI.tag('option',{'value':key},{'innerHTML':"q" + key}));
+            }
+        }
+        
+        UI.selectByKey( selectNodeId, nodeId );
+
+        if ((typeof x!=='undefined')&&(typeof y!=='undefined')) {
+            let xOffset = sgv.canvas.clientLeft;
+
+            ui.style.top = y + "px";
+            ui.style.left = (xOffset + x) + "px";
+        }
+
+        ui.style.display = "block";
+    };
+    
+    
+    
+    
+    function hideDialog() {
+        if (ui!==null) ui.style.display = "none";
+    }
+    
+    
+    function selectedNodeId() {
+        showDialog(event.target.value);
+    }
+    
+
+    function usunN() {
+        sgv.graf.delNode(hidNodeId.value);
+        ui.style.display = "none";
+    };
+
+
+    function changeScopeN() {
+        console.log('changeScopeN: ' + event.target.value);
+
+        let nodeId = ui.querySelector("#nodeId").value;
+
+        let currentValue = sgv.graf.nodeValue(nodeId,sgv.graf.scopeOfValues[event.target.value]);
+        if ((currentValue===null)||isNaN(currentValue)) {
+            console.log('NULL');
+            ui.querySelector("#valueCheckN").checked = "";
+            ui.querySelector("#wagaN").value = null;
+            ui.querySelector("#wagaN").disabled = "disabled";
+            ui.querySelector("#setN").disabled = "disabled";
+        } else {
+            console.log('NOT NULL');
+            ui.querySelector("#valueCheckN").checked = "checked";
+            ui.querySelector("#wagaN").value = currentValue;
+            ui.querySelector("#wagaN").disabled = "";
+            ui.querySelector("#setN").disabled = "";
+        }
+    };
+
+
+    function edycjaN() {
+        let id = ui.querySelector("#nodeId").value;
+        let val = parseFloat(ui.querySelector("#wagaN").value.replace(/,/g, '.'));
+        let scope = sgv.graf.scopeOfValues[ui.querySelector("#nsSelectN").value];
+        sgv.graf.setNodeValue(id, val, scope);
+        ui.style.display = "none";
+    };
+
+    function activateN() {
+        let scope = sgv.graf.scopeOfValues[ui.querySelector("#nsSelectN").value];
+        let isActive = ui.querySelector("#valueCheckN").checked;
+        if (isActive) {
+            ui.querySelector("#wagaN").disabled = "";
+            ui.querySelector("#setN").disabled = "";
+            let val = parseFloat(ui.querySelector("#wagaN").value.replace(/,/g, '.'));
+            if (val==="") {
+                val=0;
+                ui.querySelector("#wagaN").value = val;
+            }
+            sgv.graf.setNodeValue(ui.querySelector("#nodeId").value, val, scope);
+        } else {
+            ui.querySelector("#wagaN").disabled = "disabled";
+            ui.querySelector("#setN").disabled = "disabled";
+            sgv.graf.delNodeValue(ui.querySelector("#nodeId").value, scope);
+        }
+    };
+    
+    function connectSelectN() {
+        sgv.nodeToConnect = parseInt(ui.querySelector("#nodeId").value, 10);
+        ui.style.display = "none";
+    };
+
+    function connectNodes() {
+        var node1 = ui.querySelector("#nodeId").value;
+        var node2 = ui.querySelector("#destN").value;
+
+        if (sgv.graf !== null) {
+            sgv.graf.addEdge(node1, node2);
+        }
+    };
+    
+    return {
+        show: showDialog,
+        hide: hideDialog,
+        isVisible: () => {
+            return (ui!==null)&&(ui.style.display === "block");
+        }
+    };
+    
+};
+/* global sgv, UI */
+
+sgv.dlgMissingNodes = new function() {
+    
+    var misN;
+    var ui = createUI('sgvMissingNodes');
+
+    window.addEventListener('load',()=>{
+        window.document.body.appendChild(ui);
+    });
+
+
+    function createUI(id) {
+        let o = UI.createEmptyWindow("sgvUIwindow", id, "removed nodes", true);
+
+        var content = UI.tag("div", {'class':'content'});
+        misN = UI.tag("div", {'id':'misN'});
+        content.appendChild(misN);
+
+        var del = UI.newInput("button", "clear history", "delbutton", "");
+        del.addEventListener('click', function () {
+            delMissingX();
+        });
+        content.appendChild(del);
+
+        o.appendChild(content);
+        return o;
+    };
+
+    function addNodeX(nodeId) {
+        let i = UI.newInput("button", " q" + nodeId + " ", "", "rest" + nodeId );
+
+        i.addEventListener('click', function () {
+            restoreNode(nodeId);
+        });
+        
+        misN.appendChild(i);
+        
+        ui.style.display = "block";
+    };
+    
+    function restoreNode(nodeId) {
+        var but = ui.querySelector("#rest" + nodeId);
+        but.parentNode.removeChild(but);
+
+        sgv.graf.restoreNode(nodeId);
+    };
+    
+    function delMissingX() {
+        misN.innerHTML = "";
+
+        if (sgv.graf !== null) {
+            sgv.graf.missing = {};
+        }
+
+        ui.style.display = "none";
+    };
+
+    
+    return {
+        show: ()=>{ui.style.display = "block";},
+        hide: ()=>{ui.style.display = "none";},
+        addNode: addNodeX,
+        delAll: delMissingX
+    };
+
+};
+
+sgv.dlgAbout = new function() {
+    var ui = null;
+
+    function createDialog() {
+        if (ui===null) {
+            ui = UI.tag( "dialog", { "class": "sgvUIwindow sgvModalDialog", "id": "sgvDlgAbout" });
+        }
+        
+        var content = UI.tag( "div", { "class": "content" });
+
+        content.style['text-align'] = 'center';
+        content.style.width = 'fit-content';
+        content.innerHTML += '<div><img src="pics/EuroHPC.jpg"></div>';
+        content.innerHTML += '<div>Narodowa Infrastruktura Superkomputerowa dla EuroHPC - EuroHPC PL</div>';
+        content.innerHTML += '<div class="info">simGraphVisualizer v.1.0</div>';
+        content.innerHTML += '<div><img src="pics/Flagi.jpg"></div>';
+
+        let btn = UI.tag( "input", {
+            'type':     "button",
+            'value':    "Close",
+            'class':    "actionbutton",
+            'id':       "closeButton",
+            'name':     "closeButton"
+        });
+        content.appendChild(btn);
+
+        btn.addEventListener('click', function () {
+            hideDialog();
+        });
+
+        let t = UI.createTitlebar("About", false);
+        ui.appendChild(t);
+        ui.appendChild(content);
+
+        ui.style.display = "none";
+        window.document.body.appendChild(ui);
+    };
+
+    function showDialog() {
+        if (ui===null) {
+            createDialog();
+        }
+        ui.style.display = "block";
+
+        ui.showModal();
+    };
+
+    function hideDialog() {
+        ui.close();
+        ui.style.display = "none";
+    };
+
+
+    return {
+        //ui: ui,
+        create: createDialog,
+        show: showDialog,
+        hide: hideDialog
+    };
+};
+
+

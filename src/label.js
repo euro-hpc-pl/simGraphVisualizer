@@ -23,17 +23,32 @@
  * @param {BABYLON.Vector3} position position over which the label is to be displayed
  * @returns {Label}
  */
-var Label = (function (labelId, txt, position) {
-    this.id = labelId;
+var Label = (function (labelId, txt, position, enabled) {
+    this.setText = async function(txt, enabled) {
+        this.text = txt;
+        
+        if (this.plane!==null)
+            this.plane.dispose();
+        
+        this.plane = this.createPlane();
+        this.plane.position = this.position.add(new BABYLON.Vector3(0.0, 5.0, 0.0));
+        this.plane.billboardMode = BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
+        this.plane.setEnabled(enabled);
+        this.plane.isPickable = false;
+    };
+    
+    this.getText = function() {
+        return this.text;
+    };
+    
+    this.setPosition = function(pos) {
+        this.position = pos;
+        
+        if (this.plane !==null)
+            this.plane.position = pos.add(new BABYLON.Vector3(0.0, 5.0, 0.0));
+    };
 
-    /**
-     * 
-     * @param {type} txt
-     * @param {type} position
-     * @returns {undefined}
-     */
-    this.createMe = async function (txt, position) {
-
+    this.createPlane = function() {
         //Set font
         var font_size = 48;
         var font = "normal " + font_size + "px Arial";
@@ -53,7 +68,7 @@ var Label = (function (labelId, txt, position) {
         tmpctx.font = font;
 
         //Set text
-        var text = txt;
+        var text = this.text;
 
         var DTWidth = tmpctx.measureText(text).width + 8;
 
@@ -64,32 +79,36 @@ var Label = (function (labelId, txt, position) {
         var mat = new BABYLON.StandardMaterial("mat", sgv.scene);
         mat.diffuseTexture = new BABYLON.DynamicTexture("DynamicTexture", {width: DTWidth, height: DTHeight}, sgv.scene, false);
         mat.diffuseTexture.drawText(text, null, null, font, "#000000", "#ffff00", true);
+        
+        var plane = BABYLON.MeshBuilder.CreatePlane(this.id + "_plane", {width: planeWidth, height: planeHeight, updatable: true}, sgv.scene);
+        plane.material = mat;
 
-        //const abstractPlane = BABYLON.Plane.FromPositionAndNormal(new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(0, 1, 0));
-        //Create plane and set dynamic texture as material
-        //this.plane = BABYLON.MeshBuilder.CreatePlane("plane", {sourcePlane: abstractPlane, sideOrientation: BABYLON.Mesh.DOUBLESIDE, width:planeWidth, height:planeHeight}, sgv.scene);
+        return plane;
+    };
 
-        this.plane = BABYLON.MeshBuilder.CreatePlane(this.id + "_plane", {width: planeWidth, height: planeHeight, updatable: true}, sgv.scene);
-        this.plane.material = mat;
-
-
+    /**
+     * @param {type} txt
+     * @param {type} position
+     * @returns {undefined}
+     */
+    this.createMe = async function (txt, position, enabled) {
+        this.plane = this.createPlane();
         this.plane.position = position.add(new BABYLON.Vector3(0.0, 5.0, 0.0));
-
-        //console.log( position, this.plane.position );
-
         this.plane.billboardMode = BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
-
-        this.plane.setEnabled(false);
-
+        this.plane.setEnabled(enabled);
         this.plane.isPickable = false;
     };
 
-    this.createMe(txt, position);
-
     this.setEnabled = function (b) {
-        this.plane.setEnabled(b);
+        if (this.plane!==null)
+            this.plane.setEnabled(b);
     };
 
+    this.text = txt;
+    this.position = position;
+    this.id = labelId;
+    this.plane = null;
+    this.createMe(txt, position, enabled);
 });
 
 

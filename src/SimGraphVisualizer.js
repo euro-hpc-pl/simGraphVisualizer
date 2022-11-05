@@ -32,89 +32,85 @@ sgv.scene = null;
 sgv.camera = null;
 sgv.graf = null;
 sgv.displayMode = 'classic';
-sgv.labelsVisible = false;//true;
-
-sgv.createCamera = function () {
-    sgv.camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(0, 0, 0), sgv.scene);
-    //camera.setPosition(new BABYLON.Vector3(10, 100, 200));
-    sgv.camera.setPosition(new BABYLON.Vector3(166, 150, 0));
-    sgv.camera.attachControl(sgv.canvas, true);
-
-    sgv.camera.inputs.attached.pointers.panningSensibility = 25;
-    
-    sgv.camera.upperBetaLimit = (Math.PI / 2) * 0.99;
-    sgv.camera.inertia = 0.5;
-};
-
-sgv.createLights = function () {
-    var light = new BABYLON.SpotLight("Spot0", new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(0, 0, 1), 1.8, 0.01, sgv.scene);
-    //light.diffuse = new BABYLON.Color3(1, 1, 1);
-    //light.specular = new BABYLON.Color3(1, 1, 1);
-
-    light.intensity = 0.75;
-    light.parent = sgv.camera;
-    light.position = new BABYLON.Vector3(0, 0, 0);
-    //light.radius = Math.PI;// / 2);
-};
-
-sgv.createMaterials = function () {
-    sgv.grayMat0 = new BABYLON.StandardMaterial("grayMat0", sgv.scene);
-    sgv.grayMat0.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sgv.grayMat0.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
-    sgv.grayMat0.emissiveColor = new BABYLON.Color3(0.5, 0.5, 0.5);
-
-    sgv.grayMat1 = new BABYLON.StandardMaterial("grayMat1", sgv.scene);
-    sgv.grayMat1.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sgv.grayMat1.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sgv.grayMat1.emissiveColor = new BABYLON.Color3(0, 0, 0);
-
-
-    sgv.redMat = new BABYLON.StandardMaterial("redMat", sgv.scene);
-    sgv.redMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sgv.redMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sgv.redMat.emissiveColor = BABYLON.Color3.Red();
-
-    sgv.greenMat = new BABYLON.StandardMaterial("greenMat", sgv.scene);
-    sgv.greenMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sgv.greenMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sgv.greenMat.emissiveColor = new BABYLON.Color3(0, 0.3, 0);
-
-    sgv.blueMat = new BABYLON.StandardMaterial("blueMat", sgv.scene);
-    sgv.blueMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sgv.blueMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sgv.blueMat.emissiveColor = BABYLON.Color3.Blue();
-
-    sgv.purpleMat = new BABYLON.StandardMaterial("purpleMat", sgv.scene);
-    sgv.purpleMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sgv.purpleMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sgv.purpleMat.emissiveColor = BABYLON.Color3.Purple();
-
-    sgv.groundMaterial = new BABYLON.StandardMaterial("ground", sgv.scene);
-    sgv.groundMaterial.specularColor = BABYLON.Color3.Black();
-};
-
-sgv.createDefaultObjects = () => {
-    sgv.createMaterials();
-    
-    //this.mesh = BABYLON.MeshBuilder.CreateBox(name, {size: 3}, scene);
-    //this.mesh = BABYLON.MeshBuilder.CreateDisc(name, {radius: 16, tessellation: 3}, scene);
-    //this.mesh = BABYLON.MeshBuilder.CreatePlane(name, {width:3, height:3}, scene);
-    //this.mesh.billboardMode = BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
-    sgv.defaultSphere = BABYLON.MeshBuilder.CreateSphere("defaultSphere", {diameter: 3, segments: 8, updatable: true}, sgv.scene);
-    sgv.defaultSphere.material = new BABYLON.StandardMaterial("mat", sgv.scene);
-    sgv.defaultSphere.material.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sgv.defaultSphere.material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sgv.defaultSphere.material.emissiveColor = new BABYLON.Color4(0.2, 0.2, 0.2);
-    sgv.defaultSphere.setEnabled(false);
-};
 
 sgv.createScene = function () {
+    function createCamera() {
+        sgv.camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(0, 0, 0), sgv.scene);
+        //camera.setPosition(new BABYLON.Vector3(10, 100, 200));
+        sgv.camera.setPosition(new BABYLON.Vector3(166, 150, 0));
+        sgv.camera.attachControl(sgv.canvas, true);
+
+        sgv.camera.inputs.attached.pointers.panningSensibility = 25;
+
+        sgv.camera.upperBetaLimit = (Math.PI / 2) * 0.99;
+        sgv.camera.inertia = 0.5;
+    };
+
+    function createLights() {
+        var light = new BABYLON.SpotLight("Spot0", new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(0, 0, 1), 1.8, 0.01, sgv.scene);
+        //light.diffuse = new BABYLON.Color3(1, 1, 1);
+        //light.specular = new BABYLON.Color3(1, 1, 1);
+
+        light.intensity = 0.75;
+        light.parent = sgv.camera;
+        light.position = new BABYLON.Vector3(0, 0, 0);
+        //light.radius = Math.PI;// / 2);
+    };
+
+    function createDefaultObjects() {
+//        function createMaterials() {
+//            sgv.grayMat0 = new BABYLON.StandardMaterial("grayMat0", sgv.scene);
+//            sgv.grayMat0.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+//            sgv.grayMat0.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
+//            sgv.grayMat0.emissiveColor = new BABYLON.Color3(0.5, 0.5, 0.5);
+//
+//            sgv.grayMat1 = new BABYLON.StandardMaterial("grayMat1", sgv.scene);
+//            sgv.grayMat1.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+//            sgv.grayMat1.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+//            sgv.grayMat1.emissiveColor = new BABYLON.Color3(0, 0, 0);
+//
+//
+//            sgv.redMat = new BABYLON.StandardMaterial("redMat", sgv.scene);
+//            sgv.redMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+//            sgv.redMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+//            sgv.redMat.emissiveColor = BABYLON.Color3.Red();
+//
+//            sgv.greenMat = new BABYLON.StandardMaterial("greenMat", sgv.scene);
+//            sgv.greenMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+//            sgv.greenMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+//            sgv.greenMat.emissiveColor = new BABYLON.Color3(0, 0.3, 0);
+//
+//            sgv.blueMat = new BABYLON.StandardMaterial("blueMat", sgv.scene);
+//            sgv.blueMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+//            sgv.blueMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+//            sgv.blueMat.emissiveColor = BABYLON.Color3.Blue();
+//
+//            sgv.purpleMat = new BABYLON.StandardMaterial("purpleMat", sgv.scene);
+//            sgv.purpleMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+//            sgv.purpleMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+//            sgv.purpleMat.emissiveColor = BABYLON.Color3.Purple();
+//
+//            sgv.groundMaterial = new BABYLON.StandardMaterial("ground", sgv.scene);
+//            sgv.groundMaterial.specularColor = BABYLON.Color3.Black();
+//        };
+//        createMaterials();
+
+        //sgv.defaultSphere = BABYLON.MeshBuilder.CreateBox("defaultSphere", {size: 3}, sgv.scene);
+        sgv.defaultSphere = BABYLON.MeshBuilder.CreateSphere("defaultSphere", {diameter: 3, segments: 8, updatable: true}, sgv.scene);
+        sgv.defaultSphere.material = new BABYLON.StandardMaterial("mat", sgv.scene);
+        sgv.defaultSphere.material.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+        sgv.defaultSphere.material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+        sgv.defaultSphere.material.emissiveColor = new BABYLON.Color4(1.0, 1.0, 0.0);
+        sgv.defaultSphere.setEnabled(false);
+    };
+    
+    
     sgv.scene = new BABYLON.Scene(sgv.engine);
 
-    sgv.createCamera();
-    sgv.createLights();
+    createCamera();
+    createLights();
 
-    sgv.createDefaultObjects();
+    createDefaultObjects();
     
     sgv.advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
     sgv.nodeToConnect = 0;
@@ -122,9 +118,6 @@ sgv.createScene = function () {
     sgv.addEventsListeners();
     
     sgv.scene.clearColor = new BABYLON.Color3(0.7, 0.7, 0.7);
-    //sgv.scene.executeWhenReady(() => {
-    //    console.log("ready");
-    //});
 };
 
 sgv.switchDisplayMode = function () {
@@ -159,8 +152,7 @@ sgv.addEventsListeners = function () {
         }
 
         return null;
-    }
-    ;
+    };
 
     function pointerDblTap(mesh) {
         var n2 = mesh.name.split(":");
@@ -168,8 +160,7 @@ sgv.addEventsListeners = function () {
         {
             sgv.graf.edgeDoubleClicked(n2[1]);
         }
-    }
-    ;
+    };
 
     function pointerDown(event) {
         console.log("POINTER.DOWN");
@@ -182,8 +173,7 @@ sgv.addEventsListeners = function () {
                 sgv.camera.detachControl(sgv.canvas);
             }, 0);
         }
-    }
-    ;
+    };
 
     function onPointerUp() {
         if (sgv.graf !== null) {
@@ -195,8 +185,7 @@ sgv.addEventsListeners = function () {
 
             return;
         }
-    }
-    ;
+    };
 
     function onPointerMove() {
         if (sgv.graf === null)
@@ -221,8 +210,7 @@ sgv.addEventsListeners = function () {
 
             startingPoint = current;
         }
-    }
-    ;
+    };
 
 
     function onPointerTap(pointerInfo) {
@@ -231,13 +219,16 @@ sgv.addEventsListeners = function () {
                 console.log("mesh picked: " + mesh.name);
                 var n2 = mesh.name.split(":");
                 if (n2[0] === "edge") {
-                    sgv.pokazOkienkoE(n2[1], sgv.scene.pointerX, sgv.scene.pointerY);
+                    //sgv.pokazOkienkoE(n2[1], sgv.scene.pointerX, sgv.scene.pointerY);
+                    sgv.dlgEdgeProperties.show(n2[1], sgv.scene.pointerX, sgv.scene.pointerY);
+                    
                 } else if (n2[0] === "node") {
-                    sgv.pokazOkienkoN(parseInt(n2[1], 10), sgv.scene.pointerX, sgv.scene.pointerY);
-                    //sgv.ui.oknoN.show(parseInt(n2[1], 10), sgv.scene.pointerX, sgv.scene.pointerY);
+                    //sgv.pokazOkienkoN(parseInt(n2[1], 10), sgv.scene.pointerX, sgv.scene.pointerY);
+                    sgv.dlgNodeProperties.show(parseInt(n2[1], 10), sgv.scene.pointerX, sgv.scene.pointerY);
                 } else {
-                    sgv.cancelE();
-                    sgv.cancelN();
+                    //sgv.cancelE();
+                    sgv.dlgEdgeProperties.hide();
+                    sgv.dlgNodeProperties.hide();
                 }
             }
             ;
@@ -260,8 +251,9 @@ sgv.addEventsListeners = function () {
                 if (pointerInfo.pickInfo.hit) {
                     onMeshPicked(pointerInfo.pickInfo.pickedMesh);
                 } else {
-                    sgv.cancelE();
-                    sgv.cancelN();
+                    //sgv.cancelE();
+                    sgv.dlgEdgeProperties.hide();
+                    sgv.dlgNodeProperties.hide();
                 }
             }
         }
@@ -301,8 +293,7 @@ sgv.addEventsListeners = function () {
                 onRMBtap(pointerInfo);
                 break;
         }
-    }
-    ;
+    };
 
     sgv.scene.onPointerObservable.add(function (pointerInfo) {
         switch (pointerInfo.type) {
@@ -332,338 +323,7 @@ sgv.addEventsListeners = function () {
                 break;
         }
     });
-
-
 };
-
-sgv.connectSelectN = function () {
-    sgv.nodeToConnect = parseInt(sgv.ui.nodeProperties.querySelector("#nodeId").value, 10);
-    sgv.ui.nodeProperties.style.display = "none";
-};
-
-sgv.connectNodes = function () {
-    var node1 = sgv.ui.nodeProperties.querySelector("#nodeId").value;
-    var node2 = sgv.ui.nodeProperties.querySelector("#destN").value;
-
-    if (sgv.graf !== null) {
-        sgv.graf.addEdge(node1, node2);
-    }
-};
-
-sgv.addToMissing = function (nodeId) {
-    let win = sgv.ui.missingNodes.querySelector("#misN");
-    
-    let i = UI.newInput("button", " q" + nodeId + " ", "", "rest" + nodeId );
-    
-    i.addEventListener('click', function () {
-        sgv.restoreNode(nodeId);
-    });
-    win.appendChild(i);
-
-    this.ui.missingNodes.style.display = "block";
-};
-
-sgv.restoreNode = function (nodeId) {
-    sgv.graf.restoreNode(nodeId);
-
-    var but = sgv.ui.missingNodes.querySelector("#rest" + nodeId);
-    but.parentNode.removeChild(but);
-};
-
-sgv.delMissing = function () {
-    var win = sgv.ui.missingNodes.querySelector("#misN");
-    win.innerHTML = "";
-
-    if (sgv.graf !== null) {
-        sgv.graf.missing = {};
-    }
-
-    this.ui.missingNodes.style.display = "none";
-};
-
-sgv.pokazOkienkoE = function (edgeId, x, y) {
-    var xOffset = this.canvas.clientLeft;
-
-    sgv.ui.edgeProperties.querySelector(".titleText").innerHTML = "Edge q" + sgv.graf.edges[edgeId].begin + " &lt;---&gt; q" + sgv.graf.edges[edgeId].end;
-    sgv.ui.edgeProperties.querySelector("#edgeId").value = edgeId;
-    
-    let currentValue = sgv.graf.edgeValue(edgeId);
-    if (currentValue===null) {
-        sgv.ui.edgeProperties.querySelector("#valueCheckE").checked = "";
-        sgv.ui.edgeProperties.querySelector("#wagaE").value = null;
-        sgv.ui.edgeProperties.querySelector("#wagaE").disabled = "disabled";
-        sgv.ui.edgeProperties.querySelector("#setE").disabled = "disabled";
-    } else {
-        sgv.ui.edgeProperties.querySelector("#valueCheckE").checked = "checked";
-        sgv.ui.edgeProperties.querySelector("#wagaE").value = currentValue;
-        sgv.ui.edgeProperties.querySelector("#wagaE").disabled = "";
-        sgv.ui.edgeProperties.querySelector("#setE").disabled = "";
-    }
-
-    
-    //sgv.ui.edgeProperties.querySelector("#wagaE").value = sgv.graf.edgeValue(edgeId);
-
-    sgv.ui.edgeProperties.style.top = y + "px";
-    sgv.ui.edgeProperties.style.left = (xOffset + x) + "px";
-    sgv.ui.edgeProperties.style.display = "block";
-};
-
-sgv.pokazOkienkoN = function (nodeId, x, y) {
-    var xOffset = this.canvas.clientLeft;
-
-    sgv.ui.nodeProperties.querySelector(".titleText").textContent = "Node q" + nodeId;
-    sgv.ui.nodeProperties.querySelector("#nodeId").value = nodeId;
-    
-    
-    let nss = sgv.ui.nodeProperties.querySelector("#nsSelectN");
-
-    var length = nss.options.length;
-    for (let i = length - 1; i >= 0; i--) {
-        nss.options[i] = null;
-    }
-
-    for (const key in sgv.graf.scopeOfValues) {
-        var opt = document.createElement('option');
-        opt.value = key;
-        opt.innerHTML = sgv.graf.scopeOfValues[key];
-        if ( sgv.graf.currentScope === sgv.graf.scopeOfValues[key]) {
-            opt.selected = "selected";
-        }
-        nss.appendChild(opt);
-    }
-
-    
-    
-    let currentValue = sgv.graf.nodeValue(nodeId);
-    if ((currentValue===null)||isNaN(currentValue)) {
-        sgv.ui.nodeProperties.querySelector("#valueCheckN").checked = "";
-        sgv.ui.nodeProperties.querySelector("#wagaN").value = null;
-        sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "disabled";
-        sgv.ui.nodeProperties.querySelector("#setN").disabled = "disabled";
-    } else {
-        sgv.ui.nodeProperties.querySelector("#valueCheckN").checked = "checked";
-        sgv.ui.nodeProperties.querySelector("#wagaN").value = currentValue;
-        sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "";
-        sgv.ui.nodeProperties.querySelector("#setN").disabled = "";
-    }
-        
-    let select = sgv.ui.nodeProperties.querySelector("#destN");
-
-    var length = select.options.length;
-    for (let i = length - 1; i >= 0; i--) {
-        select.options[i] = null;
-    }
-
-    for (const key in sgv.graf.nodes) {
-        //console.log(nodeId, key);
-        if (key.toString() !== nodeId.toString()) {
-            var opt = document.createElement('option');
-            opt.value = key;
-            opt.innerHTML = "q" + key;
-            select.appendChild(opt);
-        }
-    }
-
-    sgv.ui.nodeProperties.style.top = y + "px";
-    sgv.ui.nodeProperties.style.left = (xOffset + x) + "px";
-    sgv.ui.nodeProperties.style.display = "block";
-};
-
-
-sgv.usunE = function () {
-    sgv.graf.delEdge(sgv.ui.edgeProperties.querySelector("#edgeId").value);
-    sgv.ui.edgeProperties.style.display = "none";
-};
-
-sgv.usunN = function () {
-    sgv.graf.delNode(sgv.ui.nodeProperties.querySelector("#nodeId").value);
-    sgv.ui.nodeProperties.style.display = "none";
-};
-
-sgv.cancelE = function () {
-    sgv.ui.edgeProperties.style.display = "none";
-};
-
-sgv.cancelN = function () {
-    sgv.ui.nodeProperties.style.display = "none";
-};
-
-sgv.changeScopeN = function () {
-    console.log('changeScopeN: ' + event.target.value);
-    
-    let nodeId = sgv.ui.nodeProperties.querySelector("#nodeId").value;
-    
-    let currentValue = sgv.graf.nodeValue(nodeId,sgv.graf.scopeOfValues[event.target.value]);
-    if ((currentValue===null)||isNaN(currentValue)) {
-        console.log('NULL');
-        sgv.ui.nodeProperties.querySelector("#valueCheckN").checked = "";
-        sgv.ui.nodeProperties.querySelector("#wagaN").value = null;
-        sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "disabled";
-        sgv.ui.nodeProperties.querySelector("#setN").disabled = "disabled";
-    } else {
-        console.log('NOT NULL');
-        sgv.ui.nodeProperties.querySelector("#valueCheckN").checked = "checked";
-        sgv.ui.nodeProperties.querySelector("#wagaN").value = currentValue;
-        sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "";
-        sgv.ui.nodeProperties.querySelector("#setN").disabled = "";
-    }
-};
-
-
-sgv.edycjaE = function () {
-    let id = sgv.ui.edgeProperties.querySelector("#edgeId").value;
-    let val = parseFloat(sgv.ui.edgeProperties.querySelector("#wagaE").value.replace(/,/g, '.'));
-    sgv.graf.setEdgeValue(id, val);
-    sgv.ui.edgeProperties.style.display = "none";
-};
-
-sgv.edycjaN = function () {
-    let id = sgv.ui.nodeProperties.querySelector("#nodeId").value;
-    let val = parseFloat(sgv.ui.nodeProperties.querySelector("#wagaN").value.replace(/,/g, '.'));
-    let scope = sgv.graf.scopeOfValues[sgv.ui.nodeProperties.querySelector("#nsSelectN").value];
-    sgv.graf.setNodeValue(id, val, scope);
-    sgv.ui.nodeProperties.style.display = "none";
-};
-
-sgv.activateN = function () {
-    let scope = sgv.graf.scopeOfValues[sgv.ui.nodeProperties.querySelector("#nsSelectN").value];
-    let isActive = sgv.ui.nodeProperties.querySelector("#valueCheckN").checked;
-    if (isActive) {
-        sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "";
-        sgv.ui.nodeProperties.querySelector("#setN").disabled = "";
-        let val = parseFloat(sgv.ui.nodeProperties.querySelector("#wagaN").value.replace(/,/g, '.'));
-        if (val==="") {
-            val=0;
-            sgv.ui.nodeProperties.querySelector("#wagaN").value = val;
-        }
-        sgv.graf.setNodeValue(sgv.ui.nodeProperties.querySelector("#nodeId").value, val, scope);
-    } else {
-        sgv.ui.nodeProperties.querySelector("#wagaN").disabled = "disabled";
-        sgv.ui.nodeProperties.querySelector("#setN").disabled = "disabled";
-        sgv.graf.delNodeValue(sgv.ui.nodeProperties.querySelector("#nodeId").value, scope);
-    }
-};
-
-sgv.activateE = function () {
-    let isActive = sgv.ui.edgeProperties.querySelector("#valueCheckE").checked;
-    if (isActive) {
-        sgv.ui.edgeProperties.querySelector("#wagaE").disabled = "";
-        sgv.ui.edgeProperties.querySelector("#setE").disabled = "";
-        let val = parseFloat(sgv.ui.edgeProperties.querySelector("#wagaE").value.replace(/,/g, '.'));
-        if (val==="") {
-            val=0;
-            sgv.ui.edgeProperties.querySelector("#wagaE").value = val;
-        }
-        sgv.graf.setEdgeValue(sgv.ui.edgeProperties.querySelector("#edgeId").value, val);
-    } else {
-        sgv.ui.edgeProperties.querySelector("#wagaE").disabled = "disabled";
-        sgv.ui.edgeProperties.querySelector("#setE").disabled = "disabled";
-        sgv.graf.delEdgeValue(sgv.ui.edgeProperties.querySelector("#edgeId").value);
-    }
-};
-
-sgv.stringToScope = (data,newScope) => {
-    let r = sgv.graf.loadScopeValues(newScope,data);
-            
-    if (r.n) {
-        sgv.controlPanel.ui().querySelector("#cplDispValues").add(UI.option(newScope,newScope));
-    }
-    sgv.controlPanel.ui().querySelector("#cplDispValues").selectedIndex = r.i;
-};
-
-sgv.toGEXF = function () {
-    function download(text, name, type) {
-        //var a = document.getElementById("mysaver");
-        let a = document.createElement("a");
-        let file = new Blob([text], {type: type});
-        a.href = URL.createObjectURL(file);
-        a.download = name;
-        a.click();
-    }
-
-    var string = sgv.graf.exportGEXF();
-
-    download(string, 'graphDefinition.gexf', 'text/xml');
-};
-
-sgv.toTXT = function () {
-    function download(text, name, type) {
-        //var a = document.getElementById("mysaver");
-        let a = document.createElement("a");
-        let file = new Blob([text], {type: type});
-        a.href = URL.createObjectURL(file);
-        a.download = name;
-        a.click();
-    }
-
-    var string = sgv.graf.exportTXT();
-
-    download(string, 'graphDefinition.txt', 'text/plain');
-};
-
-
-sgv.fromTXT = function (string) {
-    var res = [];
-    var lines = string.split("\n");
-
-    var gDesc = sgv.controlPanel.getGraphTypeAndSize();
-
-    var parseComment = function (string) {
-        var command = string.split("=");
-        if (command[0] === 'type') {
-            gDesc.type = command[1];
-        } else if (command[0] === 'size') {
-            var size = command[1].split(",");
-            gDesc.size = {
-                cols: parseInt(size[0], 10),
-                rows: parseInt(size[1], 10),
-                KL: parseInt(size[2], 10),
-                KR: parseInt(size[3], 10)
-            };
-        }
-    };
-
-    var parseData = function (string) {
-        var line = string.split(" ");
-        if (line.length === 3) {
-            return {
-                n1: parseInt(line[0], 10),
-                n2: parseInt(line[1], 10),
-                val: parseFloat(line[2], 10)
-            };
-        } else {
-            return null;
-        }
-    };
-
-    while (lines.length > 0) {
-        if (lines[0][0] !== '#')
-        {
-            var d = parseData(lines[0]);
-            if (d !== null) {
-                res.push(d);
-            }
-        } else {
-            var line = lines[0].split(" ");
-            parseComment(line[1]);
-        }
-        lines.shift();
-    }
-
-    switch (gDesc.type) {
-        case "chimera" :
-            sgv.graf = Chimera.createNewGraph(gDesc.size);
-            break;
-        case "pegasus" :
-            sgv.graf = Pegasus.createNewGraph(gDesc.size);
-            break;
-    }
-
-    sgv.graf.createStructureFromDef(res);
-};
-
-
-//=======================
 
 
 sgv.display = function(args) {
@@ -690,9 +350,6 @@ sgv.display = function(args) {
     sgv.canvas = document.createElement("canvas");
     sgv.canvas.setAttribute("id", "sgvRenderCanvas");
     targetDIV.appendChild(sgv.canvas);
-
-    sgv.console.initConsole("sgvConsole");
-    sgv.controlPanel.init("sgvControlPanel"); // ID okienka !!!
 
     sgv.advancedTexture = null;
     sgv.sceneToRender = null;
@@ -737,35 +394,32 @@ sgv.display = function(args) {
                 sgv.engine.resize();
             });
 
+    desktopInit();
 };
 
-
-
-//var createSPS = function () {
+//=========================================
+// functions overriden
+// in desktop scripts
 //
-//};
-//
-//window.onload = function (e) {
-//    myConsole.initConsole();
-//};
+desktopInit = ()=>{};
+//showSplash = ()=>{};
+//hideSplash = ()=>{};
 
-//$(document).ready(function () {
-//    // Executes when the HTML document is loaded and the DOM is ready
-//    console.log("ready!");
-//});
+function  showSplash() {
+    sgv.dlgLoaderSplash.show();
+};
 
-//$(window).on("load", function () {
-//
-//    // Executes when complete page is fully loaded, including
-//    // all frames, objects and images
-//    console.log("Window is loaded");
-//});
+function hideSplash() {
+    setTimeout(function () {
+        sgv.dlgLoaderSplash.hide();
+    }, 200);
+};
 
-//var sgv = new SimGraphVisualizer;
+function showSplashAndRun(f) {
+    showSplash();
+    setTimeout(()=>{
+        f();
+        hideSplash();
+    }, 100);
+};
 
-
-
-//var graf = sgv.graf;
-//var scene = sgv.scene;
-
-//export { sgv };

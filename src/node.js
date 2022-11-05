@@ -17,36 +17,45 @@
 "use strict";
 /* global BABYLON, greenMat, redMat, grayMat0, grayMat1, advancedTexture, sgv */
 
-const createLabel = function(id, position, scene) {
-    return new Label("q" + id, "q" + id, position, scene);
+const createLabel = function(id, position, scene, enabled) {
+    return new Label("q" + id, "q" + id, position, scene, enabled);
 };
 
-var Node = /** @class */ (function(graf, id, x, y, z, val) {
-        var name = "node:" + id;
+var Node = /** @class */ (function(graf, id, x, y, z, _values) {
+    var name = "node:" + id;
 
-        this.parentGraph = graf;
-        this.id = id;
-        this.active = true;
-        this._chckedEdges = 0;
-        
-        var mesh = sgv.defaultSphere.clone(id);
-        mesh.material = sgv.defaultSphere.material.clone();
-        mesh.position = new BABYLON.Vector3( x, y, z );
-        mesh.name = name;
-        mesh.setEnabled(true);
-        
-        this.values = {};
+    this.parentGraph = graf;
+    this.id = id;
+    this.active = true;
+    this._chckedEdges = 0;
 
-        //this.label = new Label("q" + this.id, "q" + this.id, this.mesh.position, scene);
-        this.label = createLabel(this.id, mesh.position, sgv.scene);
+    this.labelIsVisible = false;
+
+    var mesh = sgv.defaultSphere.clone(id);
+    mesh.material = sgv.defaultSphere.material.clone();
+    mesh.position = new BABYLON.Vector3( x, y, z );
+    mesh.name = name;
+    mesh.setEnabled(true);
+
+    this.values = {
+        'default' : null
+    };
+
+    for (const key in _values) {
+        this.values[key] = _values[key];
+    }
+
+    var label = createLabel(this.id, mesh.position, sgv.scene, this.labelIsVisible);
 
     Object.defineProperty(this, 'position', {
         get() {
             return mesh.position;
         },
         set(pos) {
-            mesh.position = pos;
-            //this.label.plane.position.copyFrom( pos ).addInPlaceFromFloats(0.0, 5.0, 0.0);
+            mesh.position.copyFrom(pos);
+            if (typeof label !== 'undefined') {
+                label.plane.position.copyFrom(pos).addInPlaceFromFloats(0.0, 5.0, 0.0);
+            }
         }
 
     });
@@ -54,8 +63,10 @@ var Node = /** @class */ (function(graf, id, x, y, z, val) {
     this.dispose = function() {
         mesh.dispose();
         delete mesh;
-        this.label.plane.dispose();
-        delete this.label.plane;
+        if (label.plane!==null) {
+            label.plane.dispose();
+//            delete this.label.plane;
+        }
         delete this.label;
     };
 
@@ -64,7 +75,27 @@ var Node = /** @class */ (function(graf, id, x, y, z, val) {
     };
 
     this.showLabel = function(b) {
-        this.label.setEnabled(b);
+        if (typeof b!== 'undefined') {
+            this.labelIsVisible = b;
+        }
+        
+        label.setEnabled(this.labelIsVisible && this.parentGraph.labelsVisible);
+    };
+
+    this.setLabel = function( t, b ) {
+        if (typeof b!== 'undefined') {
+            this.labelIsVisible = b;
+        }
+
+        label.setText(t, this.labelIsVisible && this.parentGraph.labelsVisible);
+    };
+
+    this.isLabelVisible = function() {
+        return this.labelIsVisible;
+    };
+
+    this.getLabel = function() {
+        return label.getText();
     };
 
     this.move = function(diff) {
@@ -84,7 +115,7 @@ var Node = /** @class */ (function(graf, id, x, y, z, val) {
     };
 
     this.getValue = function(scope) {
-        if (scope === undefined) {
+        if (typeof scope === 'undefined') {
             scope = this.parentGraph.currentScope;
         }
         
@@ -107,7 +138,7 @@ var Node = /** @class */ (function(graf, id, x, y, z, val) {
     };
 
     this.delValue = function(scope) {
-        if (scope === undefined) {
+        if (typeof scope === 'undefined') {
             scope = this.parentGraph.currentScope;
         }
         
@@ -117,28 +148,23 @@ var Node = /** @class */ (function(graf, id, x, y, z, val) {
     };
     
     this.setValue = function(val, scope) {
-        if (scope === undefined) {
+        if (typeof scope === 'undefined') {
             scope = this.parentGraph.currentScope;
         }
         this.values[scope] = val;
     };
     
     this.displayValue = function(scope) {
-        if (scope === undefined) {
+        if (typeof scope === 'undefined') {
             scope = this.parentGraph.currentScope;
         }
         
         if (scope in this.values) {
-            //mesh.material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-            mesh.material.emissiveColor = valueToColor(this.values[scope]);
+            mesh.material.emissiveColor = valueToColor( this.values[scope] );
         } else {
-            //mesh.material.specularColor = new BABYLON.Color3(0.0, 0.0, 0.0);
             mesh.material.emissiveColor = new BABYLON.Color4(0.2, 0.2, 0.2);
         }
     };
-
-    this.setValue(val);
-    //this.setValue(getRandom(-0.99, 0.99), 'losowe');
 
     this.displayValue();
 });
