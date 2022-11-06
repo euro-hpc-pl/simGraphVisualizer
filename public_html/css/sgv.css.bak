@@ -19,28 +19,23 @@
     left:0;
     top:0;
     z-index:100;
-    width: fit-content;
-    height: fit-content;
+    background-color: #cfc;
+    height: auto;
+    width: auto;
     padding:1px;
     display: block;
-    background: rgba(0, 0, 0, 0.3);
-    border-width: 1px;
-    border-radius: 10px;
 }
 
 .sgvUIwindow .content {
     padding: 4px;
-    background: 0;
-    color: #fff;
+    background-color: #fff;
     height: auto;
     width: auto;
 }
 
 .sgvUIwindow .title {
-    background-color: rgba(0, 0, 0, 0.5);
-    color: #ddd;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
+    background-color: #00f;
+    color: #fff;
     text-align: center;
     font-family:sans-serif;
     font-weight:bold;
@@ -48,12 +43,11 @@
 
 .sgvUIwindow .hidebutton {
     float: right;
-    background-color: rgba(0, 0, 0, 0.5);
-    color: #ddd;
+    background-color: #fff;
+    color: #00f;
     font-weight:normal;
     font-size: 10px;
-    border: 0;
-    border-radius: 10px;
+    border: solid 1px #000;
 }
 
 .sgvUIwindow .delbutton {
@@ -65,13 +59,12 @@
 }
 
 .sgvUIwindow .actionbutton {
-    width: 45%;
+    width: 50%;
     margin-top: 15px;
-    /*margin-left: 25%;*/
-    background-color: rgba(0, 0, 0, 0.5);
-    color: #ddd;
-    border: solid 1px #888;
-    border-radius: 5px;
+    margin-left: 25%;
+    background-color: #00f;
+    color: #fff;
+    border: solid 1px #000;
 }
 
 .sgvUIwindow .setvaluebutton {
@@ -89,64 +82,10 @@
     color: #ccc;
 }
 
-
-.sgvTransparentButton {
-    position:fixed;
-    left:0;
-    top:0;
-    z-index:100;
-    background-color: rgba(204,255,204,0.5);
-    color: white;
-    height: 48px;
-    width: 48px;
-    padding:1px;
-    border-width: 1px;
-    border-radius: 15px;
-}
-
-.sgvTransparentButton1 {
-/*    background-color: rgba(204,255,204,0.5);
-    color: black; */
-    background-color: rgba(0,0,0,0.5);
-    color: white;
-    height: 48px;
-    width: 64px;
-    margin: 5px;
-    padding:1px;
-    border-width: 1px;
-    border-radius: 10px;
-}
-
-button#cplClearButton {
-    background-color: rgba(255,0,0,0.5);
-    color: white;
-}
-
-#sgvPanelSwitch {
-    left:10px;
+#sgvControlPanel {
+    min-width: 200px;
+    left:70px;
     top:10px;
-}
-
-#sgvDlgCPL {
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    text-align: center;
-    width: fit-content;
-    height: fit-content;
-    top:0px;
-}
-
-#switch {
-    /*background: rgba(0, 1.0, 0, 0.5);*/
-    min-width: 400px;
-    height: 16px;
-    text-align: center;
-    vertical-align:middle;
-    color: #fff;
-    border-bottom-left-radius: 10px;
-    border-bottom-right-radius: 10px;
-    border-top: #ddd solid 1px;
-    cursor: default;
 }
 
 #sgvMissingNodes {
@@ -173,8 +112,8 @@ button#cplClearButton {
     float:right;
     margin-right:20px;*/
     left:70px;
-    top:200px;
-    /*background-color: #fcc;*/
+    top:300px;
+    background-color: #fcc;
     width: 768px;
     height: 260px;
     display: none;
@@ -184,14 +123,10 @@ button#cplClearButton {
    width: 753px;
    height: 200px;
    resize: none;
-    background-color: rgba(0,0,0,0.5);
-    color: #ddd;
 }
 
 #sgvConsole #commandline {
    width: 753px;
-    background-color: rgba(0,0,0,0.5);
-    color: #ddd;
 }
 
 #sgvEdgeProperties {
@@ -202,13 +137,26 @@ button#cplClearButton {
     display: none;
 }
 
+.sgvTransparentButton {
+    position:fixed;
+    left:0;
+    top:0;
+    z-index:100;
+    background-color: rgba(0.8,1.0,0.8,0.5);
+    color: white;
+    height: 32px;
+    width: 64px;
+    padding:1px;
+    border-width: 1px;
+    border-radius: 15px;
+}
 
 .sgvTransparentPanel {
     position:fixed;
     left:0;
     top:0;
     z-index:100;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0.8,1.0,0.8,0.5);
     color: white;
     height: 48px;
     width: 240px;
@@ -218,7 +166,8 @@ button#cplClearButton {
 }
 
 #sgvGraphCreateBtn {
-    position: relative;
+    left:70px;
+    top:10px;
 }
 
 #sgvGraphLoadBtn {
@@ -226,6 +175,10 @@ button#cplClearButton {
     top:10px;
 }
 
+#sgvPanelSwitch {
+    left:10px;
+    top:10px;
+}
 
 #sgvConsoleSwitch {
     left:10px;
@@ -264,12 +217,8 @@ dialog.sgvModalDialog::backdrop {
 
 dialog#sgvDlgCreateGraph {
     background: rgba(0, 0, 0, 0.3);
-    border-width: 1px;
+       border-width: 1px;
     border-radius: 10px;
-}
-
-dialog.sgvModelDialog div#buttons {
-    text-align: center;
 }
 
 dialog#sgvDlgCreateGraph .content {
@@ -290,25 +239,6 @@ dialog#sgvDlgCreateGraph .actionbutton {
     border: solid 1px #888;
     border-radius: 5px;
 }
-
-
-dialog#sgvDlgAbout .content {
-    background: #fff;
-    color: #000;
-    font-family: sans-serif,arial;
-}
-
-dialog#sgvDlgAbout .content .info {
-    background: 0;
-    border-top: 2px solid #888;
-    border-bottom: 2px solid #888;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    padding: 25px;
-    color: #888;
-    font-family: sans-serif,arial;
-}
-
 
 @keyframes spin {
   0% { transform: rotate(0deg); }

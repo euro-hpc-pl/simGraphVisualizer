@@ -92,7 +92,7 @@ sgv.dlgConsole = new function () {
         }, true);
 
         document.addEventListener('mousemove', function (event) {
-            event.preventDefault();
+            //event.preventDefault();
             if (isDown) {
                 let mousePosition = {
                     x: event.clientX,

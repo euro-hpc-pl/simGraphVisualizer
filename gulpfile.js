@@ -31,6 +31,7 @@ var srcfiles = [
     "./src/dlgCreateGraph.js",
     "./src/dlgEdgeProperties.js",
     "./src/dlgNodeProperties.js",
+//    "./src/dlgGraphProperties.js",
     "./src/dlgMissingNodes.js",
     "./src/dlgAbout.js"
 ];

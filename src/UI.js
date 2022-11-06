@@ -15,14 +15,14 @@ var UI = (function () {
 //        sgv.dlgCPL.switchPanel();
 //    });
 
-    this.consoleSwitch = UI.createConsoleSwitch();
-    this.consoleSwitch.addEventListener('click', function () {
-        sgv.dlgConsole.switchConsole();
-    });
-    this.dispModeSwitch = UI.createDispModeSwitch();
-    this.dispModeSwitch.addEventListener('click', function () {
-        sgv.switchDisplayMode();
-    });
+//    this.consoleSwitch = UI.createConsoleSwitch();
+//    this.consoleSwitch.addEventListener('click', function () {
+//        sgv.dlgConsole.switchConsole();
+//    });
+//    this.dispModeSwitch = UI.createDispModeSwitch();
+//    this.dispModeSwitch.addEventListener('click', function () {
+//        sgv.switchDisplayMode();
+//    });
 });
 
 UI.tag = function(_tag, _attrs, _props ) {
@@ -159,7 +159,7 @@ UI.createEmptyWindow = function (_class, _id, _title, _closebuttonVisible ) {//,
     }, true);
 
     document.addEventListener('mousemove', function (event) {
-        event.preventDefault();
+        //event.preventDefault();
         if (o.isDown) {
             let mousePosition = {
                 x: event.clientX,
@@ -187,38 +187,37 @@ UI.createGraphs = function (id) {
 };
 
 
-UI.createPanelSwitch = function () {
-    let btn = UI.newInput("button", "CPL", "sgvTransparentButton", "sgvPanelSwitch");
-    document.body.appendChild(btn);
-    return btn;
-};
-
-UI.createConsoleSwitch = function () {
-    let btn = UI.newInput("button", "CON", "sgvTransparentButton", "sgvConsoleSwitch");
-    document.body.appendChild(btn);
-    return btn;
-};
-
-UI.createDispModeSwitch = function () {
-    let btn = UI.tag( "input", {
-                'type':     "button",
-                'value':    "DIS",
-                'class':    "sgvTransparentButton",
-                'id':       "sgvDispModeSwitch"
-            });
-    document.body.appendChild(btn);
-    return btn;
-};
-
+//UI.createPanelSwitch = function () {
+//    let btn = UI.newInput("button", "CPL", "sgvTransparentButton", "sgvPanelSwitch");
+//    document.body.appendChild(btn);
+//    return btn;
+//};
+//
+//UI.createConsoleSwitch = function () {
+//    let btn = UI.newInput("button", "CON", "sgvTransparentButton", "sgvConsoleSwitch");
+//    document.body.appendChild(btn);
+//    return btn;
+//};
+//
+//UI.createDispModeSwitch = function () {
+//    let btn = UI.tag( "input", {
+//                'type':     "button",
+//                'value':    "DIS",
+//                'class':    "sgvTransparentButton",
+//                'id':       "sgvDispModeSwitch"
+//            });
+//    document.body.appendChild(btn);
+//    return btn;
+//};
 
 UI.createTransparentBtn = function (txt, id, onclick) {
     let btn = UI.tag( "input", {
                 'type':     "button",
                 'value':    txt,
-                'class':    "sgvTransparentButton",
+                'class':    "sgvTransparentButton1",
                 'id':       id
             });
-    document.body.appendChild(btn);
+    //document.body.appendChild(btn);
 
     if (typeof onclick === 'function'){
         btn.addEventListener('click', function () {
@@ -229,3 +228,21 @@ UI.createTransparentBtn = function (txt, id, onclick) {
     return btn;
 };
 
+UI.createTransparentBtn1 = function (txt, id, onclick) {
+    let btn = UI.tag( "button", {
+                'class':    "sgvTransparentButton1",
+                'id':       id
+            });
+
+    btn.appendChild(UI.tag('span',{},{
+        'innerHTML' : txt
+    }));
+    
+    if (typeof onclick === 'function'){
+        btn.addEventListener('click', function () {
+            onclick();
+        });
+    }
+
+    return btn;
+};

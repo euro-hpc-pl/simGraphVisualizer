@@ -954,10 +954,11 @@ var Graph = /** @class */ (function () {
     
     this.displayValues = function (scope) {
         if ( (typeof scope === 'undefined') || ! this.scopeOfValues.includes(scope) ) {
-            return false;
+            scope = this.currentScope;
+        } else {
+            this.currentScope = scope;
         }
-
-        this.currentScope = scope;
+        
         for (const key in this.nodes) {
             this.nodes[key].displayValue(scope);
         }
@@ -1541,14 +1542,14 @@ var UI = (function () {
 //        sgv.dlgCPL.switchPanel();
 //    });
 
-    this.consoleSwitch = UI.createConsoleSwitch();
-    this.consoleSwitch.addEventListener('click', function () {
-        sgv.dlgConsole.switchConsole();
-    });
-    this.dispModeSwitch = UI.createDispModeSwitch();
-    this.dispModeSwitch.addEventListener('click', function () {
-        sgv.switchDisplayMode();
-    });
+//    this.consoleSwitch = UI.createConsoleSwitch();
+//    this.consoleSwitch.addEventListener('click', function () {
+//        sgv.dlgConsole.switchConsole();
+//    });
+//    this.dispModeSwitch = UI.createDispModeSwitch();
+//    this.dispModeSwitch.addEventListener('click', function () {
+//        sgv.switchDisplayMode();
+//    });
 });
 
 UI.tag = function(_tag, _attrs, _props ) {
@@ -1685,7 +1686,7 @@ UI.createEmptyWindow = function (_class, _id, _title, _closebuttonVisible ) {//,
     }, true);
 
     document.addEventListener('mousemove', function (event) {
-        event.preventDefault();
+        //event.preventDefault();
         if (o.isDown) {
             let mousePosition = {
                 x: event.clientX,
@@ -1713,38 +1714,37 @@ UI.createGraphs = function (id) {
 };
 
 
-UI.createPanelSwitch = function () {
-    let btn = UI.newInput("button", "CPL", "sgvTransparentButton", "sgvPanelSwitch");
-    document.body.appendChild(btn);
-    return btn;
-};
-
-UI.createConsoleSwitch = function () {
-    let btn = UI.newInput("button", "CON", "sgvTransparentButton", "sgvConsoleSwitch");
-    document.body.appendChild(btn);
-    return btn;
-};
-
-UI.createDispModeSwitch = function () {
-    let btn = UI.tag( "input", {
-                'type':     "button",
-                'value':    "DIS",
-                'class':    "sgvTransparentButton",
-                'id':       "sgvDispModeSwitch"
-            });
-    document.body.appendChild(btn);
-    return btn;
-};
-
+//UI.createPanelSwitch = function () {
+//    let btn = UI.newInput("button", "CPL", "sgvTransparentButton", "sgvPanelSwitch");
+//    document.body.appendChild(btn);
+//    return btn;
+//};
+//
+//UI.createConsoleSwitch = function () {
+//    let btn = UI.newInput("button", "CON", "sgvTransparentButton", "sgvConsoleSwitch");
+//    document.body.appendChild(btn);
+//    return btn;
+//};
+//
+//UI.createDispModeSwitch = function () {
+//    let btn = UI.tag( "input", {
+//                'type':     "button",
+//                'value':    "DIS",
+//                'class':    "sgvTransparentButton",
+//                'id':       "sgvDispModeSwitch"
+//            });
+//    document.body.appendChild(btn);
+//    return btn;
+//};
 
 UI.createTransparentBtn = function (txt, id, onclick) {
     let btn = UI.tag( "input", {
                 'type':     "button",
                 'value':    txt,
-                'class':    "sgvTransparentButton",
+                'class':    "sgvTransparentButton1",
                 'id':       id
             });
-    document.body.appendChild(btn);
+    //document.body.appendChild(btn);
 
     if (typeof onclick === 'function'){
         btn.addEventListener('click', function () {
@@ -1755,6 +1755,24 @@ UI.createTransparentBtn = function (txt, id, onclick) {
     return btn;
 };
 
+UI.createTransparentBtn1 = function (txt, id, onclick) {
+    let btn = UI.tag( "button", {
+                'class':    "sgvTransparentButton1",
+                'id':       id
+            });
+
+    btn.appendChild(UI.tag('span',{},{
+        'innerHTML' : txt
+    }));
+    
+    if (typeof onclick === 'function'){
+        btn.addEventListener('click', function () {
+            onclick();
+        });
+    }
+
+    return btn;
+};
 
 /* 
  * Copyright 2022 Dariusz Pojda.
@@ -2578,12 +2596,17 @@ sgv.loadGraph2 = function(name,data) {
 };
 
 "use strict";
-/* global sgv, Chimera, Pegasus, UI, parserGEXF */
+/* global sgv, Chimera, Pegasus, UI, parserGEXF, dialog */
 
 
 sgv.dlgCPL = new function() {
     var com, sel, des;
     var selectScope;
+    var sliderRedLimit, sliderGreenLimit;
+    var spanRed, spanGreen;
+    var btnDispMode, btnShowConsole, btnSaveTXT, btnSaveGEXF, btnClear;
+
+    var btnShowConsole2, btnCreate, btnLoad, btnLoad1;
     
     var elm = createDialog();
     
@@ -2596,16 +2619,37 @@ sgv.dlgCPL = new function() {
         
         function divSel() {
             var divSel = UI.tag( "div", { "class": "content", "id": "graphSelection" });
+            
+            divSel.appendChild(
+                    btnShowConsole2 = UI.createTransparentBtn1('show/hide console',"cplShowConsoleButton",()=>{
+                        sgv.dlgConsole.switchConsole();
+                    }));
+
+            divSel.appendChild(
+                    btnCreate = UI.createTransparentBtn1('create graph',"cplCreateButton",()=>{
+                        sgv.dlgCreateGraph.show();
+                    }));
+
+            btnLoad1 = UI.tag('input',{
+                'type':'file',
+                'id':'inputfile',
+                'display':'none'
+            });
+            btnLoad1.addEventListener('change', (e)=>{
+                if (typeof btnLoad1.files[0]!=='undefined') {
+                    showSplashAndRun(()=>{
+                        sgv.loadGraph(btnLoad1.files[0]);
+                    });
+                }
+            });
+
+            divSel.appendChild(
+                    btnLoad = UI.createTransparentBtn1('load graph',"cplLoadButton",()=>{
+                        btnLoad1.click();
+                    }));
+
             divSel.style.display = "block";
             
-//            crB = UI.createTransparentBtn('CREATE','sgvGraphCreateBtn',()=>{
-//                sgv.dlgCreateGraph.show();
-//            });
-//
-//            divSel.appendChild(crB);
-            
-            divSel.innerHTML += '<div><div><input class="" id="cplCreateButton" name="createButton" type="button" value="Create default"></div> \
-                <div>Read from .txt file: <input id="inputfile" type="file"></div>';
             return divSel;
         };
 
@@ -2650,10 +2694,95 @@ sgv.dlgCPL = new function() {
             scope.appendChild(divDS);
             divDesc.appendChild(scope);
 
+            divDesc.appendChild( spanRed=UI.tag("span",{'id':'spanRed'},{'textContent':'-1.0'}) );
+            spanRed.style.display='inline-block';
+            spanRed.style.width = '3em';
+            sliderRedLimit = UI.tag('input',{
+                'type':'range',
+                'id':'redLimit',
+                'value':'-1.0',
+                'min':'-1.0',
+                'max':'0.0',
+                'step':'0.01'
+            });
+            sliderRedLimit.addEventListener('change', (e)=>{
+                if (sgv.graf !== null) {
+                    sgv.graf.redLimit = e.target.value;
+                    sgv.graf.displayValues();
+                    
+                    spanRed.textContent = ''+sgv.graf.redLimit+' ';
+                }
+            });
+            //sliderRedLimit.style.appearance = 'slider-vertical';
+            divDesc.appendChild(sliderRedLimit);
 
-            divDesc.appendChild( UI.tag("input", { 'class': "actionbutton", 'id': "cplSaveButton", 'type': "button", 'value': "save to TXT" } ) );
-            divDesc.appendChild( UI.tag("input", { 'class': "actionbutton", 'id': "cplSaveGEXFButton", 'type': "button", 'value': "save to GEXF" } ) );
-            divDesc.appendChild( UI.tag("input", { 'class': "delbutton", 'id': "cplDeleteButton", 'type': "button", 'value': "clear workspace" } ) );
+            divDesc.appendChild( UI.tag("span",{'id':'spanZero'},{'textContent':' 0 '}) );
+
+            sliderGreenLimit = UI.tag('input',{
+                'type':'range',
+                'id':'greenLimit',
+                'value':'1.0',
+                'min':'0.0',
+                'max':'1.0',
+                'step':'0.01'
+            });
+            sliderGreenLimit.addEventListener('change', (e)=>{
+                if (sgv.graf !== null) {
+                    sgv.graf.greenLimit = e.target.value;
+                    sgv.graf.displayValues();
+                    
+                    spanGreen.textContent = ' '+sgv.graf.greenLimit;
+                }
+            });
+            //sliderGreenLimit.style.appearance = 'slider-vertical';
+
+            divDesc.appendChild(sliderGreenLimit);
+
+            divDesc.appendChild( spanGreen=UI.tag("span",{'id':'spanGreen'},{'textContent':'1.0'}) );
+            spanGreen.style.display='inline-block';
+            spanGreen.style.width = '3em';
+
+            //divDesc.appendChild( UI.tag("hr") );
+
+            let btnPanel = UI.tag('div',{
+                'id':'panelBtns'
+            });
+            btnPanel.style['border-top']='1px solid #000';
+            //btnPanel.style['border-bottom']='1px solid #000';
+            
+            btnPanel.appendChild(
+                    btnDispMode = UI.createTransparentBtn1('display mode',"cplDispModeButton",()=>{
+                        sgv.switchDisplayMode();
+                    }));
+
+            btnPanel.appendChild(
+                    btnShowConsole = UI.createTransparentBtn1('show/hide console',"cplShowConsoleButton",()=>{
+                        sgv.dlgConsole.switchConsole();
+                    }));
+
+            btnPanel.appendChild(
+                    btnSaveTXT = UI.createTransparentBtn1('save as TXT',"cplSaveTXTButton",()=>{
+                        sgv.toTXT();
+                    }));
+                    
+            btnPanel.appendChild(
+                    btnSaveGEXF = UI.createTransparentBtn1('save as GEXF',"cplSaveGEXFButton",()=>{
+                        sgv.toGEXF();
+                    }));
+
+            btnPanel.appendChild(
+                    btnClear = UI.createTransparentBtn1('delete graph',"cplClearButton",()=>{
+                        sgv.removeGraph();
+                    }));
+
+            divDesc.appendChild(btnPanel);
+            
+//            divDesc.appendChild( UI.tag("input", { 'class': "delbutton", 'id': "cplDeleteButton", 'type': "button", 'value': "clear workspace" } ) );
+//        elm.querySelector("#cplDeleteButton").addEventListener('click',
+//            function() {
+//                sgv.removeGraph();
+//            });
+//
 
             divDesc.style.display = "none";
             return divDesc;
@@ -2670,15 +2799,6 @@ sgv.dlgCPL = new function() {
         
         elm.appendChild(com);
 
-        elm.querySelector("#cplCreateButton").addEventListener('click',
-            function() {
-                sgv.dlgCreateGraph.show();
-            });
-
-        elm.querySelector("#cplDeleteButton").addEventListener('click',
-            function() {
-                sgv.removeGraph();
-            });
 
 
         elm.querySelector("#cplSkipAddScope").addEventListener('click',
@@ -2720,22 +2840,7 @@ sgv.dlgCPL = new function() {
                 }
             });
 
-        elm.querySelector("#cplSaveButton").addEventListener('click',
-            function() {
-                sgv.toTXT();
-            });
 
-        elm.querySelector("#cplSaveGEXFButton").addEventListener('click',
-            function() {
-                sgv.toGEXF();
-            });
-
-        elm.querySelector('#inputfile').addEventListener('change',
-            function () {
-                showSplashAndRun(()=>{
-                    sgv.loadGraph(this.files[0]);
-                });
-            });
 
         var swt = UI.tag('div', {'id':'switch'});
         
@@ -2812,6 +2917,61 @@ sgv.dlgCPL = new function() {
             elm.querySelector("#dscr_KR").textContent = sgv.graf.KR;
             elm.querySelector("#dscr_nbNodes").textContent = Object.keys(sgv.graf.nodes).length;
             elm.querySelector("#dscr_nbEdges").textContent = Object.keys(sgv.graf.edges).length;
+            
+            
+            nMinMax = sgv.graf.getMinMaxNodeVal();
+            eMinMax = sgv.graf.getMinMaxEdgeVal();
+            
+            console.log(nMinMax,eMinMax);
+            
+            let min, max;
+            
+            if (nMinMax.min!==NaN) {
+                min = nMinMax.min;
+                if (eMinMax.min!==NaN) {
+                    min = (min<eMinMax.min)?min:eMinMax.min;
+                }
+            } else {
+                min = eMinMax.min;
+            }
+            
+            if (nMinMax.max!==NaN) {
+                max = nMinMax.max;
+                if (eMinMax.max!==NaN) {
+                    max = (max>eMinMax.max)?max:eMinMax.max;
+                }
+            } else {
+                max = eMinMax.max;
+            }
+            
+            if ((min!==NaN)&&(min>=0)) min = NaN;
+            if ((max!==NaN)&&(max<=0)) max = NaN;
+
+            console.log(min,max);
+
+            if (min!==NaN) {
+                if (sgv.graf.redLimit<min){
+                    sgv.graf.redLimit=min;
+                }
+                sliderRedLimit.min = Math.round(min * 100) / 100;
+                sliderRedLimit.value = sgv.graf.redLimit;
+                spanRed.textContent = ''+sgv.graf.redLimit+' ';
+                sliderRedLimit.disabled = '';
+            } else {
+                sliderRedLimit.disabled = 'disabled';
+            }
+
+            if (max!==NaN) {
+                if (sgv.graf.greenLimit>max){
+                    sgv.graf.greenLimit=max;
+                }
+                sliderGreenLimit.max = Math.round(max * 100) / 100;;
+                sliderGreenLimit.value = sgv.graf.greenLimit;
+                spanGreen.textContent = ' '+sgv.graf.greenLimit;
+                sliderGreenLimit.disabled = '';
+            } else {
+                sliderGreenLimit.disabled = 'disabled';
+            }
         };
 
         updateInfoBlock();
@@ -2969,7 +3129,7 @@ sgv.dlgConsole = new function () {
         }, true);
 
         document.addEventListener('mousemove', function (event) {
-            event.preventDefault();
+            //event.preventDefault();
             if (isDown) {
                 let mousePosition = {
                     x: event.clientX,

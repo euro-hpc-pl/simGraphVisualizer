@@ -349,10 +349,11 @@ var Graph = /** @class */ (function () {
     
     this.displayValues = function (scope) {
         if ( (typeof scope === 'undefined') || ! this.scopeOfValues.includes(scope) ) {
-            return false;
+            scope = this.currentScope;
+        } else {
+            this.currentScope = scope;
         }
-
-        this.currentScope = scope;
+        
         for (const key in this.nodes) {
             this.nodes[key].displayValue(scope);
         }
