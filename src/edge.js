@@ -82,21 +82,6 @@ var Edge = /** @class */ (function (graf, b, e, val) {
         this.displayValue(valId);
     };
 
-//<edge id=”0” source=”0” target=”1”/>
-    this.exportGEXF = function(tmpId) {
-        //return "      <edge id=\""+tmpId+"\" source=\""+this.begin+"\" target=\""+this.end+"\"/>\n";
-        let xml = "      <edge id=\""+tmpId+"\" source=\""+this.begin+"\" target=\""+this.end+"\">\n";
-        xml += "        <attvalues>\n";
-        for (const key in this.values) {
-            xml += "          <attvalue for=\""+this.parentGraph.getScopeIndex(key)+"\" value=\""+this.values[key]+"\"/>\n";
-        }
-        xml += "        </attvalues>\n";
-        xml += "      </edge>\n";
-        return xml;
-        
-    };
-
-
     this.displayValue = function (valId) {
         //console.log(valId);
         if (typeof valId === 'undefined') {

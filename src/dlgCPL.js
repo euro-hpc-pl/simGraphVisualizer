@@ -1,5 +1,5 @@
 "use strict";
-/* global sgv, Chimera, Pegasus, UI, parserGEXF, dialog */
+/* global sgv, Chimera, Pegasus, UI, parserGEXF, dialog, FileIO */
 
 
 sgv.dlgCPL = new function() {
@@ -9,7 +9,7 @@ sgv.dlgCPL = new function() {
     var spanRed, spanGreen;
     var btnDispMode, btnShowConsole, btnSaveTXT, btnSaveGEXF, btnClear;
 
-    var btnShowConsole2, btnCreate, btnLoad, btnLoad1;
+    var btnShowConsole2, btnCreate, btnLoad;
     
     var elm = createDialog();
     
@@ -24,7 +24,7 @@ sgv.dlgCPL = new function() {
             var divSel = UI.tag( "div", { "class": "content", "id": "graphSelection" });
             
             divSel.appendChild(
-                    btnShowConsole2 = UI.createTransparentBtn1('show/hide console',"cplShowConsoleButton",()=>{
+                    btnShowConsole2 = UI.createTransparentBtn1('show console',"cplShowConsoleButton",()=>{
                         sgv.dlgConsole.switchConsole();
                     }));
 
@@ -33,23 +33,10 @@ sgv.dlgCPL = new function() {
                         sgv.dlgCreateGraph.show();
                     }));
 
-            btnLoad1 = UI.tag('input',{
-                'type':'file',
-                'id':'inputfile',
-                'display':'none'
-            });
-            btnLoad1.addEventListener('change', (e)=>{
-                if (typeof btnLoad1.files[0]!=='undefined') {
-                    showSplashAndRun(()=>{
-                        sgv.loadGraph(btnLoad1.files[0]);
-                    });
-                }
-            });
-
             divSel.appendChild(
-                    btnLoad = UI.createTransparentBtn1('load graph',"cplLoadButton",()=>{
-                        btnLoad1.click();
-                    }));
+                    btnLoad = UI.createTransparentBtn1('load graph', 'cplLoadButton', ()=>{
+                        FileIO.onLoadButton();
+            }));
 
             divSel.style.display = "block";
             
@@ -108,7 +95,7 @@ sgv.dlgCPL = new function() {
                 'max':'0.0',
                 'step':'0.01'
             });
-            sliderRedLimit.addEventListener('change', (e)=>{
+            sliderRedLimit.addEventListener('input', (e)=>{
                 if (sgv.graf !== null) {
                     sgv.graf.redLimit = e.target.value;
                     sgv.graf.displayValues();
@@ -129,7 +116,7 @@ sgv.dlgCPL = new function() {
                 'max':'1.0',
                 'step':'0.01'
             });
-            sliderGreenLimit.addEventListener('change', (e)=>{
+            sliderGreenLimit.addEventListener('input', (e)=>{
                 if (sgv.graf !== null) {
                     sgv.graf.greenLimit = e.target.value;
                     sgv.graf.displayValues();
@@ -145,13 +132,10 @@ sgv.dlgCPL = new function() {
             spanGreen.style.display='inline-block';
             spanGreen.style.width = '3em';
 
-            //divDesc.appendChild( UI.tag("hr") );
-
             let btnPanel = UI.tag('div',{
                 'id':'panelBtns'
             });
             btnPanel.style['border-top']='1px solid #000';
-            //btnPanel.style['border-bottom']='1px solid #000';
             
             btnPanel.appendChild(
                     btnDispMode = UI.createTransparentBtn1('display mode',"cplDispModeButton",()=>{
@@ -159,18 +143,15 @@ sgv.dlgCPL = new function() {
                     }));
 
             btnPanel.appendChild(
-                    btnShowConsole = UI.createTransparentBtn1('show/hide console',"cplShowConsoleButton",()=>{
+                    btnShowConsole = UI.createTransparentBtn1('show console',"cplShowConsoleButton",()=>{
                         sgv.dlgConsole.switchConsole();
                     }));
 
             btnPanel.appendChild(
-                    btnSaveTXT = UI.createTransparentBtn1('save as TXT',"cplSaveTXTButton",()=>{
-                        sgv.toTXT();
-                    }));
-                    
-            btnPanel.appendChild(
-                    btnSaveGEXF = UI.createTransparentBtn1('save as GEXF',"cplSaveGEXFButton",()=>{
-                        sgv.toGEXF();
+                    btnSaveTXT = UI.createTransparentBtn1('save graph',"cplSaveButton", ()=>{
+                        FileIO.onSaveButton()
+                            .then( result => console.log( result ) )
+                            .catch( error => console.log( error ) );
                     }));
 
             btnPanel.appendChild(
@@ -180,13 +161,6 @@ sgv.dlgCPL = new function() {
 
             divDesc.appendChild(btnPanel);
             
-//            divDesc.appendChild( UI.tag("input", { 'class': "delbutton", 'id': "cplDeleteButton", 'type': "button", 'value': "clear workspace" } ) );
-//        elm.querySelector("#cplDeleteButton").addEventListener('click',
-//            function() {
-//                sgv.removeGraph();
-//            });
-//
-
             divDesc.style.display = "none";
             return divDesc;
         };
@@ -294,6 +268,11 @@ sgv.dlgCPL = new function() {
     function setModeSelectionX() {
         sel.style.display = "block";
         des.style.display = "none";
+        
+        enableMenu('menuGraphSave', false);
+        enableMenu('menuGraphClear', false);
+        enableMenu('menuViewDisplayMode', false);
+        
     };
 
 
@@ -325,7 +304,7 @@ sgv.dlgCPL = new function() {
             nMinMax = sgv.graf.getMinMaxNodeVal();
             eMinMax = sgv.graf.getMinMaxEdgeVal();
             
-            console.log(nMinMax,eMinMax);
+            //console.log(nMinMax,eMinMax);
             
             let min, max;
             
@@ -350,7 +329,7 @@ sgv.dlgCPL = new function() {
             if ((min!==NaN)&&(min>=0)) min = NaN;
             if ((max!==NaN)&&(max<=0)) max = NaN;
 
-            console.log(min,max);
+            //console.log(min,max);
 
             if (min!==NaN) {
                 if (sgv.graf.redLimit<min){
@@ -380,15 +359,17 @@ sgv.dlgCPL = new function() {
         updateInfoBlock();
         refreshScopes();
 
+        enableMenu('menuGraphSave', true);
+        enableMenu('menuGraphClear', true);
+        enableMenu('menuViewDisplayMode', true);
+
         sel.style.display = "none";
         des.style.display = "block";
     };
 
 
     return {
-        ui:  function() {
-            return elm;
-        },
+        desc: des,
         show: showDialog,
         hide: hideDialog,
         switchPanel: switchDialog,

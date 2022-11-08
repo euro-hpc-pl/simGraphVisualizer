@@ -404,22 +404,5 @@ sgv.display = function(args) {
 desktopInit = ()=>{};
 //showSplash = ()=>{};
 //hideSplash = ()=>{};
-
-function  showSplash() {
-    sgv.dlgLoaderSplash.show();
-};
-
-function hideSplash() {
-    setTimeout(function () {
-        sgv.dlgLoaderSplash.hide();
-    }, 200);
-};
-
-function showSplashAndRun(f) {
-    showSplash();
-    setTimeout(()=>{
-        f();
-        hideSplash();
-    }, 100);
-};
+enableMenu = (id, enabled)=>{};
 

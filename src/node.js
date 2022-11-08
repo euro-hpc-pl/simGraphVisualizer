@@ -126,17 +126,6 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         }
     };
 
-    this.exportGEXF = function() {
-        let xml = "      <node id=\""+this.id+"\">\n";
-        xml += "        <attvalues>\n";
-        for (const key in this.values) {
-            xml += "          <attvalue for=\""+this.parentGraph.getScopeIndex(key)+"\" value=\""+this.values[key]+"\"/>\n";
-        }
-        xml += "        </attvalues>\n";
-        xml += "      </node>\n";
-        return xml;
-    };
-
     this.delValue = function(scope) {
         if (typeof scope === 'undefined') {
             scope = this.parentGraph.currentScope;

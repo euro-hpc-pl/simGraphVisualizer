@@ -1,24 +1,10 @@
-/* 
- * Copyright 2022 pojdulos.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/* global Chimera, Pegasus, sgv */
+/* global sgv, Chimera, Pegasus */
 
 "use strict";
 
-parseGEXF = function(string) {
+var ParserGEXF = {};
+
+ParserGEXF.importGraph = (string) => {
     var graphType = "unknown";
     var graphSize = { cols:0, rows:0, KL:0, KR:0 };
     var nodeAttrs = {};
@@ -26,7 +12,7 @@ parseGEXF = function(string) {
     var newGraph = null;
     var def2 = [];
     
-    parseNodes = function(parentNode) {
+    function parseNodes(parentNode) {
         let nodes = parentNode.getElementsByTagName("nodes");
         let node = nodes[0].getElementsByTagName("node");
         
@@ -55,7 +41,7 @@ parseGEXF = function(string) {
         }
     };
     
-    parseEdges = function(parentNode) {
+    function parseEdges(parentNode) {
         let nodes = parentNode.getElementsByTagName("edges");
         let node = nodes[0].getElementsByTagName("edge");
         
@@ -87,7 +73,7 @@ parseGEXF = function(string) {
         }
     };
 
-    parseNodeAttribute = function(attributeNode) {
+    function parseNodeAttribute(attributeNode) {
         let id = attributeNode.getAttribute("id");
         let title = attributeNode.getAttribute("title");
 
@@ -105,14 +91,14 @@ parseGEXF = function(string) {
     };
     
 
-    parseEdgeAttribute = function(attributeNode) {
+    function parseEdgeAttribute(attributeNode) {
         let id = attributeNode.getAttribute("id");
         let title = attributeNode.getAttribute("title");
         return {id,title};
     };
 
 
-    parseAttributes = function(parentNode){
+    function parseAttributes(parentNode){
         let attrs = parentNode.getElementsByTagName("attributes");
 
         for ( let i =0; i<attrs.length; i++){
@@ -183,4 +169,79 @@ parseGEXF = function(string) {
 
     sgv.graf.createStructureFromDef2(def2);
     return true;
+};
+
+ParserGEXF.exportGraph = function(graph) {
+    if ((typeof graph==='undefined')||(graph === null)) return null;
+    
+    function exportNode(node) {
+        let xml = "      <node id=\""+node.id+"\">\n";
+        xml += "        <attvalues>\n";
+        for (const key in this.values) {
+            xml += "          <attvalue for=\""+node.parentGraph.getScopeIndex(key)+"\" value=\""+node.values[key]+"\"/>\n";
+        }
+        xml += "        </attvalues>\n";
+        xml += "      </node>\n";
+        return xml;
+    };
+
+    function exportEdge(edge, tmpId) {
+        let xml = "      <edge id=\""+tmpId+"\" source=\""+edge.begin+"\" target=\""+edge.end+"\">\n";
+        xml += "        <attvalues>\n";
+        for (const key in edge.values) {
+            xml += "          <attvalue for=\""+edge.parentGraph.getScopeIndex(key)+"\" value=\""+edge.values[key]+"\"/>\n";
+        }
+        xml += "        </attvalues>\n";
+        xml += "      </edge>\n";
+        return xml;
+    };
+
+    var xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+    //xml += "<gexf xmlns=\"http://www.gexf.net/1.2draft\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema−instance\" xsi:schemaLocation=\"http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd\" version=\"1.2\">\n";
+    xml += "<gexf xmlns=\"http://gexf.net/1.2\" version=\"1.2\">\n";
+    xml += "  <meta>\n";// lastmodifieddate=\"2009−03−20\">\n";
+    xml += "    <creator>IITiS.pl</creator>\n";
+    xml += "    <description>SimGraphVisualizer GEXF export</description>\n";
+    xml += "  </meta>\n";
+
+
+    xml += "  <graph defaultedgetype=\"undirected\">\n";
+
+    xml += "    <attributes class=\"node\">\n";
+    for (const key in graph.scopeOfValues) {
+        let val = graph.scopeOfValues[key];
+        if (val==="default"){
+            val+= ";" + graph.type + ";" + graph.cols + "," + graph.rows + "," + graph.layers + "," + graph.KL + "," + graph.KR;
+        }
+        xml += "      <attribute id=\""+key+"\" title=\""+val+"\" type=\"float\"/>\n";
+    }
+    xml += "    </attributes>\n";
+
+    xml += "    <nodes>\n";
+    for (const key in graph.nodes) {
+        xml += exportNode(graph.nodes[key]);
+    }
+    xml += "    </nodes>\n";
+
+    xml += "    <attributes class=\"edge\">\n";
+    for (const key in graph.scopeOfValues) {
+        let val = graph.scopeOfValues[key];
+//            if (val==="default"){
+//                val+= ";" + graph.type + ";" + graph.cols + "," + graph.rows + "," + graph.KL + "," + graph.KR;
+//            }
+        xml += "      <attribute id=\""+key+"\" title=\""+val+"\" type=\"float\"/>\n";
+    }
+    xml += "    </attributes>\n";
+
+
+    xml += "    <edges>\n";
+    let tmpId = 0;
+    for (const key in graph.edges) {
+        xml += exportEdge(graph.edges[key], ++tmpId);
+    }
+    xml += "    </edges>\n";
+    xml += "  </graph>\n";
+    xml += "</gexf>\n";
+
+    return xml;
 };

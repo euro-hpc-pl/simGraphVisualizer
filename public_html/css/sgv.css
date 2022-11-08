@@ -104,18 +104,45 @@
     border-radius: 15px;
 }
 
-.sgvTransparentButton1 {
-/*    background-color: rgba(204,255,204,0.5);
-    color: black; */
+
+:root {
+    --btn_size: 96px; /*5vw dla 1920px*/
+    --btn_aspect_ratio: 0.3;
+}
+
+
+button.sgvTransparentButton1 {
+    width: var(--btn_size);
+    height: calc(var(--btn_size) * var(--btn_aspect_ratio));
+    margin: calc(var(--btn_size) / 12.8);
+    padding: 0;
     background-color: rgba(0,0,0,0.5);
     color: white;
-    height: 48px;
-    width: 64px;
-    margin: 5px;
-    padding:1px;
-    border-width: 1px;
-    border-radius: 10px;
+    border-top: solid 1px #ddd;
+    border-left: solid 1px #ddd;
+    border-bottom: solid 1px #444;
+    border-right: solid 1px #444;
+    /* border-radius: calc(var(--btn_size) / 6.4); */
+    border-radius: 5px;
+    overflow: hidden;
+    text-align: center;
+    vertical-align: top;
 }
+
+button.sgvTransparentButton1:hover {
+    border-top: solid 1px #444;
+    border-left: solid 1px #444;
+    border-bottom: solid 1px #ddd;
+    border-right: solid 1px #ddd;
+    cursor: pointer;
+}
+
+button.sgvTransparentButton1 span {
+    font-size: calc(var(--btn_size) / 8);
+    text-align: center;
+    vertical-align: top;
+}
+
 
 button#cplClearButton {
     background-color: rgba(255,0,0,0.5);
@@ -138,15 +165,15 @@ button#cplClearButton {
 
 #switch {
     /*background: rgba(0, 1.0, 0, 0.5);*/
-    min-width: 400px;
+    min-width: 564px;
     height: 16px;
     text-align: center;
-    vertical-align:middle;
+    vertical-align: top;
     color: #fff;
     border-bottom-left-radius: 10px;
     border-bottom-right-radius: 10px;
-    border-top: #ddd solid 1px;
-    cursor: default;
+    border-top: #aaa solid 1px;
+    cursor: pointer;
 }
 
 #sgvMissingNodes {
@@ -167,7 +194,8 @@ button#cplClearButton {
     display: none;
 }
 
-#sgvConsole {
+
+#sgvConsoleBAK {
     min-width: 200px;
     /*position:relative;
     float:right;
@@ -180,16 +208,41 @@ button#cplClearButton {
     display: none;
 }
 
+#sgvConsole {
+    position: absolute; 
+    left: 0; 
+    right: 0; 
+    margin-left: auto; 
+    margin-right: auto;     
+    width: 100%;
+
+    bottom: 0;
+    margin-top: auto;
+    margin-bottom:0;
+
+    height: 252px;
+    padding: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    display: none;
+}
+
+#sgvConsole .content {
+    padding: 1px;
+    margin: 0;
+}
+
 #sgvConsole #consoleHistory {
-   width: 753px;
-   height: 200px;
-   resize: none;
+    left: 0;
+    width: calc(100% - 6px);
+    height: 200px;
+    resize: none;
     background-color: rgba(0,0,0,0.5);
     color: #ddd;
 }
 
 #sgvConsole #commandline {
-   width: 753px;
+    width: calc(100% - 8px);
     background-color: rgba(0,0,0,0.5);
     color: #ddd;
 }
@@ -268,7 +321,7 @@ dialog#sgvDlgCreateGraph {
     border-radius: 10px;
 }
 
-dialog.sgvModelDialog div#buttons {
+dialog.sgvModalDialog div#buttons {
     text-align: center;
 }
 

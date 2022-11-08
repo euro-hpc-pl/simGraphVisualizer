@@ -1,5 +1,6 @@
 /* global BABYLON, sgv */
 
+
 function valueToColor(val) {
     if ((typeof val ==='undefined')||(val === null)|| isNaN(val)) {
         return new BABYLON.Color3(0.2, 0.2, 0.2);

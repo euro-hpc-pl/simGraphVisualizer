@@ -67,42 +67,42 @@ sgv.dlgConsole = new function () {
 
         ui.querySelector(".hidebutton").addEventListener('click', function() { sgv.dlgConsole.hideConsole(); });
 
-        let titlebar = ui.querySelector(".title");
-        var offset;
-
-        titlebar.addEventListener('mouseover', function() {
-            ui.querySelector(".title").style.cursor='pointer';
-            movable = true;
-        });
-
-        titlebar.addEventListener('mouseout', function() {
-            movable = false;
-        });
-
-        titlebar.addEventListener('mousedown', function (e) {
-            isDown = movable;
-            offset = {
-                x: ui.offsetLeft - e.clientX,
-                y: ui.offsetTop - e.clientY
-            };
-        }, true);
-
-        titlebar.addEventListener('mouseup', function () {
-            isDown = false;
-        }, true);
-
-        document.addEventListener('mousemove', function (event) {
-            //event.preventDefault();
-            if (isDown) {
-                let mousePosition = {
-                    x: event.clientX,
-                    y: event.clientY
-                };
-
-                ui.style.left = (mousePosition.x + offset.x) + 'px';
-                ui.style.top = (mousePosition.y + offset.y) + 'px';
-            }
-        }, true);
+//        let titlebar = ui.querySelector(".title");
+//        var offset;
+//
+//        titlebar.addEventListener('mouseover', function() {
+//            ui.querySelector(".title").style.cursor='pointer';
+//            movable = true;
+//        });
+//
+//        titlebar.addEventListener('mouseout', function() {
+//            movable = false;
+//        });
+//
+//        titlebar.addEventListener('mousedown', function (e) {
+//            isDown = movable;
+//            offset = {
+//                x: ui.offsetLeft - e.clientX,
+//                y: ui.offsetTop - e.clientY
+//            };
+//        }, true);
+//
+//        titlebar.addEventListener('mouseup', function () {
+//            isDown = false;
+//        }, true);
+//
+//        document.addEventListener('mousemove', function (event) {
+//            //event.preventDefault();
+//            if (isDown) {
+//                let mousePosition = {
+//                    x: event.clientX,
+//                    y: event.clientY
+//                };
+//
+//                ui.style.left = (mousePosition.x + offset.x) + 'px';
+//                ui.style.top = (mousePosition.y + offset.y) + 'px';
+//            }
+//        }, true);
     };
 
     function createUI(id) {

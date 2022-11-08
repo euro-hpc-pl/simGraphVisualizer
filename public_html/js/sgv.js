@@ -1,5 +1,6 @@
 /* global BABYLON, sgv */
 
+
 function valueToColor(val) {
     if ((typeof val ==='undefined')||(val === null)|| isNaN(val)) {
         return new BABYLON.Color3(0.2, 0.2, 0.2);
@@ -170,43 +171,6 @@ var Label = (function (labelId, txt, position, enabled) {
     this.createMe(txt, position, enabled);
 });
 
-
-
-var Label2 = /** @class */ (function (labelId, txt, position) {
-    this.id = labelId;
-    var text = txt;
-
-    var lbLit = txt.length;
-
-    var planeHeight = 48.0 / 15.0;
-    var planeWidth = lbLit * 26.0 / 15.0;
-
-    const mat = new BABYLON.StandardMaterial("mat");
-
-//       mat.diffuseTexture = BABYLON.Texture.CreateFromBase64String("data:image/jpg;base64,/9j/4AAQgABAQAAAD/2wBDAAgGBgcGBQ...", "texture name", sgv.scene); 
-
-    mat.diffuseTexture = new BABYLON.Texture("cyferki.png");
-    mat.diffuseTexture.uScale = lbLit / 11.0;
-    mat.diffuseTexture.vScale = 1.0;
-    mat.diffuseTexture.uOffset = 1.0 / 11.0;
-    mat.diffuseTexture.vOffset = 0.0;
-
-    this.plane = BABYLON.MeshBuilder.CreatePlane(labelId + "_plane", {width: planeWidth, height: planeHeight, updatable: true}, sgv.scene);
-    this.plane.material = mat;
-
-    this.plane.position = position.add(new BABYLON.Vector3(0.0, 5.0, 0.0));
-
-    this.plane.billboardMode = BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
-
-    this.plane.setEnabled(false);
-    this.plane.isPickable = false;
-
-    this.setEnabled = function (b) {
-        this.plane.setEnabled(b);
-    };
-
-});
-
 /* 
  * Copyright 2022 Dariusz Pojda.
  *
@@ -335,17 +299,6 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         }
     };
 
-    this.exportGEXF = function() {
-        let xml = "      <node id=\""+this.id+"\">\n";
-        xml += "        <attvalues>\n";
-        for (const key in this.values) {
-            xml += "          <attvalue for=\""+this.parentGraph.getScopeIndex(key)+"\" value=\""+this.values[key]+"\"/>\n";
-        }
-        xml += "        </attvalues>\n";
-        xml += "      </node>\n";
-        return xml;
-    };
-
     this.delValue = function(scope) {
         if (typeof scope === 'undefined') {
             scope = this.parentGraph.currentScope;
@@ -462,21 +415,6 @@ var Edge = /** @class */ (function (graf, b, e, val) {
 
         this.displayValue(valId);
     };
-
-//<edge id=”0” source=”0” target=”1”/>
-    this.exportGEXF = function(tmpId) {
-        //return "      <edge id=\""+tmpId+"\" source=\""+this.begin+"\" target=\""+this.end+"\"/>\n";
-        let xml = "      <edge id=\""+tmpId+"\" source=\""+this.begin+"\" target=\""+this.end+"\">\n";
-        xml += "        <attvalues>\n";
-        for (const key in this.values) {
-            xml += "          <attvalue for=\""+this.parentGraph.getScopeIndex(key)+"\" value=\""+this.values[key]+"\"/>\n";
-        }
-        xml += "        </attvalues>\n";
-        xml += "      </edge>\n";
-        return xml;
-        
-    };
-
 
     this.displayValue = function (valId) {
         //console.log(valId);
@@ -676,75 +614,6 @@ var Graph = /** @class */ (function () {
         return Object.keys(this.scopeOfValues).find(key => this.scopeOfValues[key] === scope);
     };
     
-    this.exportTXT = function() {
-        var string = "# type=" + this.type + "\n";
-        string += "# size=" + this.cols + "," + this.rows + "," + this.layers + "," + this.KL + "," + this.KR + "\n";
-
-        for (const key in this.nodes) {
-            string += key + " " + key + " ";
-            string += this.nodes[key].getValue() + "\n";
-        }
-
-        for (const key in this.edges) {
-            string += this.edges[key].begin + " " + this.edges[key].end + " ";
-            string += this.edges[key].getValue() + "\n";
-        }
-        
-        return string;
-    };
-    
-    this.exportGEXF = function() {
-        var xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-        //xml += "<gexf xmlns=\"http://www.gexf.net/1.2draft\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema−instance\" xsi:schemaLocation=\"http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd\" version=\"1.2\">\n";
-        xml += "<gexf xmlns=\"http://gexf.net/1.2\" version=\"1.2\">\n";
-        xml += "  <meta>\n";// lastmodifieddate=\"2009−03−20\">\n";
-        xml += "    <creator>IITiS.pl</creator>\n";
-        xml += "    <description>SimGraphVisualizer GEXF export</description>\n";
-        xml += "  </meta>\n";
-        
-        
-        xml += "  <graph defaultedgetype=\"undirected\">\n";
-        
-        xml += "    <attributes class=\"node\">\n";
-        for (const key in this.scopeOfValues) {
-            let val = this.scopeOfValues[key];
-            if (val==="default"){
-                val+= ";" + this.type + ";" + this.cols + "," + this.rows + "," + this.layers + "," + this.KL + "," + this.KR;
-            }
-            xml += "      <attribute id=\""+key+"\" title=\""+val+"\" type=\"float\"/>\n";
-        }
-        xml += "    </attributes>\n";
-        
-        xml += "    <nodes>\n";
-        for (const key in this.nodes) {
-            xml += this.nodes[key].exportGEXF();
-        }
-        xml += "    </nodes>\n";
-
-        xml += "    <attributes class=\"edge\">\n";
-        for (const key in this.scopeOfValues) {
-            let val = this.scopeOfValues[key];
-//            if (val==="default"){
-//                val+= ";" + this.type + ";" + this.cols + "," + this.rows + "," + this.KL + "," + this.KR;
-//            }
-            xml += "      <attribute id=\""+key+"\" title=\""+val+"\" type=\"float\"/>\n";
-        }
-        xml += "    </attributes>\n";
-        
-        
-        xml += "    <edges>\n";
-        let tmpId = 0;
-        for (const key in this.edges) {
-            xml += this.edges[key].exportGEXF(++tmpId);
-        }
-        xml += "    </edges>\n";
-        xml += "  </graph>\n";
-        xml += "</gexf>\n";
-
-        return xml;
-    };
-
-
     this.addEdge = function (node1, node2, val) {
         if (node1 < node2) {
             var strId = "" + node1 + "," + node2;
@@ -2180,47 +2049,104 @@ sgv.display = function(args) {
 desktopInit = ()=>{};
 //showSplash = ()=>{};
 //hideSplash = ()=>{};
-
-function  showSplash() {
-    sgv.dlgLoaderSplash.show();
-};
-
-function hideSplash() {
-    setTimeout(function () {
-        sgv.dlgLoaderSplash.hide();
-    }, 200);
-};
-
-function showSplashAndRun(f) {
-    showSplash();
-    setTimeout(()=>{
-        f();
-        hideSplash();
-    }, 100);
-};
+enableMenu = (id, enabled)=>{};
 
 
-/* 
- * Copyright 2022 pojdulos.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/* global Chimera, Pegasus, sgv */
+/* global sgv, NaN */
 
 "use strict";
 
-parseGEXF = function(string) {
+var ParserTXT = {};
+
+ParserTXT.importGraph = (string) => {
+    var res = [];
+    var lines = string.split("\n");
+
+    var gDesc = {};
+    
+    var parseComment = function (string) {
+        var command = string.split("=");
+        if (command[0] === 'type') {
+            gDesc.type = command[1];
+        } else if (command[0] === 'size') {
+            var size = command[1].split(",");
+            if (size.length >= 5) {
+                gDesc.size = {
+                    cols: parseInt(size[0], 10),
+                    rows: parseInt(size[1], 10),
+                    lays: parseInt(size[2], 10),
+                    KL: parseInt(size[3], 10),
+                    KR: parseInt(size[4], 10)
+                };
+            } else if (size.length === 4) {
+                gDesc.size = {
+                    cols: parseInt(size[0], 10),
+                    rows: parseInt(size[1], 10),
+                    lays: 1,
+                    KL: parseInt(size[2], 10),
+                    KR: parseInt(size[3], 10)
+                };
+            }
+        }
+    };
+
+    var parseData = function (string) {
+        var line = string.trim().split(/\s+/);
+        if (line.length < 3) return null;
+        
+        let _n1 = parseInt(line[0], 10);
+        let _n2 = parseInt(line[1], 10);
+        let _val = parseFloat(line[2], 10);
+
+        if ((_n1===NaN)||(_n2===NaN)) return null;    
+        else return { n1: _n1, n2: _n2, val: _val };
+    };
+
+    while (lines.length > 0) {
+        if (lines[0][0] !== '#')
+        {
+            let d = parseData(lines[0]);
+            if (d !== null) res.push(d);
+        } else {
+            let line = lines[0].trim().split(/\s+/);
+            if (line.length > 1) parseComment(line[1]);
+        }
+        lines.shift();
+    }
+
+    if (typeof gDesc.type==='undefined') {
+        sgv.dlgCreateGraph.show('load', res);
+    } else {
+        sgv.createGraph( gDesc, res );
+    }
+};
+
+ParserTXT.exportGraph = (graph) => {
+    if ((typeof graph==='undefined')||(graph === null)) return null;
+
+    var string = "# type=" + graph.type + "\n";
+    string += "# size=" + graph.cols + "," + graph.rows + "," + graph.layers + "," + graph.KL + "," + graph.KR + "\n";
+
+    for (const key in graph.nodes) {
+        string += key + " " + key + " ";
+        string += graph.nodes[key].getValue() + "\n";
+    }
+
+    for (const key in graph.edges) {
+        string += graph.edges[key].begin + " " + graph.edges[key].end + " ";
+        string += graph.edges[key].getValue() + "\n";
+    }
+
+    return string;
+};
+
+/* global sgv, Chimera, Pegasus */
+
+"use strict";
+
+var ParserGEXF = {};
+
+ParserGEXF.importGraph = (string) => {
     var graphType = "unknown";
     var graphSize = { cols:0, rows:0, KL:0, KR:0 };
     var nodeAttrs = {};
@@ -2228,7 +2154,7 @@ parseGEXF = function(string) {
     var newGraph = null;
     var def2 = [];
     
-    parseNodes = function(parentNode) {
+    function parseNodes(parentNode) {
         let nodes = parentNode.getElementsByTagName("nodes");
         let node = nodes[0].getElementsByTagName("node");
         
@@ -2257,7 +2183,7 @@ parseGEXF = function(string) {
         }
     };
     
-    parseEdges = function(parentNode) {
+    function parseEdges(parentNode) {
         let nodes = parentNode.getElementsByTagName("edges");
         let node = nodes[0].getElementsByTagName("edge");
         
@@ -2289,7 +2215,7 @@ parseGEXF = function(string) {
         }
     };
 
-    parseNodeAttribute = function(attributeNode) {
+    function parseNodeAttribute(attributeNode) {
         let id = attributeNode.getAttribute("id");
         let title = attributeNode.getAttribute("title");
 
@@ -2307,14 +2233,14 @@ parseGEXF = function(string) {
     };
     
 
-    parseEdgeAttribute = function(attributeNode) {
+    function parseEdgeAttribute(attributeNode) {
         let id = attributeNode.getAttribute("id");
         let title = attributeNode.getAttribute("title");
         return {id,title};
     };
 
 
-    parseAttributes = function(parentNode){
+    function parseAttributes(parentNode){
         let attrs = parentNode.getElementsByTagName("attributes");
 
         for ( let i =0; i<attrs.length; i++){
@@ -2387,7 +2313,166 @@ parseGEXF = function(string) {
     return true;
 };
 
-/* global sgv, UI, URL, Chimera, Pegasus */
+ParserGEXF.exportGraph = function(graph) {
+    if ((typeof graph==='undefined')||(graph === null)) return null;
+    
+    function exportNode(node) {
+        let xml = "      <node id=\""+node.id+"\">\n";
+        xml += "        <attvalues>\n";
+        for (const key in this.values) {
+            xml += "          <attvalue for=\""+node.parentGraph.getScopeIndex(key)+"\" value=\""+node.values[key]+"\"/>\n";
+        }
+        xml += "        </attvalues>\n";
+        xml += "      </node>\n";
+        return xml;
+    };
+
+    function exportEdge(edge, tmpId) {
+        let xml = "      <edge id=\""+tmpId+"\" source=\""+edge.begin+"\" target=\""+edge.end+"\">\n";
+        xml += "        <attvalues>\n";
+        for (const key in edge.values) {
+            xml += "          <attvalue for=\""+edge.parentGraph.getScopeIndex(key)+"\" value=\""+edge.values[key]+"\"/>\n";
+        }
+        xml += "        </attvalues>\n";
+        xml += "      </edge>\n";
+        return xml;
+    };
+
+    var xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+    //xml += "<gexf xmlns=\"http://www.gexf.net/1.2draft\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema−instance\" xsi:schemaLocation=\"http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd\" version=\"1.2\">\n";
+    xml += "<gexf xmlns=\"http://gexf.net/1.2\" version=\"1.2\">\n";
+    xml += "  <meta>\n";// lastmodifieddate=\"2009−03−20\">\n";
+    xml += "    <creator>IITiS.pl</creator>\n";
+    xml += "    <description>SimGraphVisualizer GEXF export</description>\n";
+    xml += "  </meta>\n";
+
+
+    xml += "  <graph defaultedgetype=\"undirected\">\n";
+
+    xml += "    <attributes class=\"node\">\n";
+    for (const key in graph.scopeOfValues) {
+        let val = graph.scopeOfValues[key];
+        if (val==="default"){
+            val+= ";" + graph.type + ";" + graph.cols + "," + graph.rows + "," + graph.layers + "," + graph.KL + "," + graph.KR;
+        }
+        xml += "      <attribute id=\""+key+"\" title=\""+val+"\" type=\"float\"/>\n";
+    }
+    xml += "    </attributes>\n";
+
+    xml += "    <nodes>\n";
+    for (const key in graph.nodes) {
+        xml += exportNode(graph.nodes[key]);
+    }
+    xml += "    </nodes>\n";
+
+    xml += "    <attributes class=\"edge\">\n";
+    for (const key in graph.scopeOfValues) {
+        let val = graph.scopeOfValues[key];
+//            if (val==="default"){
+//                val+= ";" + graph.type + ";" + graph.cols + "," + graph.rows + "," + graph.KL + "," + graph.KR;
+//            }
+        xml += "      <attribute id=\""+key+"\" title=\""+val+"\" type=\"float\"/>\n";
+    }
+    xml += "    </attributes>\n";
+
+
+    xml += "    <edges>\n";
+    let tmpId = 0;
+    for (const key in graph.edges) {
+        xml += exportEdge(graph.edges[key], ++tmpId);
+    }
+    xml += "    </edges>\n";
+    xml += "  </graph>\n";
+    xml += "</gexf>\n";
+
+    return xml;
+};
+
+/* global sgv, UI, URL, Chimera, Pegasus, ParserGEXF, ParserTXT */
+var FileIO = {};
+
+FileIO.onLoadButton = () => {
+    let btnLoad1 = UI.tag('input',{
+        'type':'file',
+        'id':'inputfile',
+        'display':'none'
+    });
+    btnLoad1.addEventListener('change', (e)=>{
+        if (typeof btnLoad1.files[0]!=='undefined') {
+            showSplashAndRun(()=>{
+                FileIO.loadGraph(btnLoad1.files[0]);
+                //btnLoad1.value = ""; //if I need to read the same file again
+            });
+        }
+    });
+
+    btnLoad1.click();
+};
+
+FileIO.onSaveButton = ()=>{
+    return new Promise((resolve,reject)=>{
+        if (typeof window.showSaveFilePicker === 'function') {
+            const options = {
+                suggestedName: 'name.txt',
+                excludeAcceptAllOption: true,
+                types: [
+                    {
+                        description: 'Text file',
+                        accept: {'text/plain': ['.txt']}
+                    }, {
+                        description: 'GEXF files',
+                        accept: {'application/xml': ['.gexf']}
+                    }]
+            };
+
+            window.showSaveFilePicker(options)
+                .then((handle)=>{
+                    let blob;
+
+                    if (handle.name.endsWith('.txt')) {
+                        blob = new Blob([ParserTXT.exportGraph(sgv.graf)]);    
+                    } else if (handle.name.endsWith('.gexf')) {
+                        blob = new Blob([ParserGEXF.exportGraph(sgv.graf)]);
+                    } else {
+                        reject('point 1');
+                    }
+
+                    handle.createWritable()
+                        .then( (writableStream)=> {
+                            writableStream.write(blob)
+                            .then( () => {
+                                writableStream.close();                        
+                                resolve('point 3 (OK)'); });
+                        }).catch( ()=>{
+                            reject('point 5'); });
+                }).catch(()=>{
+                    reject('point 2');
+                });
+        } else {
+            sgv.dlgAlternateFileSave.show();
+            resolve('point 4 (OK)');
+        }
+    });
+    
+}; 
+
+FileIO.download = (text, name, type) => {
+    let a = document.createElement("a");
+    let file = new Blob([text], {type: type});
+    a.href = URL.createObjectURL(file);
+    a.download = name;
+    a.click();
+};
+
+FileIO.alternateSave = (name, ext) => {
+    if (ext === '.txt') {
+        let string = ParserTXT.exportGraph(sgv.graf);
+        FileIO.download(string, name+ext, 'text/plain');
+    } else if (ext === '.gexf') {
+        let string = ParserGEXF.exportGraph(sgv.graf);
+        FileIO.download(string, name+ext, 'application/xml');
+    }
+};
 
 sgv.stringToScope = (data,newScope) => {
     let r = sgv.graf.loadScopeValues(newScope,data);
@@ -2398,152 +2483,8 @@ sgv.stringToScope = (data,newScope) => {
     sgv.dlgCPL.selScope(newScope);
 };
 
-function download(text, name, type) {
-    //var a = document.getElementById("mysaver");
-    let a = document.createElement("a");
-    let file = new Blob([text], {type: type});
-    a.href = URL.createObjectURL(file);
-    a.download = name;
-    a.click();
-}
 
-sgv.toGEXF = function () {
-    var string = sgv.graf.exportGEXF();
-    download(string, 'graphDefinition.gexf', 'text/xml');
-};
-
-sgv.toTXT = function () {
-    var string = sgv.graf.exportTXT();
-    download(string, 'graphDefinition.txt', 'text/plain');
-};
-
-
-
-sgv.fromTXT_BACK = function (string) {
-    var res = [];
-    var lines = string.split("\n");
-
-    var gDesc = {};
-    
-    var parseComment = function (string) {
-        var command = string.split("=");
-        if (command[0] === 'type') {
-            gDesc.type = command[1];
-        } else if (command[0] === 'size') {
-            var size = command[1].split(",");
-            gDesc.size = {
-                cols: parseInt(size[0], 10),
-                rows: parseInt(size[1], 10),
-                KL: parseInt(size[2], 10),
-                KR: parseInt(size[3], 10)
-            };
-        }
-    };
-
-    var parseData = function (string) {
-        var line = string.split(" ");
-        if (line.length === 3) {
-            return {
-                n1: parseInt(line[0], 10),
-                n2: parseInt(line[1], 10),
-                val: parseFloat(line[2], 10)
-            };
-        } else {
-            return null;
-        }
-    };
-
-    while (lines.length > 0) {
-        if (lines[0][0] !== '#')
-        {
-            var d = parseData(lines[0]);
-            if (d !== null) {
-                res.push(d);
-            }
-        } else {
-            var line = lines[0].split(" ");
-            parseComment(line[1]);
-        }
-        lines.shift();
-    }
-
-    if (typeof gDesc.type==='undefined') {
-        sgv.dlgCreateGraph.show('load', res);
-    } else {
-        sgv.createGraph( gDesc, res );
-    }
-};
-
-
-sgv.fromTXT = function (string) {
-    var res = [];
-    var lines = string.split("\n");
-
-    var gDesc = {};
-    
-    var parseComment = function (string) {
-        var command = string.split("=");
-        if (command[0] === 'type') {
-            gDesc.type = command[1];
-        } else if (command[0] === 'size') {
-            var size = command[1].split(",");
-            if (size.length >= 5) {
-                gDesc.size = {
-                    cols: parseInt(size[0], 10),
-                    rows: parseInt(size[1], 10),
-                    lays: parseInt(size[2], 10),
-                    KL: parseInt(size[3], 10),
-                    KR: parseInt(size[4], 10)
-                };
-            } else if (size.length === 4) {
-                gDesc.size = {
-                    cols: parseInt(size[0], 10),
-                    rows: parseInt(size[1], 10),
-                    lays: 1,
-                    KL: parseInt(size[2], 10),
-                    KR: parseInt(size[3], 10)
-                };
-            }
-        }
-    };
-
-    var parseData = function (string) {
-        var line = string.split(" ");
-        if (line.length === 3) {
-            return {
-                n1: parseInt(line[0], 10),
-                n2: parseInt(line[1], 10),
-                val: parseFloat(line[2], 10)
-            };
-        } else {
-            return null;
-        }
-    };
-
-    while (lines.length > 0) {
-        if (lines[0][0] !== '#')
-        {
-            var d = parseData(lines[0]);
-            if (d !== null) {
-                res.push(d);
-            }
-        } else {
-            var line = lines[0].split(" ");
-            parseComment(line[1]);
-        }
-        lines.shift();
-    }
-
-    if (typeof gDesc.type==='undefined') {
-        sgv.dlgCreateGraph.show('load', res);
-    } else {
-        sgv.createGraph( gDesc, res );
-    }
-};
-
-
-
-sgv.loadGraph = function(selectedFile) {
+FileIO.loadGraph = function(selectedFile) {
     const name = selectedFile.name;
     const reader = new FileReader();
     if (selectedFile) {
@@ -2552,51 +2493,35 @@ sgv.loadGraph = function(selectedFile) {
         });
 
         reader.addEventListener('load', () => {
-            console.info(`File: ${selectedFile.name} read successfully`);
-            //let name = selectedFile.name;
-            if (name.endsWith("txt")) {
-                if (sgv.graf!==null) {
-                    sgv.removeGraph();
-                }
-                sgv.fromTXT(reader.result);
-            } else if(name.endsWith("gexf")) {
-                if (parseGEXF(reader.result)){
-                    sgv.setModeDescription();
-                }
-            } else {
-                console.error(`Incorrect file format...`);
-            }
+            FileIO.loadGraph2(name, reader.result);
         });
 
         if ( name.endsWith("txt") || name.endsWith("gexf") ) {
             reader.readAsText(selectedFile); 
-
-            //reader.readAsDataURL(selectedFile);
         } else {
             console.error(`Incorrect file extension...`);
         }
     }                    
 };
         
-sgv.loadGraph2 = function(name,data) {
+FileIO.loadGraph2 = function(name,data) {
     if (name.endsWith("txt")) {
         if (sgv.graf!==null) {
             sgv.removeGraph();
         }
-        sgv.fromTXT(data);
-        //sgv.setModeDescription();
+        ParserTXT.importGraph(data);
     } else if(name.endsWith("gexf")) {
         if (sgv.graf!==null) {
             sgv.removeGraph();
         }
-        if (parseGEXF(data)){
+        if (ParserGEXF.importGraph(data)){
             sgv.setModeDescription();
         }
     };
 };
 
 "use strict";
-/* global sgv, Chimera, Pegasus, UI, parserGEXF, dialog */
+/* global sgv, Chimera, Pegasus, UI, parserGEXF, dialog, FileIO */
 
 
 sgv.dlgCPL = new function() {
@@ -2606,7 +2531,7 @@ sgv.dlgCPL = new function() {
     var spanRed, spanGreen;
     var btnDispMode, btnShowConsole, btnSaveTXT, btnSaveGEXF, btnClear;
 
-    var btnShowConsole2, btnCreate, btnLoad, btnLoad1;
+    var btnShowConsole2, btnCreate, btnLoad;
     
     var elm = createDialog();
     
@@ -2621,7 +2546,7 @@ sgv.dlgCPL = new function() {
             var divSel = UI.tag( "div", { "class": "content", "id": "graphSelection" });
             
             divSel.appendChild(
-                    btnShowConsole2 = UI.createTransparentBtn1('show/hide console',"cplShowConsoleButton",()=>{
+                    btnShowConsole2 = UI.createTransparentBtn1('show console',"cplShowConsoleButton",()=>{
                         sgv.dlgConsole.switchConsole();
                     }));
 
@@ -2630,23 +2555,10 @@ sgv.dlgCPL = new function() {
                         sgv.dlgCreateGraph.show();
                     }));
 
-            btnLoad1 = UI.tag('input',{
-                'type':'file',
-                'id':'inputfile',
-                'display':'none'
-            });
-            btnLoad1.addEventListener('change', (e)=>{
-                if (typeof btnLoad1.files[0]!=='undefined') {
-                    showSplashAndRun(()=>{
-                        sgv.loadGraph(btnLoad1.files[0]);
-                    });
-                }
-            });
-
             divSel.appendChild(
-                    btnLoad = UI.createTransparentBtn1('load graph',"cplLoadButton",()=>{
-                        btnLoad1.click();
-                    }));
+                    btnLoad = UI.createTransparentBtn1('load graph', 'cplLoadButton', ()=>{
+                        FileIO.onLoadButton();
+            }));
 
             divSel.style.display = "block";
             
@@ -2705,7 +2617,7 @@ sgv.dlgCPL = new function() {
                 'max':'0.0',
                 'step':'0.01'
             });
-            sliderRedLimit.addEventListener('change', (e)=>{
+            sliderRedLimit.addEventListener('input', (e)=>{
                 if (sgv.graf !== null) {
                     sgv.graf.redLimit = e.target.value;
                     sgv.graf.displayValues();
@@ -2726,7 +2638,7 @@ sgv.dlgCPL = new function() {
                 'max':'1.0',
                 'step':'0.01'
             });
-            sliderGreenLimit.addEventListener('change', (e)=>{
+            sliderGreenLimit.addEventListener('input', (e)=>{
                 if (sgv.graf !== null) {
                     sgv.graf.greenLimit = e.target.value;
                     sgv.graf.displayValues();
@@ -2742,13 +2654,10 @@ sgv.dlgCPL = new function() {
             spanGreen.style.display='inline-block';
             spanGreen.style.width = '3em';
 
-            //divDesc.appendChild( UI.tag("hr") );
-
             let btnPanel = UI.tag('div',{
                 'id':'panelBtns'
             });
             btnPanel.style['border-top']='1px solid #000';
-            //btnPanel.style['border-bottom']='1px solid #000';
             
             btnPanel.appendChild(
                     btnDispMode = UI.createTransparentBtn1('display mode',"cplDispModeButton",()=>{
@@ -2756,18 +2665,15 @@ sgv.dlgCPL = new function() {
                     }));
 
             btnPanel.appendChild(
-                    btnShowConsole = UI.createTransparentBtn1('show/hide console',"cplShowConsoleButton",()=>{
+                    btnShowConsole = UI.createTransparentBtn1('show console',"cplShowConsoleButton",()=>{
                         sgv.dlgConsole.switchConsole();
                     }));
 
             btnPanel.appendChild(
-                    btnSaveTXT = UI.createTransparentBtn1('save as TXT',"cplSaveTXTButton",()=>{
-                        sgv.toTXT();
-                    }));
-                    
-            btnPanel.appendChild(
-                    btnSaveGEXF = UI.createTransparentBtn1('save as GEXF',"cplSaveGEXFButton",()=>{
-                        sgv.toGEXF();
+                    btnSaveTXT = UI.createTransparentBtn1('save graph',"cplSaveButton", ()=>{
+                        FileIO.onSaveButton()
+                            .then( result => console.log( result ) )
+                            .catch( error => console.log( error ) );
                     }));
 
             btnPanel.appendChild(
@@ -2777,13 +2683,6 @@ sgv.dlgCPL = new function() {
 
             divDesc.appendChild(btnPanel);
             
-//            divDesc.appendChild( UI.tag("input", { 'class': "delbutton", 'id': "cplDeleteButton", 'type': "button", 'value': "clear workspace" } ) );
-//        elm.querySelector("#cplDeleteButton").addEventListener('click',
-//            function() {
-//                sgv.removeGraph();
-//            });
-//
-
             divDesc.style.display = "none";
             return divDesc;
         };
@@ -2891,6 +2790,11 @@ sgv.dlgCPL = new function() {
     function setModeSelectionX() {
         sel.style.display = "block";
         des.style.display = "none";
+        
+        enableMenu('menuGraphSave', false);
+        enableMenu('menuGraphClear', false);
+        enableMenu('menuViewDisplayMode', false);
+        
     };
 
 
@@ -2922,7 +2826,7 @@ sgv.dlgCPL = new function() {
             nMinMax = sgv.graf.getMinMaxNodeVal();
             eMinMax = sgv.graf.getMinMaxEdgeVal();
             
-            console.log(nMinMax,eMinMax);
+            //console.log(nMinMax,eMinMax);
             
             let min, max;
             
@@ -2947,7 +2851,7 @@ sgv.dlgCPL = new function() {
             if ((min!==NaN)&&(min>=0)) min = NaN;
             if ((max!==NaN)&&(max<=0)) max = NaN;
 
-            console.log(min,max);
+            //console.log(min,max);
 
             if (min!==NaN) {
                 if (sgv.graf.redLimit<min){
@@ -2977,15 +2881,17 @@ sgv.dlgCPL = new function() {
         updateInfoBlock();
         refreshScopes();
 
+        enableMenu('menuGraphSave', true);
+        enableMenu('menuGraphClear', true);
+        enableMenu('menuViewDisplayMode', true);
+
         sel.style.display = "none";
         des.style.display = "block";
     };
 
 
     return {
-        ui:  function() {
-            return elm;
-        },
+        desc: des,
         show: showDialog,
         hide: hideDialog,
         switchPanel: switchDialog,
@@ -3104,42 +3010,42 @@ sgv.dlgConsole = new function () {
 
         ui.querySelector(".hidebutton").addEventListener('click', function() { sgv.dlgConsole.hideConsole(); });
 
-        let titlebar = ui.querySelector(".title");
-        var offset;
-
-        titlebar.addEventListener('mouseover', function() {
-            ui.querySelector(".title").style.cursor='pointer';
-            movable = true;
-        });
-
-        titlebar.addEventListener('mouseout', function() {
-            movable = false;
-        });
-
-        titlebar.addEventListener('mousedown', function (e) {
-            isDown = movable;
-            offset = {
-                x: ui.offsetLeft - e.clientX,
-                y: ui.offsetTop - e.clientY
-            };
-        }, true);
-
-        titlebar.addEventListener('mouseup', function () {
-            isDown = false;
-        }, true);
-
-        document.addEventListener('mousemove', function (event) {
-            //event.preventDefault();
-            if (isDown) {
-                let mousePosition = {
-                    x: event.clientX,
-                    y: event.clientY
-                };
-
-                ui.style.left = (mousePosition.x + offset.x) + 'px';
-                ui.style.top = (mousePosition.y + offset.y) + 'px';
-            }
-        }, true);
+//        let titlebar = ui.querySelector(".title");
+//        var offset;
+//
+//        titlebar.addEventListener('mouseover', function() {
+//            ui.querySelector(".title").style.cursor='pointer';
+//            movable = true;
+//        });
+//
+//        titlebar.addEventListener('mouseout', function() {
+//            movable = false;
+//        });
+//
+//        titlebar.addEventListener('mousedown', function (e) {
+//            isDown = movable;
+//            offset = {
+//                x: ui.offsetLeft - e.clientX,
+//                y: ui.offsetTop - e.clientY
+//            };
+//        }, true);
+//
+//        titlebar.addEventListener('mouseup', function () {
+//            isDown = false;
+//        }, true);
+//
+//        document.addEventListener('mousemove', function (event) {
+//            //event.preventDefault();
+//            if (isDown) {
+//                let mousePosition = {
+//                    x: event.clientX,
+//                    y: event.clientY
+//                };
+//
+//                ui.style.left = (mousePosition.x + offset.x) + 'px';
+//                ui.style.top = (mousePosition.y + offset.y) + 'px';
+//            }
+//        }, true);
     };
 
     function createUI(id) {
@@ -3598,6 +3504,23 @@ sgv.dlgLoaderSplash = new function() {
 };
 
 
+function  showSplash() {
+    sgv.dlgLoaderSplash.show();
+};
+
+function hideSplash() {
+    setTimeout(function () {
+        sgv.dlgLoaderSplash.hide();
+    }, 200);
+};
+
+function showSplashAndRun(f) {
+    showSplash();
+    setTimeout(()=>{
+        f();
+        hideSplash();
+    }, 100);
+};
 
 /* global sgv, UI */
 
@@ -4275,6 +4198,92 @@ sgv.dlgNodeProperties = new function() {
     };
     
 };
+/* global sgv, UI, FileIO */
+
+sgv.dlgAlternateFileSave = new function() {
+    var selectType, selectName, spanExt;
+    var btnCancel, btnSave;
+    
+    var ui = createUI();
+
+    window.addEventListener('load',()=>{
+        window.document.body.appendChild(ui);
+    });
+
+    function createUI() {
+        //let ui = UI.createEmptyWindow("sgvUIwindow sgvModalDialog", "sgvSaveGraphDlg", "Save graph", true);
+        let ui = UI.tag( "dialog", { "class": "sgvUIwindow sgvModalDialog", "id": "sgvDlgAltSaveGraph" });
+        
+        let tt = UI.createTitlebar("Save graph", false);
+        ui.appendChild(tt);
+
+        content = UI.tag("div", {'class':'content'});
+
+        content.appendChild(UI.tag("div",{},{
+            'style':'max-width:400px',
+            'textContent':
+"Your browser does not allow us to open the system window for selecting a file to save. \
+Please select the file format and its name and click Save button. \
+Depending on your browser's settings, the file will be saved in \
+the default location (usually: Downloads) or a selection window will appear."
+        }));
+        
+        content.appendChild(UI.tag("hr"));
+        
+        let t = UI.tag("div");
+        selectType = UI.tag( "select", {'id': "savSelectType" } );
+        selectType.appendChild(UI.option('.txt','TXT'));
+        selectType.appendChild(UI.option('.gexf','GEXF'));
+        selectType.addEventListener('change', (e) => {
+            spanExt.textContent = e.target.value;
+        });
+        t.appendChild(UI.tag('label',{'for':'savSelectType'},{'innerHTML':'Select format: '}));
+        t.appendChild( selectType );
+        content.appendChild(t);
+
+        let n = UI.tag("div");
+        selectName = UI.tag( "input", {'type':'text', 'id': 'savSelectName', 'value':'filename' } );
+        n.appendChild(UI.tag('label',{'for':'savSelectname'},{'innerHTML':'Select filename: '}));
+        n.appendChild( selectName );
+        spanExt = UI.tag("span",{},{'textContent':'.txt'});
+        n.appendChild( spanExt );
+        content.appendChild(n);
+
+        btnCancel = UI.newInput("button", "cancel", "actionbutton", "");
+        btnCancel.addEventListener('click', function () {
+            hideDialog();
+        });
+        content.appendChild(btnCancel);
+
+        btnSave = UI.newInput("button", "save", "actionbutton", "");
+        btnSave.addEventListener('click', function () {
+            FileIO.alternateSave(selectName.value, spanExt.textContent);
+            hideDialog();
+        });
+        content.appendChild(btnSave);
+        
+        ui.appendChild(content);
+        
+        ui.style.display = "none";
+        return ui;
+    };
+    
+    function hideDialog() {
+        ui.close();
+        ui.style.display = "none";
+    };
+    
+    function showDialog() {
+        ui.style.display = "block";
+        ui.showModal();
+    };
+    
+    return {
+        show: showDialog,
+        hide: hideDialog
+    };
+};
+
 /* global sgv, UI */
 
 sgv.dlgMissingNodes = new function() {
