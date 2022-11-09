@@ -17,6 +17,8 @@
 /* global global, BABYLON, URL, Chimera, Pegasus, UI, parserGEXF */
 "use strict";
 
+const DEFAULT_SCOPE = 'default';
+
 var getRandom = function(min, max) {
     return (min + (Math.random() * (max - min)));
 };
@@ -36,7 +38,9 @@ sgv.displayMode = 'classic';
 sgv.createScene = function () {
     function createCamera() {
         sgv.camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(0, 0, 0), sgv.scene);
-        //camera.setPosition(new BABYLON.Vector3(10, 100, 200));
+        
+        //sgv.camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
+        
         sgv.camera.setPosition(new BABYLON.Vector3(166, 150, 0));
         sgv.camera.attachControl(sgv.canvas, true);
 
@@ -44,10 +48,14 @@ sgv.createScene = function () {
 
         sgv.camera.upperBetaLimit = (Math.PI / 2) * 0.99;
         sgv.camera.inertia = 0.5;
+        
+        //BABYLON.Camera.angularSensibilityX = 200;
+        //BABYLON.Camera.angularSensibilityY = 200;
     };
 
     function createLights() {
-        var light = new BABYLON.SpotLight("Spot0", new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(0, 0, 1), 1.8, 0.01, sgv.scene);
+        var light = new BABYLON.HemisphericLight("HemiLight", new BABYLON.Vector3(0, 1, 0), sgv.scene);
+        //var light = new BABYLON.SpotLight("Spot0", new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(0, 0, 1), 1.8, 0.01, sgv.scene);
         //light.diffuse = new BABYLON.Color3(1, 1, 1);
         //light.specular = new BABYLON.Color3(1, 1, 1);
 
@@ -95,13 +103,38 @@ sgv.createScene = function () {
 //        };
 //        createMaterials();
 
-        //sgv.defaultSphere = BABYLON.MeshBuilder.CreateBox("defaultSphere", {size: 3}, sgv.scene);
-        sgv.defaultSphere = BABYLON.MeshBuilder.CreateSphere("defaultSphere", {diameter: 3, segments: 8, updatable: true}, sgv.scene);
-        sgv.defaultSphere.material = new BABYLON.StandardMaterial("mat", sgv.scene);
-        sgv.defaultSphere.material.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-        sgv.defaultSphere.material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-        sgv.defaultSphere.material.emissiveColor = new BABYLON.Color4(1.0, 1.0, 0.0);
-        sgv.defaultSphere.setEnabled(false);
+//        sgv.defaultSphere = BABYLON.MeshBuilder.CreateSphere("defaultSphere", {diameter: 3, segments: 8, updatable: false}, sgv.scene);
+//        sgv.defaultCylinder = BABYLON.MeshBuilder.CreateCylinder("cylinder", {height:1,diameter:1});
+//
+//        sgv.NodeSPS = new BABYLON.SolidParticleSystem("NodeSPS", sgv.scene, { isPickable: true, enableDepthSort: true });
+//        sgv.EdgeSPS = new BABYLON.SolidParticleSystem("EdgeSPS", sgv.scene, { isPickable: true, enableDepthSort: true });
+//        
+//        sgv.NodeSPS.addShape(sgv.defaultSphere, 10000);
+//        sgv.EdgeSPS.addShape(sgv.defaultCylinder, 10000);
+//        
+//
+//        sgv.NodeSPSmesh = sgv.NodeSPS.buildMesh();
+//        sgv.EdgeSPSmesh = sgv.EdgeSPS.buildMesh();
+//
+//        for (let i=0; i<10000; i++){
+//            sgv.NodeSPS.particles[i].isVisible = false;
+//            sgv.EdgeSPS.particles[i].isVisible = false;
+//        }
+//
+//        sgv.NodeSPS.setParticles();
+//        sgv.NodeSPS.refreshVisibleSize();
+//
+//        sgv.EdgeSPS.setParticles();
+//        sgv.EdgeSPS.refreshVisibleSize();
+//        
+//        sgv.edCounter = 0;
+//        
+//        sgv.defaultSphere.setEnabled(false);
+//        sgv.defaultCylinder.setEnabled(false);
+//        sgv.defaultSphere.dispose(); //free memory
+//        sgv.defaultCylinder.dispose(); //free memory
+        sgv.SPS = new SPS(sgv.scene);
+        sgv.SPS.init();
     };
     
     
@@ -215,65 +248,56 @@ sgv.addEventsListeners = function () {
 
     function onPointerTap(pointerInfo) {
         function onLMBtap(pointerInfo) {
-            function onMeshPicked(mesh) {
-                console.log("mesh picked: " + mesh.name);
-                var n2 = mesh.name.split(":");
-                if (n2[0] === "edge") {
-                    //sgv.pokazOkienkoE(n2[1], sgv.scene.pointerX, sgv.scene.pointerY);
-                    sgv.dlgEdgeProperties.show(n2[1], sgv.scene.pointerX, sgv.scene.pointerY);
-                    
-                } else if (n2[0] === "node") {
-                    //sgv.pokazOkienkoN(parseInt(n2[1], 10), sgv.scene.pointerX, sgv.scene.pointerY);
-                    sgv.dlgNodeProperties.show(parseInt(n2[1], 10), sgv.scene.pointerX, sgv.scene.pointerY);
-                } else {
-                    //sgv.cancelE();
-                    sgv.dlgEdgeProperties.hide();
-                    sgv.dlgNodeProperties.hide();
-                }
-            }
-            ;
-
-            console.log("LEFT");
-            if (sgv.nodeToConnect !== 0) {
-                if (pointerInfo.pickInfo.hit) {
-                    var n2 = pointerInfo.pickInfo.pickedMesh.name.split(":");
-                    if (n2[0] === "node") {
-                        let strId1 = "" + sgv.nodeToConnect + "," + parseInt(n2[1], 10);
-                        let strId2 = "" + parseInt(n2[1], 10) + "," + sgv.nodeToConnect;
-                        if (!(strId1 in sgv.graf.edges) && !(strId2 in sgv.graf.edges))
-                            sgv.graf.addEdge(sgv.nodeToConnect, parseInt(n2[1], 10), 0.5);
-                        else
-                            console.log("edge already exists");
+            function onMeshPicked(pickInfo) {
+                let picked = sgv.SPS.onPick(pickInfo);
+                if ( (picked.type==='node') && ( picked.id in sgv.graf.nodes ) ) {
+                    console.log('Node picked');
+                    if (sgv.nodeToConnect !== 0) {
+                        sgv.graf.addEdge(sgv.nodeToConnect, picked.id);
+                        sgv.nodeToConnect = 0;
+                        sgv.SPS.refresh();
+                    }
+                    else {
+                        sgv.dlgNodeProperties.show(picked.id, sgv.scene.pointerX, sgv.scene.pointerY);
                     }
                 }
-                sgv.nodeToConnect = 0;
-            } else {
-                if (pointerInfo.pickInfo.hit) {
-                    onMeshPicked(pointerInfo.pickInfo.pickedMesh);
-                } else {
-                    //sgv.cancelE();
+                else if ( (picked.type==='edge') && (picked.id in sgv.graf.edges ) ) {
+                    console.log('Edge picked');
+                    sgv.dlgEdgeProperties.show(picked.id, sgv.scene.pointerX, sgv.scene.pointerY);
+                }
+                else {
+                    console.log('Unknown mesh picked');
                     sgv.dlgEdgeProperties.hide();
                     sgv.dlgNodeProperties.hide();
                 }
+            };
+
+            console.log("LEFT");
+            if (pointerInfo.pickInfo.hit) {
+                onMeshPicked(pointerInfo.pickInfo);
+            } else {
+                console.log('Probably ground picked');
+                sgv.dlgEdgeProperties.hide();
+                sgv.dlgNodeProperties.hide();
             }
+            
         }
 
         function onMMBtap(pointerInfo) {
             console.log("MIDDLE");
             if (pointerInfo.pickInfo.hit) {
-                var n2 = pointerInfo.pickInfo.pickedMesh.name.split(":");
-                if (n2[0] === "node") {
+                let picked = sgv.SPS.onPick(pointerInfo.pickInfo);
+                if ( (picked.type==='node') && ( picked.id in sgv.graf.nodes ) ) {
+                    console.log('Node picked');
+                 
                     if (sgv.nodeToConnect === 0) {
-                        sgv.nodeToConnect = parseInt(n2[1], 10);
+                        sgv.nodeToConnect = picked.id;
                     } else {
-                        let strId1 = "" + sgv.nodeToConnect + "," + parseInt(n2[1], 10);
-                        let strId2 = "" + parseInt(n2[1], 10) + "," + sgv.nodeToConnect;
-                        if (!(strId1 in sgv.graf.edges) && !(strId2 in sgv.graf.edges))
-                            sgv.graf.addEdge(sgv.nodeToConnect, parseInt(n2[1], 10), 0.5);
-                        else
-                            console.log("edge already exists");
+                        sgv.graf.addEdge(sgv.nodeToConnect, picked.id);
                         sgv.nodeToConnect = 0;
+                        sgv.SPS.refresh();
                     }
+                    
                 }
             }
         }
@@ -331,70 +355,74 @@ sgv.display = function(args) {
         args = {};
     }
 
-    sgv.ui = new UI();
+    showSplashAndRun(()=>{
+        sgv.ui = new UI();
 
 
-    let targetDIV = null;
-    if ('target' in args) {
-        targetDIV = document.getElementById(args.target);
-    }
+        let targetDIV = null;
+        if ('target' in args) {
+            targetDIV = document.getElementById(args.target);
+        }
 
-    // no args.target or HTML element not exists
-    if (targetDIV === null) {
-        targetDIV = document.createElement("div");
-        targetDIV.setAttribute("id", "sgvWorkspaceArea");
-        document.body.appendChild(targetDIV);
-    }
+        // no args.target or HTML element not exists
+        if (targetDIV === null) {
+            targetDIV = document.createElement("div");
+            targetDIV.setAttribute("id", "sgvWorkspaceArea");
+            document.body.appendChild(targetDIV);
+        }
 
-    // add canvas to targeDIV
-    sgv.canvas = document.createElement("canvas");
-    sgv.canvas.setAttribute("id", "sgvRenderCanvas");
-    targetDIV.appendChild(sgv.canvas);
+        // add canvas to targeDIV
+        sgv.canvas = document.createElement("canvas");
+        sgv.canvas.setAttribute("id", "sgvRenderCanvas");
+        targetDIV.appendChild(sgv.canvas);
 
-    sgv.advancedTexture = null;
-    sgv.sceneToRender = null;
+        sgv.advancedTexture = null;
+        sgv.sceneToRender = null;
 
-    function createDefaultEngine() {
-        return new BABYLON.Engine(sgv.canvas, true, {doNotHandleContextLost: true, preserveDrawingBuffer: true, stencil: true, disableWebGL2Support: false});
-    }
-    
+        function createDefaultEngine() {
+            return new BABYLON.Engine(sgv.canvas, true, {doNotHandleContextLost: true, preserveDrawingBuffer: true, stencil: true, disableWebGL2Support: false});
+        }
 
-    window.initFunction = async function () {
-        var asyncEngineCreation = async function () {
-            try {
-                return createDefaultEngine();
-            } catch (e) {
-                console.log("the available createEngine function failed. Creating the default engine instead");
-                return createDefaultEngine();
-            }
+
+        window.initFunction = async function () {
+            var asyncEngineCreation = async function () {
+                try {
+                    return createDefaultEngine();
+                } catch (e) {
+                    console.log("the available createEngine function failed. Creating the default engine instead");
+                    return createDefaultEngine();
+                }
+            };
+
+            sgv.engine = await asyncEngineCreation();
+
+            if (!sgv.engine)
+                throw 'engine should not be null.';
+
+            sgv.engine.enableOfflineSupport = false;
+
+            sgv.createScene();
         };
 
-        sgv.engine = await asyncEngineCreation();
-
-        if (!sgv.engine)
-            throw 'engine should not be null.';
-
-        sgv.engine.enableOfflineSupport = false;
-
-        sgv.createScene();
-    };
-
-    initFunction().then( function() {
-        sgv.sceneToRender = sgv.scene;
-        sgv.engine.runRenderLoop(function () {
-            if (sgv.sceneToRender && sgv.sceneToRender.activeCamera) {
-                sgv.sceneToRender.render();
-            }
-        });
-    });
-
-    // Resize
-    window.addEventListener("resize",
-            function () {
-                sgv.engine.resize();
+        initFunction().then( function() {
+            sgv.sceneToRender = sgv.scene;
+            sgv.engine.runRenderLoop(function () {
+                if (sgv.sceneToRender && sgv.sceneToRender.activeCamera) {
+                    sgv.sceneToRender.render();
+                }
             });
+        });
 
-    desktopInit();
+        // Resize
+        window.addEventListener("resize",
+                function () {
+                    sgv.engine.resize();
+                });
+
+        desktopInit();
+        
+        
+    });
 };
 
 //=========================================

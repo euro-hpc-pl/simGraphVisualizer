@@ -15,7 +15,7 @@
  */
 
 "use strict";
-/* global BABYLON, sgv, Graph, QbDescr */
+/* global BABYLON, sgv, Graph, QbDescr, Chimera */
 
 var Pegasus = /** @class */ (function () {
     Chimera.call(this);
@@ -60,10 +60,10 @@ var Pegasus = /** @class */ (function () {
 
 
     this.connectEvenMoreIdioticPegasusEdges = function (x, y, z) {
-        let val0 = 0.0;
-        let val1 = 0.0; //-1.0;
-        let val2 = 0.0; // 1.0;
-        let val3 = 0.0; // 0.5;
+        let val0 = Number.NaN;
+        let val1 = val0; //-1.0;
+        let val2 = val0; // 1.0;
+        let val3 = val0; // 0.5;
 
         for (let kA = 0; kA < 2; kA++) {
             for (let jB = 0; jB < 2; jB++) {
@@ -102,18 +102,18 @@ var Pegasus = /** @class */ (function () {
 
         // PEGASUS ADDITIONAL EDGES
         if (this.KL > 1) {
-            this.addEdge(offset + 1, offset + 2, getRandom(-0.5, 0.5));//0.0 ); 
+            this.addEdge(offset + 1, offset + 2);
             if (this.KL > 3) {
-                this.addEdge(offset + 3, offset + 4, getRandom(-0.5, 0.5));//0.0 ); 
+                this.addEdge(offset + 3, offset + 4);
             }
         }
 
         offset += 4;
 
         if (this.KR > 1) {
-            this.addEdge(offset + 1, offset + 2, getRandom(-0.5, 0.5));//0.0 ); 
+            this.addEdge(offset + 1, offset + 2);
             if (this.KR > 3) {
-                this.addEdge(offset + 3, offset + 4, getRandom(-0.5, 0.5));//0.0 ); 
+                this.addEdge(offset + 3, offset + 4);
             }
         }
     };

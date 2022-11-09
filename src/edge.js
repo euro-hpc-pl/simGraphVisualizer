@@ -17,26 +17,29 @@
 "use strict";
 /* global BABYLON, sgv */
 
-var Edge = /** @class */ (function (graf, b, e, val) {
+var Edge = /** @class */ (function (graf, b, e) {
     this.parentGraph = graf;
-    this.values = {};
 
-    this.begin = b;
-    this.end = e;
+    this.values = {
+        'default' : Number.NaN
+    };
+
+    if (b < e) {
+        this.begin = b;
+        this.end = e;
+    } else {
+        this.begin = e;
+        this.end = b;
+    }
+
+    this.id = Edge.calcId(this.begin, this.end);
 
     this._checked = false;
 
-    this.update = function () {
-        var options = {
-            instance: this.instance,
-            path: [
-                this.parentGraph.nodePosition(this.begin),
-                this.parentGraph.nodePosition(this.end)
-            ]
-        };
-
-        let name = "edge:" + this.begin + "," + this.end;
-        this.instance = BABYLON.MeshBuilder.CreateTube(name, options, sgv.scene);
+    this.meshId = ()=>mesh.idx;
+    
+    this.clear = function() {
+        sgv.SPS.unbindEdge(this);
     };
 
     this.switchCheckFlag = function () {
@@ -45,7 +48,7 @@ var Edge = /** @class */ (function (graf, b, e, val) {
         this.parentGraph.checkNode(this.begin, this._checked);
         this.parentGraph.checkNode(this.end, this._checked);
 
-        this.instance.material = this._checked ? sgv.grayMat1 : sgv.grayMat0;
+        //this.instance.material = this._checked ? sgv.grayMat1 : sgv.grayMat0;
     };
 
     this.delValue = function(scope) {
@@ -83,7 +86,6 @@ var Edge = /** @class */ (function (graf, b, e, val) {
     };
 
     this.displayValue = function (valId) {
-        //console.log(valId);
         if (typeof valId === 'undefined') {
             valId = 'default';
         }
@@ -95,51 +97,25 @@ var Edge = /** @class */ (function (graf, b, e, val) {
             edgeWidth = valueToEdgeWidth(this.values[valId]);
         }
 
-        var options = {
-            instance: this.instance,
-            path: [
-                this.parentGraph.nodePosition(this.begin),
-                this.parentGraph.nodePosition(this.end)
-            ],
-            radius: edgeWidth
-        };
-
-        let name = "edge:" + this.begin + "," + this.end;
-        this.instance = BABYLON.MeshBuilder.CreateTube(name, options, sgv.scene);
-        this.instance.material.emissiveColor = edgeColor;
+        sgv.SPS.updateEdgeValue(this, edgeColor, edgeWidth);
     };
 
-    this.createInstance = function (val) {
-        let edgeColor = new BABYLON.Color3(0.2, 0.2, 0.2);
-        let edgeWidth = 0.1;
+    var mesh = sgv.SPS.bindEdge(this);
+    if (mesh===null) {
+        console.error("Can't bind EdgeSPS");
+    }
+    else {
+        let val = this.values[this.parentGraph.currentScope];
+        
+        let edgeColor = valueToColor(val);
+        let edgeWidth = valueToEdgeWidth(val);
 
-        if (typeof val === 'undefined') {
-            this.values['default'] = Number.NaN;
-        } else {
-            this.values['default'] = val;
-            edgeColor = valueToColor(val);
-            edgeWidth = valueToEdgeWidth(val);
-        }
+        let b = this.parentGraph.nodePosition(this.begin);
+        let e = this.parentGraph.nodePosition(this.end);
 
-        var options = {
-            path: [
-                this.parentGraph.nodePosition(this.begin),
-                this.parentGraph.nodePosition(this.end)
-            ],
-            radius: edgeWidth,
-            updatable: true
-        };
+        sgv.SPS.setEdge(this, edgeColor, edgeWidth, b, e);
+    }
 
-        let name = "edge:" + this.begin + "," + this.end;
-        this.instance = BABYLON.MeshBuilder.CreateTube(name, options, sgv.scene);
-
-        var mat = new BABYLON.StandardMaterial("mat", sgv.scene);
-        mat.diffuseColor = edgeColor;
-        mat.specularColor = new BABYLON.Color3(0.0, 0.0, 0.0);
-        mat.emissiveColor = new BABYLON.Color3(0.0, 0.0, 0.0);
-
-        this.instance.material = mat;
-    };
-
-    this.createInstance(this.values.default);
 });
+
+Edge.calcId = (b, e) => (b < e)?("" + b + "," + e):("" + e + "," + b);

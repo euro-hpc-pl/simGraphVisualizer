@@ -77,7 +77,7 @@ ParserGEXF.importGraph = (string) => {
         let id = attributeNode.getAttribute("id");
         let title = attributeNode.getAttribute("title");
 
-        if (title.startsWith("default")){
+        if (title.startsWith('default')){
             let list = title.split(";");
 
             title = list[0];
@@ -168,6 +168,9 @@ ParserGEXF.importGraph = (string) => {
     }
 
     sgv.graf.createStructureFromDef2(def2);
+    
+    sgv.graf.displayValues();
+
     return true;
 };
 
@@ -210,7 +213,7 @@ ParserGEXF.exportGraph = function(graph) {
     xml += "    <attributes class=\"node\">\n";
     for (const key in graph.scopeOfValues) {
         let val = graph.scopeOfValues[key];
-        if (val==="default"){
+        if (val==='default'){
             val+= ";" + graph.type + ";" + graph.cols + "," + graph.rows + "," + graph.layers + "," + graph.KL + "," + graph.KR;
         }
         xml += "      <attribute id=\""+key+"\" title=\""+val+"\" type=\"float\"/>\n";
@@ -226,7 +229,7 @@ ParserGEXF.exportGraph = function(graph) {
     xml += "    <attributes class=\"edge\">\n";
     for (const key in graph.scopeOfValues) {
         let val = graph.scopeOfValues[key];
-//            if (val==="default"){
+//            if (val==='default'){
 //                val+= ";" + graph.type + ";" + graph.cols + "," + graph.rows + "," + graph.KL + "," + graph.KR;
 //            }
         xml += "      <attribute id=\""+key+"\" title=\""+val+"\" type=\"float\"/>\n";

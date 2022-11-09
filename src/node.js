@@ -31,38 +31,29 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
 
     this.labelIsVisible = false;
 
-    var mesh = sgv.defaultSphere.clone(id);
-    mesh.material = sgv.defaultSphere.material.clone();
-    mesh.position = new BABYLON.Vector3( x, y, z );
-    mesh.name = name;
-    mesh.setEnabled(true);
-
     this.values = {
-        'default' : null
+        'default' : Number.NaN
     };
 
     for (const key in _values) {
         this.values[key] = _values[key];
     }
 
-    var label = createLabel(this.id, mesh.position, sgv.scene, this.labelIsVisible);
-
     Object.defineProperty(this, 'position', {
         get() {
-            return mesh.position;
+            return this.mesh.position;
         },
         set(pos) {
-            mesh.position.copyFrom(pos);
+            this.mesh.position.copyFrom(pos);
             if (typeof label !== 'undefined') {
                 label.plane.position.copyFrom(pos).addInPlaceFromFloats(0.0, 5.0, 0.0);
             }
         }
-
     });
 
     this.dispose = function() {
-        mesh.dispose();
-        delete mesh;
+        sgv.SPS.unbindNode(this);
+        
         if (label.plane!==null) {
             label.plane.dispose();
 //            delete this.label.plane;
@@ -99,19 +90,19 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
     };
 
     this.move = function(diff) {
-        mesh.position.addInPlace(diff);
+        this.mesh.position.addInPlace(diff);
         //this.updateLabel();
     };
 
     this.addCheck = function() {
         this._chckedEdges++;
-        mesh.material = sgv.grayMat1;
+        //mesh.material = sgv.grayMat1;
     };
 
     this.delCheck = function() {
         this._chckedEdges--;
-        if (this._chckedEdges === 0)
-            mesh.material = sgv.grayMat0;
+        //if (this._chckedEdges === 0)
+        //    mesh.material = sgv.grayMat0;
     };
 
     this.getValue = function(scope) {
@@ -147,14 +138,34 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         if (typeof scope === 'undefined') {
             scope = this.parentGraph.currentScope;
         }
+
+        let color = valueToColor( (scope in this.values)?this.values[scope]:Number.NaN );
+        
+        sgv.SPS.updateNodeValue(this, color);
+    };
+
+    this.currentColor = function(scope) {
+        if (typeof scope === 'undefined') {
+            scope = this.parentGraph.currentScope;
+        }
         
         if (scope in this.values) {
-            mesh.material.emissiveColor = valueToColor( this.values[scope] );
+            return valueToColor( this.values[scope] );
         } else {
-            mesh.material.emissiveColor = new BABYLON.Color4(0.2, 0.2, 0.2);
+            return new BABYLON.Color4(0.2, 0.2, 0.2);
         }
     };
 
-    this.displayValue();
+    this.meshId = ()=>this.mesh.idx;
+
+    this.mesh = sgv.SPS.bindNode(this, new BABYLON.Vector3( x, y, z ), this.currentColor());
+    
+    if (this.mesh===null) {
+        console.error("Can't bind NodeSPS");
+    }
+    else {
+        var label = createLabel(this.id, this.mesh.position, sgv.scene, this.labelIsVisible);
+    }
+
 });
 

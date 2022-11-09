@@ -15,7 +15,7 @@
  */
 
 "use strict";
-/* global BABYLON, labelsVisible, sgv */
+/* global BABYLON, labelsVisible, sgv, Edge */
 
 //const txtFile = require("io_TXT.js");
 
@@ -34,13 +34,17 @@ var Graph = /** @class */ (function () {
 
     this.dispose = function () {
         for (const key in this.edges) {
-            this.edges[key].instance.dispose();
+            this.edges[key].clear();
             delete this.edges[key];
         }
         for (const key in this.nodes) {
             this.nodes[key].clear();
             delete this.nodes[key];
         }
+        
+        sgv.SPS.reset();
+        sgv.SPS.refresh();
+
 //        for (const key in this.missing) {
 //
 //        }
@@ -55,12 +59,15 @@ var Graph = /** @class */ (function () {
     };
 
     this.addNode = function(nodeId, pos, val) {
-        if (typeof val!=='undefined') {
-            values = {
-                'default': val
-            };
+        values = {};
+        
+        if (typeof val==='number') {
+            values['default'] = val;
         }
-        this.nodes[nodeId] = new Node(this, nodeId, pos.x, pos.y, pos.z, values);
+        
+        let n = new Node(this, nodeId, pos.x, pos.y, pos.z, values);
+        this.nodes[n.id] = n;
+        return n;
     };
 
     this.getKeyByValue = function(object, value) {
@@ -71,19 +78,24 @@ var Graph = /** @class */ (function () {
         return Object.keys(this.scopeOfValues).find(key => this.scopeOfValues[key] === scope);
     };
     
-    this.addEdge = function (node1, node2, val) {
-        if (node1 < node2) {
-            var strId = "" + node1 + "," + node2;
-            this.edges[strId] = new Edge(this, node1, node2);//, val);
-        } else {
-            var strId = "" + node2 + "," + node1;
-            this.edges[strId] = new Edge(this, node2, node1);//, val);
+    this.addEdge = function (node1, node2) {
+        let id = Edge.calcId(node1, node2);
+        if (id in this.edges) {
+            console.log("edge already exists", id);
+            return this.edges[id];
         }
+        else {
+            let e = new Edge(this, node1, node2);
+            this.edges[id] = e;
+            return e;
+        }            
     };
 
     this.delEdge = function (edgeId) {
-        this.edges[edgeId].instance.dispose();
+        this.edges[edgeId].clear();
         delete this.edges[edgeId];
+        
+        sgv.SPS.refresh();
     };
 
     this.findAndDeleteEdges = function (nodeId) {
@@ -129,6 +141,8 @@ var Graph = /** @class */ (function () {
         delete this.nodes[nodeId];
 
         sgv.dlgMissingNodes.addNode(nodeId);
+        
+        sgv.SPS.refresh();
     };
 
     this.restoreNode = function (nodeId) {
@@ -140,7 +154,7 @@ var Graph = /** @class */ (function () {
         for (const key in this.missing[nodeId].edges) {
             var nKey = parseInt(key, 10);
             if (nKey in this.nodes) {
-                console.log("key: ", nKey, typeof (nKey));
+                //console.log("key: ", nKey, typeof (nKey));
                 var strId;
                 if (nodeId < key) {
                     strId = "" + nodeId + "," + key;
@@ -164,6 +178,8 @@ var Graph = /** @class */ (function () {
 
         if (Object.keys(this.missing).length === 0)
             sgv.dlgMissingNodes.hide();
+        
+        sgv.SPS.refresh();
     };
 
 
@@ -278,7 +294,7 @@ var Graph = /** @class */ (function () {
         return (typeof scope !== 'undefined') && this.scopeOfValues.includes(scope);
     };
     
-    this.displayValues = function (scope) {
+    this.displayValues = async function (scope) {
         if ( (typeof scope === 'undefined') || ! this.scopeOfValues.includes(scope) ) {
             scope = this.currentScope;
         } else {
@@ -291,6 +307,9 @@ var Graph = /** @class */ (function () {
         for (const key in this.edges) {
             this.edges[key].displayValue(scope);
         }
+        
+        sgv.SPS.refresh();
+
         return true;
     };
 

@@ -95,12 +95,13 @@ sgv.dlgCPL = new function() {
                 'max':'0.0',
                 'step':'0.01'
             });
-            sliderRedLimit.addEventListener('input', (e)=>{
+            sliderRedLimit.addEventListener('input', async (e)=>{
                 if (sgv.graf !== null) {
                     sgv.graf.redLimit = e.target.value;
-                    sgv.graf.displayValues();
-                    
+
                     spanRed.textContent = ''+sgv.graf.redLimit+' ';
+                    
+                    sgv.graf.displayValues();
                 }
             });
             //sliderRedLimit.style.appearance = 'slider-vertical';
@@ -116,12 +117,14 @@ sgv.dlgCPL = new function() {
                 'max':'1.0',
                 'step':'0.01'
             });
-            sliderGreenLimit.addEventListener('input', (e)=>{
+            sliderGreenLimit.addEventListener('input', async (e)=>{
                 if (sgv.graf !== null) {
                     sgv.graf.greenLimit = e.target.value;
-                    sgv.graf.displayValues();
                     
                     spanGreen.textContent = ' '+sgv.graf.greenLimit;
+ 
+                    sgv.graf.displayValues();
+
                 }
             });
             //sliderGreenLimit.style.appearance = 'slider-vertical';
@@ -308,30 +311,30 @@ sgv.dlgCPL = new function() {
             
             let min, max;
             
-            if (nMinMax.min!==NaN) {
+            if (nMinMax.min!==Number.NaN) {
                 min = nMinMax.min;
-                if (eMinMax.min!==NaN) {
+                if (eMinMax.min!==Number.NaN) {
                     min = (min<eMinMax.min)?min:eMinMax.min;
                 }
             } else {
                 min = eMinMax.min;
             }
             
-            if (nMinMax.max!==NaN) {
+            if (nMinMax.max!==Number.NaN) {
                 max = nMinMax.max;
-                if (eMinMax.max!==NaN) {
+                if (eMinMax.max!==Number.NaN) {
                     max = (max>eMinMax.max)?max:eMinMax.max;
                 }
             } else {
                 max = eMinMax.max;
             }
             
-            if ((min!==NaN)&&(min>=0)) min = NaN;
-            if ((max!==NaN)&&(max<=0)) max = NaN;
+            if ((min!==Number.NaN)&&(min>=0)) min = Number.NaN;
+            if ((max!==Number.NaN)&&(max<=0)) max = Number.NaN;
 
             //console.log(min,max);
 
-            if (min!==NaN) {
+            if (min!==Number.NaN) {
                 if (sgv.graf.redLimit<min){
                     sgv.graf.redLimit=min;
                 }
@@ -343,7 +346,7 @@ sgv.dlgCPL = new function() {
                 sliderRedLimit.disabled = 'disabled';
             }
 
-            if (max!==NaN) {
+            if (max!==Number.NaN) {
                 if (sgv.graf.greenLimit>max){
                     sgv.graf.greenLimit=max;
                 }
@@ -417,4 +420,6 @@ sgv.createGraph = function(gDesc, res) {
         sgv.graf.createStructureFromDef(res);
     
     sgv.setModeDescription();
+
+    sgv.graf.displayValues();
 };

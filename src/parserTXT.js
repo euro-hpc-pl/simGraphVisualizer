@@ -44,7 +44,7 @@ ParserTXT.importGraph = (string) => {
         let _n2 = parseInt(line[1], 10);
         let _val = parseFloat(line[2], 10);
 
-        if ((_n1===NaN)||(_n2===NaN)) return null;    
+        if (isNaN(_n1)||isNaN(_n2)) return null;    
         else return { n1: _n1, n2: _n2, val: _val };
     };
 

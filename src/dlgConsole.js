@@ -248,7 +248,7 @@ sgv.dlgConsole = new function () {
                     return "bad value";
                 } else if (id1 in sgv.graf.nodes) {
                     if (id2 in sgv.graf.nodes) {
-                        sgv.graf.addEdge(id1, id2, val);
+                        sgv.graf.addEdge(id1, id2).setValue(val);
                         return "added edge: q" + id1 + " -> g" + id2;
                     } else {
                         return "node q" + id2 + " was probably deleted earlier";
@@ -325,7 +325,7 @@ sgv.dlgConsole = new function () {
                             return "modified edge " + strId;
                         } else {
                             if ((id1 in sgv.graf.nodes) && (id2 in sgv.graf.nodes)) {
-                                sgv.graf.addEdge(id1, id2, val);
+                                sgv.graf.addEdge(id1, id2).setValue(val);
                                 return "added edge " + strId;
                             } else {
                                 return "NOT DONE: both connected nodes must exist in the graph";

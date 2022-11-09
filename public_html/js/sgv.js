@@ -1,9 +1,213 @@
+/* global sgv, BABYLON, Edge */
+
+var SPS = (function(scene) {
+    var NodeSPS = new BABYLON.SolidParticleSystem("NodeSPS", scene, { isPickable: true, expandable: true, enableDepthSort: true });
+    var EdgeSPS = new BABYLON.SolidParticleSystem("EdgeSPS", scene, { isPickable: true, expandable: true, enableDepthSort: true });
+
+    var NodeSPSmesh = null;
+    var EdgeSPSmesh = null;
+    
+    var eCnt = 0;
+    var nCnt = 0;
+    
+    var defaultSphere = BABYLON.MeshBuilder.CreateSphere("defaultSphere", {diameter: 3, segments: 8, updatable: false}, scene);
+    var defaultCylinder = BABYLON.MeshBuilder.CreateCylinder("cylinder", {height:1,diameter:1});
+    
+    defaultSphere.setEnabled(false);
+    defaultCylinder.setEnabled(false);
+    
+    function initX() {
+        NodeSPS.addShape(defaultSphere, 100);
+        EdgeSPS.addShape(defaultCylinder, 100);
+
+        NodeSPSmesh = NodeSPS.buildMesh();
+        EdgeSPSmesh = EdgeSPS.buildMesh();
+
+        for (let i=0; i<100; i++){
+            NodeSPS.particles[i].isVisible = false;
+            EdgeSPS.particles[i].isVisible = false;
+        }
+
+        refreshX();
+    };
+
+    function refreshX() {
+        NodeSPS.setParticles();
+        NodeSPS.refreshVisibleSize();
+
+        EdgeSPS.setParticles();
+        EdgeSPS.refreshVisibleSize();
+    };
+    
+    function _uniqueNodeId() {
+        let id = nCnt++;
+        let size = NodeSPS.nbParticles;
+        if (id>=size) {
+            NodeSPS.addShape(defaultSphere, 100);
+            NodeSPSmesh = NodeSPS.buildMesh();
+
+            for (let i=size; i<(size+100); i++){
+                NodeSPS.particles[i].isVisible = false;
+            }
+        }
+        
+        return id;
+    };
+    
+    function _uniqueEdgeId() {
+        let id = eCnt++;
+        let size = EdgeSPS.nbParticles;
+        if (id>=size) {
+            EdgeSPS.addShape(defaultCylinder, 100);
+            EdgeSPSmesh = EdgeSPS.buildMesh();
+        
+            for (let i=size; i<(size+100); i++){
+                EdgeSPS.particles[i].isVisible = false;
+            }
+        }
+        return id;
+    };
+
+    function bindNodeX(node, position, color) {
+        let id = _uniqueNodeId();
+        let m = NodeSPS.particles[id];
+
+        if (typeof m !== 'undefined') {
+            m.position = position;
+            m.color = color;
+            m.isVisible = true;
+            
+            m.nodeId = node.id;
+
+            return m;
+        }
+        
+        return null;
+    }
+
+    function updateNodeValueX(node, nodeColor) {
+        let idx = node.meshId();
+        let mesh = NodeSPS.particles[idx];
+        
+        mesh.color = nodeColor;
+        mesh.isVisible = true;
+    }
+
+    function unbindNodeX(node) {
+        let idx = node.meshId();
+        //console.log(node);
+        //console.log(NodeSPS.particles[idx]);
+        NodeSPS.particles[idx].isVisible = false;
+        NodeSPS.particles[idx].nodeId = null;
+    }
+
+    function setEdgeX(edge, edgeColor, edgeWidth, b, e) {
+        let idx = edge.meshId();
+        let mesh = EdgeSPS.particles[idx];
+        
+        let length = BABYLON.Vector3.Distance(b, e);
+
+        let vec = e.subtract(b);
+        vec.normalize();
+        let p0 = new BABYLON.Vector3;
+        p0.copyFrom(b);
+        p0.addInPlace(vec.scale(length/2));
+
+        mesh.rotation = PitchYawRollToMoveBetweenPoints(b, e);
+        mesh.position = p0;
+        mesh.color = edgeColor;
+        mesh.scaling = new BABYLON.Vector3( edgeWidth, length, edgeWidth );
+        mesh.isVisible = true;
+    }
+
+    function updateEdgeGeometryX(edge, b, e) {
+        let idx = edge.meshId();
+        let mesh = EdgeSPS.particles[idx];
+        
+        let length = BABYLON.Vector3.Distance(b, e);
+
+        let vec = e.subtract(b);
+        vec.normalize();
+        let p0 = new BABYLON.Vector3;
+        p0.copyFrom(b);
+        p0.addInPlace(vec.scale(length/2));
+
+        mesh.rotation = PitchYawRollToMoveBetweenPoints(b, e);
+        mesh.position = p0;
+        mesh.isVisible = true;
+    }
+
+    function updateEdgeValueX(edge, edgeColor, edgeWidth) {
+        let idx = edge.meshId();
+        let mesh = EdgeSPS.particles[idx];
+        
+        mesh.color = edgeColor;
+        mesh.scaling.x = edgeWidth;
+        mesh.scaling.z = edgeWidth;
+        mesh.isVisible = true;
+    }
+    
+    function bindEdgeX(edge) {
+        let id = _uniqueEdgeId();
+        let m = EdgeSPS.particles[id];
+
+        if (typeof m !== 'undefined') {
+            m.edgeId = edge.id;
+            return m;
+        }
+        
+        return null;
+    }
+    
+    function unbindEdgeX(edge) {
+        let idx = edge.meshId();
+        //console.log(edge);
+        //console.log(EdgeSPS.particles[idx]);
+        EdgeSPS.particles[idx].isVisible = false;
+        EdgeSPS.particles[idx].edgeId = null;
+    }
+    
+    function onPickX(pickInfo) {
+        let name = pickInfo.pickedMesh.name;
+
+        if (name === NodeSPS.name){
+            let nodeId = NodeSPS.particles[NodeSPS.pickedParticle(pickInfo).idx].nodeId;
+            return { type: 'node', id: nodeId };
+        }
+        else if (name === EdgeSPS.name){
+            let edgeId = EdgeSPS.particles[EdgeSPS.pickedParticle(pickInfo).idx].edgeId;
+            return { type: 'edge', id: edgeId };
+        }
+        
+        return { type: 'unknown', id: -1 };
+    }
+    
+    function resetX() {
+        nCnt = 0;
+        eCnt = 0;
+    }
+    
+    return {
+        init: initX,
+        reset: resetX,
+        onPick: onPickX,
+        refresh: refreshX,
+        bindNode: bindNodeX,
+        updateNodeValue: updateNodeValueX,
+        unbindNode: unbindNodeX,
+        bindEdge: bindEdgeX,
+        setEdge: setEdgeX,
+        updateEdgeGeometry: updateEdgeGeometryX,
+        updateEdgeValue: updateEdgeValueX,
+        unbindEdge: unbindEdgeX
+    };
+});
 /* global BABYLON, sgv */
 
 
-function valueToColor(val) {
+function valueToColorBAK(val) {
     if ((typeof val ==='undefined')||(val === null)|| isNaN(val)) {
-        return new BABYLON.Color3(0.2, 0.2, 0.2);
+        return new BABYLON.Color3(0.9, 0.9, 0.9);
     };
 
     let max = sgv.graf.greenLimit;
@@ -27,9 +231,35 @@ function valueToColor(val) {
 }
 
 
+function valueToColor(val) {
+    if ((typeof val ==='undefined')||(val === null)|| isNaN(val)) {
+        return new BABYLON.Color3(0.9, 0.9, 0.9);
+    };
+
+    let max = sgv.graf.greenLimit;
+    let min = sgv.graf.redLimit;
+
+    if (val > 0) {
+        var r = 0;
+        var g = (val < max) ? (val / max) : 1.0;
+        var b = 0;
+    } else if (val < 0) {
+        var r = (val > min) ? (val / min) : 1.0;
+        var g = 0;
+        var b = 0;
+    } else {
+        var r = 0;
+        var g = 0;
+        var b = 0;
+    }
+
+    return new BABYLON.Color3(r, g, b);
+}
+
+
 function valueToEdgeWidth(val) {
     if ((typeof val ==='undefined')||(val === null)|| isNaN(val)) {
-        return 0.1;
+        return 0.2;
     };
 
     let max = Math.abs(sgv.graf.greenLimit);
@@ -40,23 +270,38 @@ function valueToEdgeWidth(val) {
     val = Math.abs(val);
     
     if (val>max){
-        return 0.6;
+        return 1.2;
     }
     
-    return 0.1 + ( val / (2.0*max) );
+    return 0.2 + ( val / max );
 }
 
 var Def2 = /*class*/( (_n1, _n2) => {
     this.n1 = _n1;
     this.n2 = _n2;
     this.values = {
-            'default': NaN
+            'default': Number.NaN
         };
     this.label = {
             text: null,
             enabled: false
         };    
 });
+
+
+function PitchYawRollToMoveBetweenPointsToRef(start, target, ref) {
+    const diff = BABYLON.TmpVectors.Vector3[0];
+    target.subtractToRef(start, diff);
+    ref.y = Math.atan2(diff.x, diff.z) || 0;
+    ref.x = Math.atan2(Math.sqrt(diff.x ** 2 + diff.z ** 2), diff.y) || 0;
+    ref.z = 0;
+    return ref;
+}
+
+function PitchYawRollToMoveBetweenPoints(start, target) {
+    const ref = BABYLON.Vector3.Zero();
+    return PitchYawRollToMoveBetweenPointsToRef(start, target, ref);
+}
 
 /* 
  * Copyright 2022 Dariusz Pojda.
@@ -204,38 +449,29 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
 
     this.labelIsVisible = false;
 
-    var mesh = sgv.defaultSphere.clone(id);
-    mesh.material = sgv.defaultSphere.material.clone();
-    mesh.position = new BABYLON.Vector3( x, y, z );
-    mesh.name = name;
-    mesh.setEnabled(true);
-
     this.values = {
-        'default' : null
+        'default' : Number.NaN
     };
 
     for (const key in _values) {
         this.values[key] = _values[key];
     }
 
-    var label = createLabel(this.id, mesh.position, sgv.scene, this.labelIsVisible);
-
     Object.defineProperty(this, 'position', {
         get() {
-            return mesh.position;
+            return this.mesh.position;
         },
         set(pos) {
-            mesh.position.copyFrom(pos);
+            this.mesh.position.copyFrom(pos);
             if (typeof label !== 'undefined') {
                 label.plane.position.copyFrom(pos).addInPlaceFromFloats(0.0, 5.0, 0.0);
             }
         }
-
     });
 
     this.dispose = function() {
-        mesh.dispose();
-        delete mesh;
+        sgv.SPS.unbindNode(this);
+        
         if (label.plane!==null) {
             label.plane.dispose();
 //            delete this.label.plane;
@@ -272,19 +508,19 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
     };
 
     this.move = function(diff) {
-        mesh.position.addInPlace(diff);
+        this.mesh.position.addInPlace(diff);
         //this.updateLabel();
     };
 
     this.addCheck = function() {
         this._chckedEdges++;
-        mesh.material = sgv.grayMat1;
+        //mesh.material = sgv.grayMat1;
     };
 
     this.delCheck = function() {
         this._chckedEdges--;
-        if (this._chckedEdges === 0)
-            mesh.material = sgv.grayMat0;
+        //if (this._chckedEdges === 0)
+        //    mesh.material = sgv.grayMat0;
     };
 
     this.getValue = function(scope) {
@@ -320,15 +556,35 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         if (typeof scope === 'undefined') {
             scope = this.parentGraph.currentScope;
         }
+
+        let color = valueToColor( (scope in this.values)?this.values[scope]:Number.NaN );
+        
+        sgv.SPS.updateNodeValue(this, color);
+    };
+
+    this.currentColor = function(scope) {
+        if (typeof scope === 'undefined') {
+            scope = this.parentGraph.currentScope;
+        }
         
         if (scope in this.values) {
-            mesh.material.emissiveColor = valueToColor( this.values[scope] );
+            return valueToColor( this.values[scope] );
         } else {
-            mesh.material.emissiveColor = new BABYLON.Color4(0.2, 0.2, 0.2);
+            return new BABYLON.Color4(0.2, 0.2, 0.2);
         }
     };
 
-    this.displayValue();
+    this.meshId = ()=>this.mesh.idx;
+
+    this.mesh = sgv.SPS.bindNode(this, new BABYLON.Vector3( x, y, z ), this.currentColor());
+    
+    if (this.mesh===null) {
+        console.error("Can't bind NodeSPS");
+    }
+    else {
+        var label = createLabel(this.id, this.mesh.position, sgv.scene, this.labelIsVisible);
+    }
+
 });
 
 
@@ -351,26 +607,29 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
 "use strict";
 /* global BABYLON, sgv */
 
-var Edge = /** @class */ (function (graf, b, e, val) {
+var Edge = /** @class */ (function (graf, b, e) {
     this.parentGraph = graf;
-    this.values = {};
 
-    this.begin = b;
-    this.end = e;
+    this.values = {
+        'default' : Number.NaN
+    };
+
+    if (b < e) {
+        this.begin = b;
+        this.end = e;
+    } else {
+        this.begin = e;
+        this.end = b;
+    }
+
+    this.id = Edge.calcId(this.begin, this.end);
 
     this._checked = false;
 
-    this.update = function () {
-        var options = {
-            instance: this.instance,
-            path: [
-                this.parentGraph.nodePosition(this.begin),
-                this.parentGraph.nodePosition(this.end)
-            ]
-        };
-
-        let name = "edge:" + this.begin + "," + this.end;
-        this.instance = BABYLON.MeshBuilder.CreateTube(name, options, sgv.scene);
+    this.meshId = ()=>mesh.idx;
+    
+    this.clear = function() {
+        sgv.SPS.unbindEdge(this);
     };
 
     this.switchCheckFlag = function () {
@@ -379,7 +638,7 @@ var Edge = /** @class */ (function (graf, b, e, val) {
         this.parentGraph.checkNode(this.begin, this._checked);
         this.parentGraph.checkNode(this.end, this._checked);
 
-        this.instance.material = this._checked ? sgv.grayMat1 : sgv.grayMat0;
+        //this.instance.material = this._checked ? sgv.grayMat1 : sgv.grayMat0;
     };
 
     this.delValue = function(scope) {
@@ -417,7 +676,6 @@ var Edge = /** @class */ (function (graf, b, e, val) {
     };
 
     this.displayValue = function (valId) {
-        //console.log(valId);
         if (typeof valId === 'undefined') {
             valId = 'default';
         }
@@ -429,54 +687,28 @@ var Edge = /** @class */ (function (graf, b, e, val) {
             edgeWidth = valueToEdgeWidth(this.values[valId]);
         }
 
-        var options = {
-            instance: this.instance,
-            path: [
-                this.parentGraph.nodePosition(this.begin),
-                this.parentGraph.nodePosition(this.end)
-            ],
-            radius: edgeWidth
-        };
-
-        let name = "edge:" + this.begin + "," + this.end;
-        this.instance = BABYLON.MeshBuilder.CreateTube(name, options, sgv.scene);
-        this.instance.material.emissiveColor = edgeColor;
+        sgv.SPS.updateEdgeValue(this, edgeColor, edgeWidth);
     };
 
-    this.createInstance = function (val) {
-        let edgeColor = new BABYLON.Color3(0.2, 0.2, 0.2);
-        let edgeWidth = 0.1;
+    var mesh = sgv.SPS.bindEdge(this);
+    if (mesh===null) {
+        console.error("Can't bind EdgeSPS");
+    }
+    else {
+        let val = this.values[this.parentGraph.currentScope];
+        
+        let edgeColor = valueToColor(val);
+        let edgeWidth = valueToEdgeWidth(val);
 
-        if (typeof val === 'undefined') {
-            this.values['default'] = Number.NaN;
-        } else {
-            this.values['default'] = val;
-            edgeColor = valueToColor(val);
-            edgeWidth = valueToEdgeWidth(val);
-        }
+        let b = this.parentGraph.nodePosition(this.begin);
+        let e = this.parentGraph.nodePosition(this.end);
 
-        var options = {
-            path: [
-                this.parentGraph.nodePosition(this.begin),
-                this.parentGraph.nodePosition(this.end)
-            ],
-            radius: edgeWidth,
-            updatable: true
-        };
+        sgv.SPS.setEdge(this, edgeColor, edgeWidth, b, e);
+    }
 
-        let name = "edge:" + this.begin + "," + this.end;
-        this.instance = BABYLON.MeshBuilder.CreateTube(name, options, sgv.scene);
-
-        var mat = new BABYLON.StandardMaterial("mat", sgv.scene);
-        mat.diffuseColor = edgeColor;
-        mat.specularColor = new BABYLON.Color3(0.0, 0.0, 0.0);
-        mat.emissiveColor = new BABYLON.Color3(0.0, 0.0, 0.0);
-
-        this.instance.material = mat;
-    };
-
-    this.createInstance(this.values.default);
 });
+
+Edge.calcId = (b, e) => (b < e)?("" + b + "," + e):("" + e + "," + b);
 
 /* 
  * Copyright 2022 darek.
@@ -558,7 +790,7 @@ QbDescr.fromNodeId = function (nodeIdA, rows, cols) {
  */
 
 "use strict";
-/* global BABYLON, labelsVisible, sgv */
+/* global BABYLON, labelsVisible, sgv, Edge */
 
 //const txtFile = require("io_TXT.js");
 
@@ -577,13 +809,17 @@ var Graph = /** @class */ (function () {
 
     this.dispose = function () {
         for (const key in this.edges) {
-            this.edges[key].instance.dispose();
+            this.edges[key].clear();
             delete this.edges[key];
         }
         for (const key in this.nodes) {
             this.nodes[key].clear();
             delete this.nodes[key];
         }
+        
+        sgv.SPS.reset();
+        sgv.SPS.refresh();
+
 //        for (const key in this.missing) {
 //
 //        }
@@ -598,12 +834,15 @@ var Graph = /** @class */ (function () {
     };
 
     this.addNode = function(nodeId, pos, val) {
-        if (typeof val!=='undefined') {
-            values = {
-                'default': val
-            };
+        values = {};
+        
+        if (typeof val==='number') {
+            values['default'] = val;
         }
-        this.nodes[nodeId] = new Node(this, nodeId, pos.x, pos.y, pos.z, values);
+        
+        let n = new Node(this, nodeId, pos.x, pos.y, pos.z, values);
+        this.nodes[n.id] = n;
+        return n;
     };
 
     this.getKeyByValue = function(object, value) {
@@ -614,19 +853,24 @@ var Graph = /** @class */ (function () {
         return Object.keys(this.scopeOfValues).find(key => this.scopeOfValues[key] === scope);
     };
     
-    this.addEdge = function (node1, node2, val) {
-        if (node1 < node2) {
-            var strId = "" + node1 + "," + node2;
-            this.edges[strId] = new Edge(this, node1, node2);//, val);
-        } else {
-            var strId = "" + node2 + "," + node1;
-            this.edges[strId] = new Edge(this, node2, node1);//, val);
+    this.addEdge = function (node1, node2) {
+        let id = Edge.calcId(node1, node2);
+        if (id in this.edges) {
+            console.log("edge already exists", id);
+            return this.edges[id];
         }
+        else {
+            let e = new Edge(this, node1, node2);
+            this.edges[id] = e;
+            return e;
+        }            
     };
 
     this.delEdge = function (edgeId) {
-        this.edges[edgeId].instance.dispose();
+        this.edges[edgeId].clear();
         delete this.edges[edgeId];
+        
+        sgv.SPS.refresh();
     };
 
     this.findAndDeleteEdges = function (nodeId) {
@@ -672,6 +916,8 @@ var Graph = /** @class */ (function () {
         delete this.nodes[nodeId];
 
         sgv.dlgMissingNodes.addNode(nodeId);
+        
+        sgv.SPS.refresh();
     };
 
     this.restoreNode = function (nodeId) {
@@ -683,7 +929,7 @@ var Graph = /** @class */ (function () {
         for (const key in this.missing[nodeId].edges) {
             var nKey = parseInt(key, 10);
             if (nKey in this.nodes) {
-                console.log("key: ", nKey, typeof (nKey));
+                //console.log("key: ", nKey, typeof (nKey));
                 var strId;
                 if (nodeId < key) {
                     strId = "" + nodeId + "," + key;
@@ -707,6 +953,8 @@ var Graph = /** @class */ (function () {
 
         if (Object.keys(this.missing).length === 0)
             sgv.dlgMissingNodes.hide();
+        
+        sgv.SPS.refresh();
     };
 
 
@@ -821,7 +1069,7 @@ var Graph = /** @class */ (function () {
         return (typeof scope !== 'undefined') && this.scopeOfValues.includes(scope);
     };
     
-    this.displayValues = function (scope) {
+    this.displayValues = async function (scope) {
         if ( (typeof scope === 'undefined') || ! this.scopeOfValues.includes(scope) ) {
             scope = this.currentScope;
         } else {
@@ -834,6 +1082,9 @@ var Graph = /** @class */ (function () {
         for (const key in this.edges) {
             this.edges[key].displayValue(scope);
         }
+        
+        sgv.SPS.refresh();
+
         return true;
     };
 
@@ -1069,7 +1320,7 @@ var Graph = /** @class */ (function () {
  * limitations under the License.
  */
 
-/* global Graph, BABYLON, sgv */
+/* global Graph, BABYLON, sgv, QbDescr */
 "use strict";
 
 var Chimera = /** @class */ (function () {
@@ -1092,14 +1343,18 @@ var Chimera = /** @class */ (function () {
         let idA = qdA.toNodeId(this.rows, this.cols);
         let idB = qdB.toNodeId(this.rows, this.cols);
 
-        if ((idA in this.nodes) && (idB in this.nodes))
-            this.addEdge(idA, idB, value);
+        if ((idA in this.nodes) && (idB in this.nodes)) {
+            let e = this.addEdge(idA, idB);
+            if (typeof value==='number') {
+                e.setValue(value);
+            }
+        }
     };
 
     this.connectRowModules2 = function (x, y, z) {
         for (let j = 0; j < 2; j++) {
             for (let k = 0; k < 2; k++) {
-                this.connect(new QbDescr(x, y, z, 1, j, k), new QbDescr(x, y + 1, z, 1, j, k), getRandom(-0.5, 0.5));//0.0 );          
+                this.connect(new QbDescr(x, y, z, 1, j, k), new QbDescr(x, y + 1, z, 1, j, k));
             }
         }
     };
@@ -1107,7 +1362,7 @@ var Chimera = /** @class */ (function () {
     this.connectColModules2 = function (x, y, z) {
         for (let j = 0; j < 2; j++) {
             for (let k = 0; k < 2; k++) {
-                this.connect(new QbDescr(x, y, z, 0, j, k), new QbDescr(x + 1, y, z, 0, j, k), getRandom(-0.5, 0.5));//0.0 );          
+                this.connect(new QbDescr(x, y, z, 0, j, k), new QbDescr(x + 1, y, z, 0, j, k));
             }
         }
     };
@@ -1139,16 +1394,16 @@ var Chimera = /** @class */ (function () {
 
         // MODULE NODES
         for (let n = 0; n < this.KL; n++) {
-            this.addNode(offset + n + 1, this.calcPosition2(x, y, z, n), NaN);
+            this.addNode(offset + n + 1, this.calcPosition2(x, y, z, n), Number.NaN);
         }
         for (let n = 4; n < this.KR + 4; n++) {
-            this.addNode(offset + n + 1, this.calcPosition2(x, y, z, n), NaN);
+            this.addNode(offset + n + 1, this.calcPosition2(x, y, z, n), Number.NaN);
         }
 
         // INTERNAL MODULE EDGES
         for (let x = 0; x < this.KL; x++)
             for (let y = 0; y < this.KR; y++) {
-                this.addEdge(offset + x + 1, offset + 4 + y + 1, getRandom(-0.5, 0.5));//0.0 );        
+                this.addEdge(offset + x + 1, offset + 4 + y + 1);
             }
     };
 
@@ -1231,8 +1486,7 @@ var Chimera = /** @class */ (function () {
             } else {
                 let n1 = def[i].n1;
                 let n2 = def[i].n2;
-                this.addEdge(n1, n2, def[i].val);
-                this.edges["" + def[i].n1 + "," + def[i].n2].setValue(def[i].val, 'default');
+                this.addEdge(n1, n2).setValue(def[i].val, 'default');
             }
         }
     };
@@ -1277,7 +1531,7 @@ Chimera.createNewGraph = function (size) {
  */
 
 "use strict";
-/* global BABYLON, sgv, Graph, QbDescr */
+/* global BABYLON, sgv, Graph, QbDescr, Chimera */
 
 var Pegasus = /** @class */ (function () {
     Chimera.call(this);
@@ -1322,10 +1576,10 @@ var Pegasus = /** @class */ (function () {
 
 
     this.connectEvenMoreIdioticPegasusEdges = function (x, y, z) {
-        let val0 = 0.0;
-        let val1 = 0.0; //-1.0;
-        let val2 = 0.0; // 1.0;
-        let val3 = 0.0; // 0.5;
+        let val0 = Number.NaN;
+        let val1 = val0; //-1.0;
+        let val2 = val0; // 1.0;
+        let val3 = val0; // 0.5;
 
         for (let kA = 0; kA < 2; kA++) {
             for (let jB = 0; jB < 2; jB++) {
@@ -1364,18 +1618,18 @@ var Pegasus = /** @class */ (function () {
 
         // PEGASUS ADDITIONAL EDGES
         if (this.KL > 1) {
-            this.addEdge(offset + 1, offset + 2, getRandom(-0.5, 0.5));//0.0 ); 
+            this.addEdge(offset + 1, offset + 2);
             if (this.KL > 3) {
-                this.addEdge(offset + 3, offset + 4, getRandom(-0.5, 0.5));//0.0 ); 
+                this.addEdge(offset + 3, offset + 4);
             }
         }
 
         offset += 4;
 
         if (this.KR > 1) {
-            this.addEdge(offset + 1, offset + 2, getRandom(-0.5, 0.5));//0.0 ); 
+            this.addEdge(offset + 1, offset + 2);
             if (this.KR > 3) {
-                this.addEdge(offset + 3, offset + 4, getRandom(-0.5, 0.5));//0.0 ); 
+                this.addEdge(offset + 3, offset + 4);
             }
         }
     };
@@ -1662,6 +1916,8 @@ UI.createTransparentBtn1 = function (txt, id, onclick) {
 /* global global, BABYLON, URL, Chimera, Pegasus, UI, parserGEXF */
 "use strict";
 
+const DEFAULT_SCOPE = 'default';
+
 var getRandom = function(min, max) {
     return (min + (Math.random() * (max - min)));
 };
@@ -1681,7 +1937,9 @@ sgv.displayMode = 'classic';
 sgv.createScene = function () {
     function createCamera() {
         sgv.camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(0, 0, 0), sgv.scene);
-        //camera.setPosition(new BABYLON.Vector3(10, 100, 200));
+        
+        //sgv.camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
+        
         sgv.camera.setPosition(new BABYLON.Vector3(166, 150, 0));
         sgv.camera.attachControl(sgv.canvas, true);
 
@@ -1689,10 +1947,14 @@ sgv.createScene = function () {
 
         sgv.camera.upperBetaLimit = (Math.PI / 2) * 0.99;
         sgv.camera.inertia = 0.5;
+        
+        //BABYLON.Camera.angularSensibilityX = 200;
+        //BABYLON.Camera.angularSensibilityY = 200;
     };
 
     function createLights() {
-        var light = new BABYLON.SpotLight("Spot0", new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(0, 0, 1), 1.8, 0.01, sgv.scene);
+        var light = new BABYLON.HemisphericLight("HemiLight", new BABYLON.Vector3(0, 1, 0), sgv.scene);
+        //var light = new BABYLON.SpotLight("Spot0", new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(0, 0, 1), 1.8, 0.01, sgv.scene);
         //light.diffuse = new BABYLON.Color3(1, 1, 1);
         //light.specular = new BABYLON.Color3(1, 1, 1);
 
@@ -1740,13 +2002,38 @@ sgv.createScene = function () {
 //        };
 //        createMaterials();
 
-        //sgv.defaultSphere = BABYLON.MeshBuilder.CreateBox("defaultSphere", {size: 3}, sgv.scene);
-        sgv.defaultSphere = BABYLON.MeshBuilder.CreateSphere("defaultSphere", {diameter: 3, segments: 8, updatable: true}, sgv.scene);
-        sgv.defaultSphere.material = new BABYLON.StandardMaterial("mat", sgv.scene);
-        sgv.defaultSphere.material.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-        sgv.defaultSphere.material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-        sgv.defaultSphere.material.emissiveColor = new BABYLON.Color4(1.0, 1.0, 0.0);
-        sgv.defaultSphere.setEnabled(false);
+//        sgv.defaultSphere = BABYLON.MeshBuilder.CreateSphere("defaultSphere", {diameter: 3, segments: 8, updatable: false}, sgv.scene);
+//        sgv.defaultCylinder = BABYLON.MeshBuilder.CreateCylinder("cylinder", {height:1,diameter:1});
+//
+//        sgv.NodeSPS = new BABYLON.SolidParticleSystem("NodeSPS", sgv.scene, { isPickable: true, enableDepthSort: true });
+//        sgv.EdgeSPS = new BABYLON.SolidParticleSystem("EdgeSPS", sgv.scene, { isPickable: true, enableDepthSort: true });
+//        
+//        sgv.NodeSPS.addShape(sgv.defaultSphere, 10000);
+//        sgv.EdgeSPS.addShape(sgv.defaultCylinder, 10000);
+//        
+//
+//        sgv.NodeSPSmesh = sgv.NodeSPS.buildMesh();
+//        sgv.EdgeSPSmesh = sgv.EdgeSPS.buildMesh();
+//
+//        for (let i=0; i<10000; i++){
+//            sgv.NodeSPS.particles[i].isVisible = false;
+//            sgv.EdgeSPS.particles[i].isVisible = false;
+//        }
+//
+//        sgv.NodeSPS.setParticles();
+//        sgv.NodeSPS.refreshVisibleSize();
+//
+//        sgv.EdgeSPS.setParticles();
+//        sgv.EdgeSPS.refreshVisibleSize();
+//        
+//        sgv.edCounter = 0;
+//        
+//        sgv.defaultSphere.setEnabled(false);
+//        sgv.defaultCylinder.setEnabled(false);
+//        sgv.defaultSphere.dispose(); //free memory
+//        sgv.defaultCylinder.dispose(); //free memory
+        sgv.SPS = new SPS(sgv.scene);
+        sgv.SPS.init();
     };
     
     
@@ -1860,65 +2147,56 @@ sgv.addEventsListeners = function () {
 
     function onPointerTap(pointerInfo) {
         function onLMBtap(pointerInfo) {
-            function onMeshPicked(mesh) {
-                console.log("mesh picked: " + mesh.name);
-                var n2 = mesh.name.split(":");
-                if (n2[0] === "edge") {
-                    //sgv.pokazOkienkoE(n2[1], sgv.scene.pointerX, sgv.scene.pointerY);
-                    sgv.dlgEdgeProperties.show(n2[1], sgv.scene.pointerX, sgv.scene.pointerY);
-                    
-                } else if (n2[0] === "node") {
-                    //sgv.pokazOkienkoN(parseInt(n2[1], 10), sgv.scene.pointerX, sgv.scene.pointerY);
-                    sgv.dlgNodeProperties.show(parseInt(n2[1], 10), sgv.scene.pointerX, sgv.scene.pointerY);
-                } else {
-                    //sgv.cancelE();
-                    sgv.dlgEdgeProperties.hide();
-                    sgv.dlgNodeProperties.hide();
-                }
-            }
-            ;
-
-            console.log("LEFT");
-            if (sgv.nodeToConnect !== 0) {
-                if (pointerInfo.pickInfo.hit) {
-                    var n2 = pointerInfo.pickInfo.pickedMesh.name.split(":");
-                    if (n2[0] === "node") {
-                        let strId1 = "" + sgv.nodeToConnect + "," + parseInt(n2[1], 10);
-                        let strId2 = "" + parseInt(n2[1], 10) + "," + sgv.nodeToConnect;
-                        if (!(strId1 in sgv.graf.edges) && !(strId2 in sgv.graf.edges))
-                            sgv.graf.addEdge(sgv.nodeToConnect, parseInt(n2[1], 10), 0.5);
-                        else
-                            console.log("edge already exists");
+            function onMeshPicked(pickInfo) {
+                let picked = sgv.SPS.onPick(pickInfo);
+                if ( (picked.type==='node') && ( picked.id in sgv.graf.nodes ) ) {
+                    console.log('Node picked');
+                    if (sgv.nodeToConnect !== 0) {
+                        sgv.graf.addEdge(sgv.nodeToConnect, picked.id);
+                        sgv.nodeToConnect = 0;
+                        sgv.SPS.refresh();
+                    }
+                    else {
+                        sgv.dlgNodeProperties.show(picked.id, sgv.scene.pointerX, sgv.scene.pointerY);
                     }
                 }
-                sgv.nodeToConnect = 0;
-            } else {
-                if (pointerInfo.pickInfo.hit) {
-                    onMeshPicked(pointerInfo.pickInfo.pickedMesh);
-                } else {
-                    //sgv.cancelE();
+                else if ( (picked.type==='edge') && (picked.id in sgv.graf.edges ) ) {
+                    console.log('Edge picked');
+                    sgv.dlgEdgeProperties.show(picked.id, sgv.scene.pointerX, sgv.scene.pointerY);
+                }
+                else {
+                    console.log('Unknown mesh picked');
                     sgv.dlgEdgeProperties.hide();
                     sgv.dlgNodeProperties.hide();
                 }
+            };
+
+            console.log("LEFT");
+            if (pointerInfo.pickInfo.hit) {
+                onMeshPicked(pointerInfo.pickInfo);
+            } else {
+                console.log('Probably ground picked');
+                sgv.dlgEdgeProperties.hide();
+                sgv.dlgNodeProperties.hide();
             }
+            
         }
 
         function onMMBtap(pointerInfo) {
             console.log("MIDDLE");
             if (pointerInfo.pickInfo.hit) {
-                var n2 = pointerInfo.pickInfo.pickedMesh.name.split(":");
-                if (n2[0] === "node") {
+                let picked = sgv.SPS.onPick(pointerInfo.pickInfo);
+                if ( (picked.type==='node') && ( picked.id in sgv.graf.nodes ) ) {
+                    console.log('Node picked');
+                 
                     if (sgv.nodeToConnect === 0) {
-                        sgv.nodeToConnect = parseInt(n2[1], 10);
+                        sgv.nodeToConnect = picked.id;
                     } else {
-                        let strId1 = "" + sgv.nodeToConnect + "," + parseInt(n2[1], 10);
-                        let strId2 = "" + parseInt(n2[1], 10) + "," + sgv.nodeToConnect;
-                        if (!(strId1 in sgv.graf.edges) && !(strId2 in sgv.graf.edges))
-                            sgv.graf.addEdge(sgv.nodeToConnect, parseInt(n2[1], 10), 0.5);
-                        else
-                            console.log("edge already exists");
+                        sgv.graf.addEdge(sgv.nodeToConnect, picked.id);
                         sgv.nodeToConnect = 0;
+                        sgv.SPS.refresh();
                     }
+                    
                 }
             }
         }
@@ -1976,70 +2254,74 @@ sgv.display = function(args) {
         args = {};
     }
 
-    sgv.ui = new UI();
+    showSplashAndRun(()=>{
+        sgv.ui = new UI();
 
 
-    let targetDIV = null;
-    if ('target' in args) {
-        targetDIV = document.getElementById(args.target);
-    }
+        let targetDIV = null;
+        if ('target' in args) {
+            targetDIV = document.getElementById(args.target);
+        }
 
-    // no args.target or HTML element not exists
-    if (targetDIV === null) {
-        targetDIV = document.createElement("div");
-        targetDIV.setAttribute("id", "sgvWorkspaceArea");
-        document.body.appendChild(targetDIV);
-    }
+        // no args.target or HTML element not exists
+        if (targetDIV === null) {
+            targetDIV = document.createElement("div");
+            targetDIV.setAttribute("id", "sgvWorkspaceArea");
+            document.body.appendChild(targetDIV);
+        }
 
-    // add canvas to targeDIV
-    sgv.canvas = document.createElement("canvas");
-    sgv.canvas.setAttribute("id", "sgvRenderCanvas");
-    targetDIV.appendChild(sgv.canvas);
+        // add canvas to targeDIV
+        sgv.canvas = document.createElement("canvas");
+        sgv.canvas.setAttribute("id", "sgvRenderCanvas");
+        targetDIV.appendChild(sgv.canvas);
 
-    sgv.advancedTexture = null;
-    sgv.sceneToRender = null;
+        sgv.advancedTexture = null;
+        sgv.sceneToRender = null;
 
-    function createDefaultEngine() {
-        return new BABYLON.Engine(sgv.canvas, true, {doNotHandleContextLost: true, preserveDrawingBuffer: true, stencil: true, disableWebGL2Support: false});
-    }
-    
+        function createDefaultEngine() {
+            return new BABYLON.Engine(sgv.canvas, true, {doNotHandleContextLost: true, preserveDrawingBuffer: true, stencil: true, disableWebGL2Support: false});
+        }
 
-    window.initFunction = async function () {
-        var asyncEngineCreation = async function () {
-            try {
-                return createDefaultEngine();
-            } catch (e) {
-                console.log("the available createEngine function failed. Creating the default engine instead");
-                return createDefaultEngine();
-            }
+
+        window.initFunction = async function () {
+            var asyncEngineCreation = async function () {
+                try {
+                    return createDefaultEngine();
+                } catch (e) {
+                    console.log("the available createEngine function failed. Creating the default engine instead");
+                    return createDefaultEngine();
+                }
+            };
+
+            sgv.engine = await asyncEngineCreation();
+
+            if (!sgv.engine)
+                throw 'engine should not be null.';
+
+            sgv.engine.enableOfflineSupport = false;
+
+            sgv.createScene();
         };
 
-        sgv.engine = await asyncEngineCreation();
-
-        if (!sgv.engine)
-            throw 'engine should not be null.';
-
-        sgv.engine.enableOfflineSupport = false;
-
-        sgv.createScene();
-    };
-
-    initFunction().then( function() {
-        sgv.sceneToRender = sgv.scene;
-        sgv.engine.runRenderLoop(function () {
-            if (sgv.sceneToRender && sgv.sceneToRender.activeCamera) {
-                sgv.sceneToRender.render();
-            }
-        });
-    });
-
-    // Resize
-    window.addEventListener("resize",
-            function () {
-                sgv.engine.resize();
+        initFunction().then( function() {
+            sgv.sceneToRender = sgv.scene;
+            sgv.engine.runRenderLoop(function () {
+                if (sgv.sceneToRender && sgv.sceneToRender.activeCamera) {
+                    sgv.sceneToRender.render();
+                }
             });
+        });
 
-    desktopInit();
+        // Resize
+        window.addEventListener("resize",
+                function () {
+                    sgv.engine.resize();
+                });
+
+        desktopInit();
+        
+        
+    });
 };
 
 //=========================================
@@ -2098,7 +2380,7 @@ ParserTXT.importGraph = (string) => {
         let _n2 = parseInt(line[1], 10);
         let _val = parseFloat(line[2], 10);
 
-        if ((_n1===NaN)||(_n2===NaN)) return null;    
+        if (isNaN(_n1)||isNaN(_n2)) return null;    
         else return { n1: _n1, n2: _n2, val: _val };
     };
 
@@ -2219,7 +2501,7 @@ ParserGEXF.importGraph = (string) => {
         let id = attributeNode.getAttribute("id");
         let title = attributeNode.getAttribute("title");
 
-        if (title.startsWith("default")){
+        if (title.startsWith('default')){
             let list = title.split(";");
 
             title = list[0];
@@ -2310,6 +2592,9 @@ ParserGEXF.importGraph = (string) => {
     }
 
     sgv.graf.createStructureFromDef2(def2);
+    
+    sgv.graf.displayValues();
+
     return true;
 };
 
@@ -2352,7 +2637,7 @@ ParserGEXF.exportGraph = function(graph) {
     xml += "    <attributes class=\"node\">\n";
     for (const key in graph.scopeOfValues) {
         let val = graph.scopeOfValues[key];
-        if (val==="default"){
+        if (val==='default'){
             val+= ";" + graph.type + ";" + graph.cols + "," + graph.rows + "," + graph.layers + "," + graph.KL + "," + graph.KR;
         }
         xml += "      <attribute id=\""+key+"\" title=\""+val+"\" type=\"float\"/>\n";
@@ -2368,7 +2653,7 @@ ParserGEXF.exportGraph = function(graph) {
     xml += "    <attributes class=\"edge\">\n";
     for (const key in graph.scopeOfValues) {
         let val = graph.scopeOfValues[key];
-//            if (val==="default"){
+//            if (val==='default'){
 //                val+= ";" + graph.type + ";" + graph.cols + "," + graph.rows + "," + graph.KL + "," + graph.KR;
 //            }
         xml += "      <attribute id=\""+key+"\" title=\""+val+"\" type=\"float\"/>\n";
@@ -2617,12 +2902,13 @@ sgv.dlgCPL = new function() {
                 'max':'0.0',
                 'step':'0.01'
             });
-            sliderRedLimit.addEventListener('input', (e)=>{
+            sliderRedLimit.addEventListener('input', async (e)=>{
                 if (sgv.graf !== null) {
                     sgv.graf.redLimit = e.target.value;
-                    sgv.graf.displayValues();
-                    
+
                     spanRed.textContent = ''+sgv.graf.redLimit+' ';
+                    
+                    sgv.graf.displayValues();
                 }
             });
             //sliderRedLimit.style.appearance = 'slider-vertical';
@@ -2638,12 +2924,14 @@ sgv.dlgCPL = new function() {
                 'max':'1.0',
                 'step':'0.01'
             });
-            sliderGreenLimit.addEventListener('input', (e)=>{
+            sliderGreenLimit.addEventListener('input', async (e)=>{
                 if (sgv.graf !== null) {
                     sgv.graf.greenLimit = e.target.value;
-                    sgv.graf.displayValues();
                     
                     spanGreen.textContent = ' '+sgv.graf.greenLimit;
+ 
+                    sgv.graf.displayValues();
+
                 }
             });
             //sliderGreenLimit.style.appearance = 'slider-vertical';
@@ -2830,30 +3118,30 @@ sgv.dlgCPL = new function() {
             
             let min, max;
             
-            if (nMinMax.min!==NaN) {
+            if (nMinMax.min!==Number.NaN) {
                 min = nMinMax.min;
-                if (eMinMax.min!==NaN) {
+                if (eMinMax.min!==Number.NaN) {
                     min = (min<eMinMax.min)?min:eMinMax.min;
                 }
             } else {
                 min = eMinMax.min;
             }
             
-            if (nMinMax.max!==NaN) {
+            if (nMinMax.max!==Number.NaN) {
                 max = nMinMax.max;
-                if (eMinMax.max!==NaN) {
+                if (eMinMax.max!==Number.NaN) {
                     max = (max>eMinMax.max)?max:eMinMax.max;
                 }
             } else {
                 max = eMinMax.max;
             }
             
-            if ((min!==NaN)&&(min>=0)) min = NaN;
-            if ((max!==NaN)&&(max<=0)) max = NaN;
+            if ((min!==Number.NaN)&&(min>=0)) min = Number.NaN;
+            if ((max!==Number.NaN)&&(max<=0)) max = Number.NaN;
 
             //console.log(min,max);
 
-            if (min!==NaN) {
+            if (min!==Number.NaN) {
                 if (sgv.graf.redLimit<min){
                     sgv.graf.redLimit=min;
                 }
@@ -2865,7 +3153,7 @@ sgv.dlgCPL = new function() {
                 sliderRedLimit.disabled = 'disabled';
             }
 
-            if (max!==NaN) {
+            if (max!==Number.NaN) {
                 if (sgv.graf.greenLimit>max){
                     sgv.graf.greenLimit=max;
                 }
@@ -2939,6 +3227,8 @@ sgv.createGraph = function(gDesc, res) {
         sgv.graf.createStructureFromDef(res);
     
     sgv.setModeDescription();
+
+    sgv.graf.displayValues();
 };
 
 /* 
@@ -3191,7 +3481,7 @@ sgv.dlgConsole = new function () {
                     return "bad value";
                 } else if (id1 in sgv.graf.nodes) {
                     if (id2 in sgv.graf.nodes) {
-                        sgv.graf.addEdge(id1, id2, val);
+                        sgv.graf.addEdge(id1, id2).setValue(val);
                         return "added edge: q" + id1 + " -> g" + id2;
                     } else {
                         return "node q" + id2 + " was probably deleted earlier";
@@ -3268,7 +3558,7 @@ sgv.dlgConsole = new function () {
                             return "modified edge " + strId;
                         } else {
                             if ((id1 in sgv.graf.nodes) && (id2 in sgv.graf.nodes)) {
-                                sgv.graf.addEdge(id1, id2, val);
+                                sgv.graf.addEdge(id1, id2).setValue(val);
                                 return "added edge " + strId;
                             } else {
                                 return "NOT DONE: both connected nodes must exist in the graph";
@@ -3468,60 +3758,6 @@ sgv.dlgConsole = new function () {
         }
     };
 };
-/* global sgv, UI */
-
-sgv.dlgLoaderSplash = new function() {
-    var ui = null;
-
-    function createDialog() {
-        if (ui===null) {
-            ui = UI.tag( "dialog", { "class": "sgvModalDialog", "id": "loaderSplash" });
-        }
-        
-        ui.innerHTML = '<span>working hard for you</span><div class="loader"></div><span>... please wait ...</span>';
-
-        ui.style.display = "none";
-        window.document.body.appendChild(ui);
-    };
-
-    function showDialog() {
-        if (ui===null) createDialog();
-        if (ui.open) ui.close();
-        
-        ui.style.display = "block";
-        ui.showModal();
-    };
-
-    function hideDialog() {
-        ui.close();
-        ui.style.display = "none";
-    };
-
-    return {
-        show: showDialog,
-        hide: hideDialog
-    };
-};
-
-
-function  showSplash() {
-    sgv.dlgLoaderSplash.show();
-};
-
-function hideSplash() {
-    setTimeout(function () {
-        sgv.dlgLoaderSplash.hide();
-    }, 200);
-};
-
-function showSplashAndRun(f) {
-    showSplash();
-    setTimeout(()=>{
-        f();
-        hideSplash();
-    }, 100);
-};
-
 /* global sgv, UI */
 
 sgv.dlgCreateGraph = new function() {
@@ -3904,7 +4140,7 @@ sgv.dlgEdgeProperties = new function() {
         }
     };
 };
-/* global UI, sgv */
+/* global UI, sgv, Edge */
 
 sgv.dlgNodeProperties = new function() {
    
@@ -4154,6 +4390,7 @@ sgv.dlgNodeProperties = new function() {
         let scope = sgv.graf.scopeOfValues[ui.querySelector("#nsSelectN").value];
         sgv.graf.setNodeValue(id, val, scope);
         ui.style.display = "none";
+        sgv.SPS.refresh();
     };
 
     function activateN() {
@@ -4173,6 +4410,7 @@ sgv.dlgNodeProperties = new function() {
             ui.querySelector("#setN").disabled = "disabled";
             sgv.graf.delNodeValue(ui.querySelector("#nodeId").value, scope);
         }
+        sgv.SPS.refresh();
     };
     
     function connectSelectN() {
@@ -4186,6 +4424,7 @@ sgv.dlgNodeProperties = new function() {
 
         if (sgv.graf !== null) {
             sgv.graf.addEdge(node1, node2);
+            sgv.SPS.refresh();
         }
     };
     
@@ -4414,3 +4653,57 @@ sgv.dlgAbout = new function() {
 };
 
 
+
+/* global sgv, UI */
+
+sgv.dlgLoaderSplash = new function() {
+    var ui = null;
+
+    function createDialog() {
+        if (ui===null) {
+            ui = UI.tag( "dialog", { "class": "sgvModalDialog", "id": "loaderSplash" });
+        }
+        
+        ui.innerHTML = '<span>working hard for you</span><div class="loader"></div><span>... please wait ...</span>';
+
+        ui.style.display = "none";
+        window.document.body.appendChild(ui);
+    };
+
+    function showDialog() {
+        if (ui===null) createDialog();
+        if (ui.open) ui.close();
+        
+        ui.style.display = "block";
+        ui.showModal();
+    };
+
+    function hideDialog() {
+        ui.close();
+        ui.style.display = "none";
+    };
+
+    return {
+        show: showDialog,
+        hide: hideDialog
+    };
+};
+
+
+function  showSplash() {
+    sgv.dlgLoaderSplash.show();
+};
+
+function hideSplash() {
+    setTimeout(function () {
+        sgv.dlgLoaderSplash.hide();
+    }, 200);
+};
+
+function showSplashAndRun(f) {
+    showSplash();
+    setTimeout(()=>{
+        f();
+        hideSplash();
+    }, 100);
+};

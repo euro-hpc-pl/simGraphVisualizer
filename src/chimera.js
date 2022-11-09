@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/* global Graph, BABYLON, sgv */
+/* global Graph, BABYLON, sgv, QbDescr */
 "use strict";
 
 var Chimera = /** @class */ (function () {
@@ -37,14 +37,18 @@ var Chimera = /** @class */ (function () {
         let idA = qdA.toNodeId(this.rows, this.cols);
         let idB = qdB.toNodeId(this.rows, this.cols);
 
-        if ((idA in this.nodes) && (idB in this.nodes))
-            this.addEdge(idA, idB, value);
+        if ((idA in this.nodes) && (idB in this.nodes)) {
+            let e = this.addEdge(idA, idB);
+            if (typeof value==='number') {
+                e.setValue(value);
+            }
+        }
     };
 
     this.connectRowModules2 = function (x, y, z) {
         for (let j = 0; j < 2; j++) {
             for (let k = 0; k < 2; k++) {
-                this.connect(new QbDescr(x, y, z, 1, j, k), new QbDescr(x, y + 1, z, 1, j, k), getRandom(-0.5, 0.5));//0.0 );          
+                this.connect(new QbDescr(x, y, z, 1, j, k), new QbDescr(x, y + 1, z, 1, j, k));
             }
         }
     };
@@ -52,7 +56,7 @@ var Chimera = /** @class */ (function () {
     this.connectColModules2 = function (x, y, z) {
         for (let j = 0; j < 2; j++) {
             for (let k = 0; k < 2; k++) {
-                this.connect(new QbDescr(x, y, z, 0, j, k), new QbDescr(x + 1, y, z, 0, j, k), getRandom(-0.5, 0.5));//0.0 );          
+                this.connect(new QbDescr(x, y, z, 0, j, k), new QbDescr(x + 1, y, z, 0, j, k));
             }
         }
     };
@@ -84,16 +88,16 @@ var Chimera = /** @class */ (function () {
 
         // MODULE NODES
         for (let n = 0; n < this.KL; n++) {
-            this.addNode(offset + n + 1, this.calcPosition2(x, y, z, n), NaN);
+            this.addNode(offset + n + 1, this.calcPosition2(x, y, z, n), Number.NaN);
         }
         for (let n = 4; n < this.KR + 4; n++) {
-            this.addNode(offset + n + 1, this.calcPosition2(x, y, z, n), NaN);
+            this.addNode(offset + n + 1, this.calcPosition2(x, y, z, n), Number.NaN);
         }
 
         // INTERNAL MODULE EDGES
         for (let x = 0; x < this.KL; x++)
             for (let y = 0; y < this.KR; y++) {
-                this.addEdge(offset + x + 1, offset + 4 + y + 1, getRandom(-0.5, 0.5));//0.0 );        
+                this.addEdge(offset + x + 1, offset + 4 + y + 1);
             }
     };
 
@@ -176,8 +180,7 @@ var Chimera = /** @class */ (function () {
             } else {
                 let n1 = def[i].n1;
                 let n2 = def[i].n2;
-                this.addEdge(n1, n2, def[i].val);
-                this.edges["" + def[i].n1 + "," + def[i].n2].setValue(def[i].val, 'default');
+                this.addEdge(n1, n2).setValue(def[i].val, 'default');
             }
         }
     };
