@@ -45,44 +45,42 @@ var Label = (function (labelId, txt, position, enabled) {
         this.position = pos;
         
         if (this.plane !==null)
-            this.plane.position = pos.add(new BABYLON.Vector3(0.0, 5.0, 0.0));
+            this.plane.position = pos.add(this.planeOffset);
     };
 
     this.createPlane = function() {
-        //Set font
-        var font_size = 48;
-        var font = "normal " + font_size + "px Arial";
+        let font_size = 64;
+        let font = "bold " + font_size + "px Arial";
 
-        //Set height for plane
-        var planeHeight = 4;
+        let ratio = 0.075;
 
-        //Set height for dynamic texture
-        var DTHeight = 1.5 * font_size; //or set as wished
+        let tmpTex = new BABYLON.DynamicTexture("DynamicTexture", 64, sgv.scene);
+        let tmpCTX = tmpTex.getContext();
 
-        //Calcultae ratio
-        var ratio = planeHeight / DTHeight;
-
-        //Use a temporay dynamic texture to calculate the length of the text on the dynamic texture canvas
-        var temp = new BABYLON.DynamicTexture("DynamicTexture", 64, sgv.scene);
-        var tmpctx = temp.getContext();
-        tmpctx.font = font;
-
-        //Set text
-        var text = this.text;
-
-        var DTWidth = tmpctx.measureText(text).width + 8;
-
-        //Calculate width the plane has to be 
-        var planeWidth = DTWidth * ratio;
-
-        //Create dynamic texture and write the text
-        var mat = new BABYLON.StandardMaterial("mat", sgv.scene);
-        mat.diffuseTexture = new BABYLON.DynamicTexture("DynamicTexture", {width: DTWidth, height: DTHeight}, sgv.scene, false);
-        mat.diffuseTexture.drawText(text, null, null, font, "#000000", "#ffff00", true);
+        tmpCTX.font = font;
         
-        var plane = BABYLON.MeshBuilder.CreatePlane(this.id + "_plane", {width: planeWidth, height: planeHeight, updatable: true}, sgv.scene);
-        plane.material = mat;
+        let DTWidth = tmpCTX.measureText(this.text).width + 8;
+        let DTHeight = font_size + 8;
 
+        var planeWidth = DTWidth * ratio;
+        var planeHeight = DTHeight * ratio;
+
+        var plane = BABYLON.MeshBuilder.CreatePlane(this.id + "_plane", {width: planeWidth, height: planeHeight, updatable: true}, sgv.scene);
+        
+        plane.material = new BABYLON.StandardMaterial(this.id + "_plane_material", sgv.scene);
+        
+        plane.material.diffuseTexture = new BABYLON.DynamicTexture(this.id + "_plane_texture", {width: DTWidth, height: DTHeight}, sgv.scene, false);
+
+        plane.material.diffuseTexture.hasAlpha = true;
+        plane.material.opacityTexture = plane.material.diffuseTexture;
+        plane.material.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND;
+        plane.material.alpha = 1;
+        
+        plane.material.diffuseTexture.drawText(this.text, null, null, font, '#ffff00', 'rgba(0,0,255,0.7)', true);
+        
+        //plane.material.specularColor = new BABYLON.Color3(1, 1, 0);
+        //plane.material.ambientColor = new BABYLON.Color3(1, 1, 0);
+        plane.material.emissiveColor = new BABYLON.Color3(1, 1, 0);
         return plane;
     };
 
@@ -91,9 +89,9 @@ var Label = (function (labelId, txt, position, enabled) {
      * @param {type} position
      * @returns {undefined}
      */
-    this.createMe = async function (txt, position, enabled) {
+    this.createMe = async function (position, enabled) {
         this.plane = this.createPlane();
-        this.plane.position = position.add(new BABYLON.Vector3(0.0, 5.0, 0.0));
+        this.plane.position = position.add(this.planeOffset);
         this.plane.billboardMode = BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
         this.plane.setEnabled(enabled);
         this.plane.isPickable = false;
@@ -105,8 +103,9 @@ var Label = (function (labelId, txt, position, enabled) {
     };
 
     this.text = txt;
+    this.planeOffset = new BABYLON.Vector3(0.0, 5.0, 0.0);
     this.position = position;
     this.id = labelId;
     this.plane = null;
-    this.createMe(txt, position, enabled);
+    this.createMe(position, enabled);
 });

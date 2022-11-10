@@ -375,7 +375,7 @@ var Graph = /** @class */ (function () {
         
         var result = {
             min: Number.MAX_VALUE,
-            max: Number.MIN_VALUE,
+            max: -Number.MAX_VALUE,
             com: ""
         };
 
@@ -384,14 +384,16 @@ var Graph = /** @class */ (function () {
         for (const key in this.edges) {
             let val = this.edges[key].getValue(scope);
             
-            if (val < result.min) {
+            if (!isNaN(val)) {
                 nan = false;
-                result.min = val;
-            }
 
-            if (val > result.max) {
-                nan = false;
-                result.max = val;
+                if (val < result.min) {
+                    result.min = val;
+                }
+
+                if (result.max < val) {
+                    result.max = val;
+                }
             }
         }
 
@@ -411,7 +413,7 @@ var Graph = /** @class */ (function () {
         
         var result = {
             min: Number.MAX_VALUE,
-            max: Number.MIN_VALUE,
+            max: -Number.MAX_VALUE,
             com: ""
         };
 
@@ -420,14 +422,16 @@ var Graph = /** @class */ (function () {
         for (const key in this.nodes) {
             let val = this.nodes[key].getValue(scope);
             
-            if (val < result.min) {
+            if (!isNaN(val)) {
                 nan = false;
-                result.min = val;
-            }
 
-            if (val > result.max) {
-                nan = false;
-                result.max = val;
+                if (val < result.min) {
+                    result.min = val;
+                }
+
+                if (result.max < val) {
+                    result.max = val;
+                }
             }
         }
 
@@ -440,38 +444,40 @@ var Graph = /** @class */ (function () {
         return result;
     };
 
-    this.getMinMaxVal = function () {
-        var result = {
-            min: 99999.9,
-            max: -99999.9
-        };
-
-        for (const key in this.edges) {
-            if (this.edges[key].value < result.min) {
-                result.min = this.edges[key].value;
-            }
-
-            if (this.edges[key].value > result.max) {
-                result.max = this.edges[key].value;
-            }
-        }
-        for (const key in this.nodes) {
-            if (this.nodes[key].value < result.min) {
-                result.min = this.nodes[key].value;
-            }
-
-            if (this.nodes[key].value > result.max) {
-                result.max = this.nodes[key].value;
-            }
+    this.getMinMaxVal = function (scope) {
+        if ( (typeof scope === 'undefined') || ! this.scopeOfValues.includes(scope) ) {
+            scope = this.currentScope;
         }
 
-        return result;
+        let nMM = this.getMinMaxNodeVal(scope);
+        let eMM = this.getMinMaxEdgeVal(scope);
+
+        if (isNaN(nMM.min)) { // jeśli min jest NaN, to max również
+            return {
+                min: eMM.min,
+                max: eMM.max
+            };
+        }
+        else if (isNaN(eMM.min)) {
+            return {
+                min: nMM.min,
+                max: nMM.max
+            };
+        }
+        else {
+            return {
+                min: (nMM.min<eMM.min)?nMM.min:eMM.min,
+                max: (nMM.max>eMM.max)?nMM.max:eMM.max
+            };
+        }
     };
 
-    this.calcPosition = function (key) {
-        // override in derrived class
-        return new BABYLON.Vector3();
-    };
+
+    // Calculate position of node in space for visualisation.
+    // The position depends on graph type and display mode,
+    // so need to be overriden in derrived classes
+    this.calcPosition = /*virtual*/ (nodeId) => new BABYLON.Vector3();
+
 
     this.changeDisplayMode = function () {
         for (const key in this.nodes) {

@@ -10,8 +10,11 @@ var SPS = (function(scene) {
     var eCnt = 0;
     var nCnt = 0;
     
-    var defaultSphere = BABYLON.MeshBuilder.CreateSphere("defaultSphere", {diameter: 3, segments: 8, updatable: false}, scene);
-    var defaultCylinder = BABYLON.MeshBuilder.CreateCylinder("cylinder", {height:1,diameter:1});
+    var nKilled = [];
+    var eKilled = [];
+    
+    var defaultSphere = BABYLON.MeshBuilder.CreateSphere("defaultSphere", {diameter: 3, segments: 8, updatable: false});
+    var defaultCylinder = BABYLON.MeshBuilder.CreateCylinder("cylinder", {height:1, diameter:1, tessellation:6, updatable: false});
     
     defaultSphere.setEnabled(false);
     defaultCylinder.setEnabled(false);
@@ -40,6 +43,10 @@ var SPS = (function(scene) {
     };
     
     function _uniqueNodeId() {
+        if (nKilled.length>0) {
+            return nKilled.pop();
+        }
+
         let id = nCnt++;
         let size = NodeSPS.nbParticles;
         if (id>=size) {
@@ -50,17 +57,20 @@ var SPS = (function(scene) {
                 NodeSPS.particles[i].isVisible = false;
             }
         }
-        
         return id;
     };
     
     function _uniqueEdgeId() {
+        if (eKilled.length>0) {
+            return eKilled.pop();
+        }
+
         let id = eCnt++;
         let size = EdgeSPS.nbParticles;
         if (id>=size) {
             EdgeSPS.addShape(defaultCylinder, 100);
             EdgeSPSmesh = EdgeSPS.buildMesh();
-        
+
             for (let i=size; i<(size+100); i++){
                 EdgeSPS.particles[i].isVisible = false;
             }
@@ -99,6 +109,8 @@ var SPS = (function(scene) {
         //console.log(NodeSPS.particles[idx]);
         NodeSPS.particles[idx].isVisible = false;
         NodeSPS.particles[idx].nodeId = null;
+        
+        nKilled.push(idx);
     }
 
     function setEdgeX(edge, edgeColor, edgeWidth, b, e) {
@@ -165,6 +177,8 @@ var SPS = (function(scene) {
         //console.log(EdgeSPS.particles[idx]);
         EdgeSPS.particles[idx].isVisible = false;
         EdgeSPS.particles[idx].edgeId = null;
+        
+        eKilled.push(idx);
     }
     
     function onPickX(pickInfo) {

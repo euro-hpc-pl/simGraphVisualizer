@@ -7,7 +7,7 @@ sgv.dlgCPL = new function() {
     var selectScope;
     var sliderRedLimit, sliderGreenLimit;
     var spanRed, spanGreen;
-    var btnDispMode, btnShowConsole, btnSaveTXT, btnSaveGEXF, btnClear;
+    var btnDispMode, btnShowConsole, btnSaveTXT, btnClear;
 
     var btnShowConsole2, btnCreate, btnLoad;
     
@@ -57,6 +57,61 @@ sgv.dlgCPL = new function() {
                 return i;
             }
 
+            function createLimitSlidersPanel() {
+                let sldPanel = UI.tag('div',{'id':'panelLimitSliders'});
+                
+                sldPanel.appendChild( spanRed=UI.tag("span",{'id':'spanRed'},{'textContent':'-1.0'}) );
+
+                sliderRedLimit = UI.tag('input',{
+                    'type':'range',
+                    'class':'graphLimit',
+                    'id':'redLimit',
+                    'value':'-1.0',
+                    'min':'-1.0',
+                    'max':'0.0',
+                    'step':'0.01'
+                });
+                sliderRedLimit.addEventListener('input', async (e)=>{
+                    if (sgv.graf !== null) {
+                        sgv.graf.redLimit = e.target.value;
+
+                        spanRed.textContent = ''+sgv.graf.redLimit+' ';
+
+                        sgv.graf.displayValues();
+                    }
+                });
+
+                sldPanel.appendChild(sliderRedLimit);
+
+                sldPanel.appendChild( UI.tag("span",{'id':'spanZero'},{'textContent':' 0 '}) );
+
+                sliderGreenLimit = UI.tag('input',{
+                    'type':'range',
+                    'class':'graphLimit',
+                    'id':'greenLimit',
+                    'value':'1.0',
+                    'min':'0.0',
+                    'max':'1.0',
+                    'step':'0.01'
+                });
+                sliderGreenLimit.addEventListener('input', async (e)=>{
+                    if (sgv.graf !== null) {
+                        sgv.graf.greenLimit = e.target.value;
+
+                        spanGreen.textContent = ' '+sgv.graf.greenLimit;
+
+                        sgv.graf.displayValues();
+
+                    }
+                });
+
+                sldPanel.appendChild(sliderGreenLimit);
+
+                sldPanel.appendChild( spanGreen=UI.tag("span",{'id':'spanGreen'},{'textContent':'1.0'}) );
+                
+                return sldPanel;
+            }
+
             var divDesc = UI.tag("div", {"class": "content", "id": "graphDescription"});
 
             divDesc.appendChild(createInfoBlock());
@@ -72,6 +127,7 @@ sgv.dlgCPL = new function() {
             selectScope = UI.tag( "select", {'id': "cplDispValues" } );
             selectScope.addEventListener('change', () => {
                 sgv.graf.displayValues(selectScope.value);
+                updateSlidersX();
             });
             divDS.appendChild( selectScope );
 
@@ -84,61 +140,10 @@ sgv.dlgCPL = new function() {
             scope.appendChild(divDS);
             divDesc.appendChild(scope);
 
-            divDesc.appendChild( spanRed=UI.tag("span",{'id':'spanRed'},{'textContent':'-1.0'}) );
-            spanRed.style.display='inline-block';
-            spanRed.style.width = '3em';
-            sliderRedLimit = UI.tag('input',{
-                'type':'range',
-                'id':'redLimit',
-                'value':'-1.0',
-                'min':'-1.0',
-                'max':'0.0',
-                'step':'0.01'
-            });
-            sliderRedLimit.addEventListener('input', async (e)=>{
-                if (sgv.graf !== null) {
-                    sgv.graf.redLimit = e.target.value;
+            let sldPanel = createLimitSlidersPanel();
+            divDesc.appendChild(sldPanel);
 
-                    spanRed.textContent = ''+sgv.graf.redLimit+' ';
-                    
-                    sgv.graf.displayValues();
-                }
-            });
-            //sliderRedLimit.style.appearance = 'slider-vertical';
-            divDesc.appendChild(sliderRedLimit);
-
-            divDesc.appendChild( UI.tag("span",{'id':'spanZero'},{'textContent':' 0 '}) );
-
-            sliderGreenLimit = UI.tag('input',{
-                'type':'range',
-                'id':'greenLimit',
-                'value':'1.0',
-                'min':'0.0',
-                'max':'1.0',
-                'step':'0.01'
-            });
-            sliderGreenLimit.addEventListener('input', async (e)=>{
-                if (sgv.graf !== null) {
-                    sgv.graf.greenLimit = e.target.value;
-                    
-                    spanGreen.textContent = ' '+sgv.graf.greenLimit;
- 
-                    sgv.graf.displayValues();
-
-                }
-            });
-            //sliderGreenLimit.style.appearance = 'slider-vertical';
-
-            divDesc.appendChild(sliderGreenLimit);
-
-            divDesc.appendChild( spanGreen=UI.tag("span",{'id':'spanGreen'},{'textContent':'1.0'}) );
-            spanGreen.style.display='inline-block';
-            spanGreen.style.width = '3em';
-
-            let btnPanel = UI.tag('div',{
-                'id':'panelBtns'
-            });
-            btnPanel.style['border-top']='1px solid #000';
+            let btnPanel = UI.tag('div',{'id':'panelBtns'});
             
             btnPanel.appendChild(
                     btnDispMode = UI.createTransparentBtn1('display mode',"cplDispModeButton",()=>{
@@ -237,6 +242,7 @@ sgv.dlgCPL = new function() {
     };
     
     function showDialog() {
+        updateSlidersX();
         com.style.display = "block";
     };
     
@@ -245,6 +251,7 @@ sgv.dlgCPL = new function() {
     };
     
     function switchDialog() {
+        //updateSlidersX();
         com.style.display = (com.style.display === "none")?"block":"none";
     };
     
@@ -278,6 +285,61 @@ sgv.dlgCPL = new function() {
         
     };
 
+    function updateSlidersX() {
+        if (sgv.graf === null) return;
+        
+        let r = sgv.graf.getMinMaxVal();
+        
+        // min should to bee negative or :
+        if (r.min>0) r.min = Number.NaN;
+
+        // max should to bee positive:
+        if (r.max<0) r.max = Number.NaN;
+
+        
+        updateRed(r.min);
+        updateGreen(r.max);
+
+        function updateRed(min) {
+            if (isNaN(min)) {
+                sliderRedLimit.disabled = 'disabled';
+                spanRed.textContent = 'NaN';
+            }
+            else {
+                min = Math.floor(min * 100) / 100;
+                
+                if (sgv.graf.redLimit<min) {
+                    sgv.graf.redLimit = min;
+                }
+                
+                sliderRedLimit.min = min;
+                sliderRedLimit.value = sgv.graf.redLimit;
+
+                spanRed.textContent = sgv.graf.redLimit+' ';
+                sliderRedLimit.disabled = '';
+            }
+        };
+        function updateGreen(max) {
+            if (isNaN(max)) {
+                sliderGreenLimit.disabled = 'disabled'; 
+                spanGreen.textContent = 'NaN';
+            }
+            else {
+                max = Math.ceil(max * 100) / 100;
+                
+                if (sgv.graf.greenLimit>max) {
+                    sgv.graf.greenLimit=max;
+                }
+                
+                sliderGreenLimit.max = max;
+                sliderGreenLimit.value = sgv.graf.greenLimit;
+                
+                spanGreen.textContent = ' '+sgv.graf.greenLimit;
+                sliderGreenLimit.disabled = '';
+            }
+        };
+    };
+
 
     function setModeDescriptionX() {
         function refreshScopes() {
@@ -294,6 +356,7 @@ sgv.dlgCPL = new function() {
             }
         }
 
+        
         function updateInfoBlock() {
             elm.querySelector("#dscr_type").textContent = sgv.graf.type;
             elm.querySelector("#dscr_cols").textContent = sgv.graf.cols;
@@ -304,61 +367,9 @@ sgv.dlgCPL = new function() {
             elm.querySelector("#dscr_nbEdges").textContent = Object.keys(sgv.graf.edges).length;
             
             
-            nMinMax = sgv.graf.getMinMaxNodeVal();
-            eMinMax = sgv.graf.getMinMaxEdgeVal();
-            
-            //console.log(nMinMax,eMinMax);
-            
-            let min, max;
-            
-            if (nMinMax.min!==Number.NaN) {
-                min = nMinMax.min;
-                if (eMinMax.min!==Number.NaN) {
-                    min = (min<eMinMax.min)?min:eMinMax.min;
-                }
-            } else {
-                min = eMinMax.min;
-            }
-            
-            if (nMinMax.max!==Number.NaN) {
-                max = nMinMax.max;
-                if (eMinMax.max!==Number.NaN) {
-                    max = (max>eMinMax.max)?max:eMinMax.max;
-                }
-            } else {
-                max = eMinMax.max;
-            }
-            
-            if ((min!==Number.NaN)&&(min>=0)) min = Number.NaN;
-            if ((max!==Number.NaN)&&(max<=0)) max = Number.NaN;
-
-            //console.log(min,max);
-
-            if (min!==Number.NaN) {
-                if (sgv.graf.redLimit<min){
-                    sgv.graf.redLimit=min;
-                }
-                sliderRedLimit.min = Math.round(min * 100) / 100;
-                sliderRedLimit.value = sgv.graf.redLimit;
-                spanRed.textContent = ''+sgv.graf.redLimit+' ';
-                sliderRedLimit.disabled = '';
-            } else {
-                sliderRedLimit.disabled = 'disabled';
-            }
-
-            if (max!==Number.NaN) {
-                if (sgv.graf.greenLimit>max){
-                    sgv.graf.greenLimit=max;
-                }
-                sliderGreenLimit.max = Math.round(max * 100) / 100;;
-                sliderGreenLimit.value = sgv.graf.greenLimit;
-                spanGreen.textContent = ' '+sgv.graf.greenLimit;
-                sliderGreenLimit.disabled = '';
-            } else {
-                sliderGreenLimit.disabled = 'disabled';
-            }
         };
 
+        updateSlidersX();
         updateInfoBlock();
         refreshScopes();
 
@@ -378,6 +389,7 @@ sgv.dlgCPL = new function() {
         switchPanel: switchDialog,
         setModeDescription: setModeDescriptionX,
         setModeSelection: setModeSelectionX,
+        updateSliders: updateSlidersX,
         addScope: addScopeX,
         delScope: delScopeX,
         selScope: selScopeX

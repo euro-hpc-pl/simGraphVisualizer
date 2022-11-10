@@ -46,7 +46,7 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         set(pos) {
             this.mesh.position.copyFrom(pos);
             if (typeof label !== 'undefined') {
-                label.plane.position.copyFrom(pos).addInPlaceFromFloats(0.0, 5.0, 0.0);
+                label.plane.position.copyFrom(pos);
             }
         }
     });

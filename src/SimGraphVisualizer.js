@@ -28,7 +28,7 @@ if (typeof global !== "undefined") {
     global.sgv = sgv;
 }
 
-sgv.version = "0.1.0";
+sgv.version = "1.0.0";
 sgv.engine = null;
 sgv.scene = null;
 sgv.camera = null;
@@ -36,6 +36,26 @@ sgv.graf = null;
 sgv.displayMode = 'classic';
 
 sgv.createScene = function () {
+    sgv.scene = new BABYLON.Scene(sgv.engine);
+
+    createCamera();
+    createLights();
+
+//====================================================================
+// creating Solid Particle System for nodes/edges visualisation
+//
+    sgv.SPS = new SPS(sgv.scene);
+    sgv.SPS.init();
+//
+//====================================================================
+    
+    sgv.nodeToConnect = 0;
+
+    sgv.addEventsListeners();
+    
+    sgv.scene.clearColor = new BABYLON.Color3(0.7, 0.7, 0.7);
+
+
     function createCamera() {
         sgv.camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(0, 0, 0), sgv.scene);
         
@@ -64,94 +84,8 @@ sgv.createScene = function () {
         light.position = new BABYLON.Vector3(0, 0, 0);
         //light.radius = Math.PI;// / 2);
     };
-
-    function createDefaultObjects() {
-//        function createMaterials() {
-//            sgv.grayMat0 = new BABYLON.StandardMaterial("grayMat0", sgv.scene);
-//            sgv.grayMat0.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-//            sgv.grayMat0.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
-//            sgv.grayMat0.emissiveColor = new BABYLON.Color3(0.5, 0.5, 0.5);
-//
-//            sgv.grayMat1 = new BABYLON.StandardMaterial("grayMat1", sgv.scene);
-//            sgv.grayMat1.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-//            sgv.grayMat1.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-//            sgv.grayMat1.emissiveColor = new BABYLON.Color3(0, 0, 0);
-//
-//
-//            sgv.redMat = new BABYLON.StandardMaterial("redMat", sgv.scene);
-//            sgv.redMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-//            sgv.redMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-//            sgv.redMat.emissiveColor = BABYLON.Color3.Red();
-//
-//            sgv.greenMat = new BABYLON.StandardMaterial("greenMat", sgv.scene);
-//            sgv.greenMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-//            sgv.greenMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-//            sgv.greenMat.emissiveColor = new BABYLON.Color3(0, 0.3, 0);
-//
-//            sgv.blueMat = new BABYLON.StandardMaterial("blueMat", sgv.scene);
-//            sgv.blueMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-//            sgv.blueMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-//            sgv.blueMat.emissiveColor = BABYLON.Color3.Blue();
-//
-//            sgv.purpleMat = new BABYLON.StandardMaterial("purpleMat", sgv.scene);
-//            sgv.purpleMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-//            sgv.purpleMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-//            sgv.purpleMat.emissiveColor = BABYLON.Color3.Purple();
-//
-//            sgv.groundMaterial = new BABYLON.StandardMaterial("ground", sgv.scene);
-//            sgv.groundMaterial.specularColor = BABYLON.Color3.Black();
-//        };
-//        createMaterials();
-
-//        sgv.defaultSphere = BABYLON.MeshBuilder.CreateSphere("defaultSphere", {diameter: 3, segments: 8, updatable: false}, sgv.scene);
-//        sgv.defaultCylinder = BABYLON.MeshBuilder.CreateCylinder("cylinder", {height:1,diameter:1});
-//
-//        sgv.NodeSPS = new BABYLON.SolidParticleSystem("NodeSPS", sgv.scene, { isPickable: true, enableDepthSort: true });
-//        sgv.EdgeSPS = new BABYLON.SolidParticleSystem("EdgeSPS", sgv.scene, { isPickable: true, enableDepthSort: true });
-//        
-//        sgv.NodeSPS.addShape(sgv.defaultSphere, 10000);
-//        sgv.EdgeSPS.addShape(sgv.defaultCylinder, 10000);
-//        
-//
-//        sgv.NodeSPSmesh = sgv.NodeSPS.buildMesh();
-//        sgv.EdgeSPSmesh = sgv.EdgeSPS.buildMesh();
-//
-//        for (let i=0; i<10000; i++){
-//            sgv.NodeSPS.particles[i].isVisible = false;
-//            sgv.EdgeSPS.particles[i].isVisible = false;
-//        }
-//
-//        sgv.NodeSPS.setParticles();
-//        sgv.NodeSPS.refreshVisibleSize();
-//
-//        sgv.EdgeSPS.setParticles();
-//        sgv.EdgeSPS.refreshVisibleSize();
-//        
-//        sgv.edCounter = 0;
-//        
-//        sgv.defaultSphere.setEnabled(false);
-//        sgv.defaultCylinder.setEnabled(false);
-//        sgv.defaultSphere.dispose(); //free memory
-//        sgv.defaultCylinder.dispose(); //free memory
-        sgv.SPS = new SPS(sgv.scene);
-        sgv.SPS.init();
-    };
-    
-    
-    sgv.scene = new BABYLON.Scene(sgv.engine);
-
-    createCamera();
-    createLights();
-
-    createDefaultObjects();
-    
-    sgv.advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-    sgv.nodeToConnect = 0;
-
-    sgv.addEventsListeners();
-    
-    sgv.scene.clearColor = new BABYLON.Color3(0.7, 0.7, 0.7);
 };
+
 
 sgv.switchDisplayMode = function () {
     if (sgv.displayMode === 'classic') {
@@ -356,9 +290,6 @@ sgv.display = function(args) {
     }
 
     showSplashAndRun(()=>{
-        sgv.ui = new UI();
-
-
         let targetDIV = null;
         if ('target' in args) {
             targetDIV = document.getElementById(args.target);
@@ -376,13 +307,9 @@ sgv.display = function(args) {
         sgv.canvas.setAttribute("id", "sgvRenderCanvas");
         targetDIV.appendChild(sgv.canvas);
 
-        sgv.advancedTexture = null;
-        sgv.sceneToRender = null;
-
         function createDefaultEngine() {
             return new BABYLON.Engine(sgv.canvas, true, {doNotHandleContextLost: true, preserveDrawingBuffer: true, stencil: true, disableWebGL2Support: false});
         }
-
 
         window.initFunction = async function () {
             var asyncEngineCreation = async function () {
@@ -405,32 +332,28 @@ sgv.display = function(args) {
         };
 
         initFunction().then( function() {
-            sgv.sceneToRender = sgv.scene;
+            let sceneToRender = sgv.scene;
             sgv.engine.runRenderLoop(function () {
-                if (sgv.sceneToRender && sgv.sceneToRender.activeCamera) {
-                    sgv.sceneToRender.render();
+                if (sceneToRender && sceneToRender.activeCamera) {
+                    sceneToRender.render();
                 }
             });
         });
 
         // Resize
         window.addEventListener("resize",
-                function () {
-                    sgv.engine.resize();
-                });
+            function () {
+                sgv.engine.resize();
+            });
 
         desktopInit();
-        
-        
     });
 };
 
 //=========================================
-// functions overriden
-// in desktop scripts
-//
+// functions overriden in desktop scripts
+
 desktopInit = ()=>{};
-//showSplash = ()=>{};
-//hideSplash = ()=>{};
 enableMenu = (id, enabled)=>{};
 
+//=========================================

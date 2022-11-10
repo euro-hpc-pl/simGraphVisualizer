@@ -10,8 +10,11 @@ var SPS = (function(scene) {
     var eCnt = 0;
     var nCnt = 0;
     
-    var defaultSphere = BABYLON.MeshBuilder.CreateSphere("defaultSphere", {diameter: 3, segments: 8, updatable: false}, scene);
-    var defaultCylinder = BABYLON.MeshBuilder.CreateCylinder("cylinder", {height:1,diameter:1});
+    var nKilled = [];
+    var eKilled = [];
+    
+    var defaultSphere = BABYLON.MeshBuilder.CreateSphere("defaultSphere", {diameter: 3, segments: 8, updatable: false});
+    var defaultCylinder = BABYLON.MeshBuilder.CreateCylinder("cylinder", {height:1, diameter:1, tessellation:6, updatable: false});
     
     defaultSphere.setEnabled(false);
     defaultCylinder.setEnabled(false);
@@ -40,6 +43,10 @@ var SPS = (function(scene) {
     };
     
     function _uniqueNodeId() {
+        if (nKilled.length>0) {
+            return nKilled.pop();
+        }
+
         let id = nCnt++;
         let size = NodeSPS.nbParticles;
         if (id>=size) {
@@ -50,17 +57,20 @@ var SPS = (function(scene) {
                 NodeSPS.particles[i].isVisible = false;
             }
         }
-        
         return id;
     };
     
     function _uniqueEdgeId() {
+        if (eKilled.length>0) {
+            return eKilled.pop();
+        }
+
         let id = eCnt++;
         let size = EdgeSPS.nbParticles;
         if (id>=size) {
             EdgeSPS.addShape(defaultCylinder, 100);
             EdgeSPSmesh = EdgeSPS.buildMesh();
-        
+
             for (let i=size; i<(size+100); i++){
                 EdgeSPS.particles[i].isVisible = false;
             }
@@ -99,6 +109,8 @@ var SPS = (function(scene) {
         //console.log(NodeSPS.particles[idx]);
         NodeSPS.particles[idx].isVisible = false;
         NodeSPS.particles[idx].nodeId = null;
+        
+        nKilled.push(idx);
     }
 
     function setEdgeX(edge, edgeColor, edgeWidth, b, e) {
@@ -165,6 +177,8 @@ var SPS = (function(scene) {
         //console.log(EdgeSPS.particles[idx]);
         EdgeSPS.particles[idx].isVisible = false;
         EdgeSPS.particles[idx].edgeId = null;
+        
+        eKilled.push(idx);
     }
     
     function onPickX(pickInfo) {
@@ -350,44 +364,42 @@ var Label = (function (labelId, txt, position, enabled) {
         this.position = pos;
         
         if (this.plane !==null)
-            this.plane.position = pos.add(new BABYLON.Vector3(0.0, 5.0, 0.0));
+            this.plane.position = pos.add(this.planeOffset);
     };
 
     this.createPlane = function() {
-        //Set font
-        var font_size = 48;
-        var font = "normal " + font_size + "px Arial";
+        let font_size = 64;
+        let font = "bold " + font_size + "px Arial";
 
-        //Set height for plane
-        var planeHeight = 4;
+        let ratio = 0.075;
 
-        //Set height for dynamic texture
-        var DTHeight = 1.5 * font_size; //or set as wished
+        let tmpTex = new BABYLON.DynamicTexture("DynamicTexture", 64, sgv.scene);
+        let tmpCTX = tmpTex.getContext();
 
-        //Calcultae ratio
-        var ratio = planeHeight / DTHeight;
-
-        //Use a temporay dynamic texture to calculate the length of the text on the dynamic texture canvas
-        var temp = new BABYLON.DynamicTexture("DynamicTexture", 64, sgv.scene);
-        var tmpctx = temp.getContext();
-        tmpctx.font = font;
-
-        //Set text
-        var text = this.text;
-
-        var DTWidth = tmpctx.measureText(text).width + 8;
-
-        //Calculate width the plane has to be 
-        var planeWidth = DTWidth * ratio;
-
-        //Create dynamic texture and write the text
-        var mat = new BABYLON.StandardMaterial("mat", sgv.scene);
-        mat.diffuseTexture = new BABYLON.DynamicTexture("DynamicTexture", {width: DTWidth, height: DTHeight}, sgv.scene, false);
-        mat.diffuseTexture.drawText(text, null, null, font, "#000000", "#ffff00", true);
+        tmpCTX.font = font;
         
-        var plane = BABYLON.MeshBuilder.CreatePlane(this.id + "_plane", {width: planeWidth, height: planeHeight, updatable: true}, sgv.scene);
-        plane.material = mat;
+        let DTWidth = tmpCTX.measureText(this.text).width + 8;
+        let DTHeight = font_size + 8;
 
+        var planeWidth = DTWidth * ratio;
+        var planeHeight = DTHeight * ratio;
+
+        var plane = BABYLON.MeshBuilder.CreatePlane(this.id + "_plane", {width: planeWidth, height: planeHeight, updatable: true}, sgv.scene);
+        
+        plane.material = new BABYLON.StandardMaterial(this.id + "_plane_material", sgv.scene);
+        
+        plane.material.diffuseTexture = new BABYLON.DynamicTexture(this.id + "_plane_texture", {width: DTWidth, height: DTHeight}, sgv.scene, false);
+
+        plane.material.diffuseTexture.hasAlpha = true;
+        plane.material.opacityTexture = plane.material.diffuseTexture;
+        plane.material.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND;
+        plane.material.alpha = 1;
+        
+        plane.material.diffuseTexture.drawText(this.text, null, null, font, '#ffff00', 'rgba(0,0,255,0.7)', true);
+        
+        //plane.material.specularColor = new BABYLON.Color3(1, 1, 0);
+        //plane.material.ambientColor = new BABYLON.Color3(1, 1, 0);
+        plane.material.emissiveColor = new BABYLON.Color3(1, 1, 0);
         return plane;
     };
 
@@ -396,9 +408,9 @@ var Label = (function (labelId, txt, position, enabled) {
      * @param {type} position
      * @returns {undefined}
      */
-    this.createMe = async function (txt, position, enabled) {
+    this.createMe = async function (position, enabled) {
         this.plane = this.createPlane();
-        this.plane.position = position.add(new BABYLON.Vector3(0.0, 5.0, 0.0));
+        this.plane.position = position.add(this.planeOffset);
         this.plane.billboardMode = BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
         this.plane.setEnabled(enabled);
         this.plane.isPickable = false;
@@ -410,10 +422,11 @@ var Label = (function (labelId, txt, position, enabled) {
     };
 
     this.text = txt;
+    this.planeOffset = new BABYLON.Vector3(0.0, 5.0, 0.0);
     this.position = position;
     this.id = labelId;
     this.plane = null;
-    this.createMe(txt, position, enabled);
+    this.createMe(position, enabled);
 });
 
 /* 
@@ -464,7 +477,7 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         set(pos) {
             this.mesh.position.copyFrom(pos);
             if (typeof label !== 'undefined') {
-                label.plane.position.copyFrom(pos).addInPlaceFromFloats(0.0, 5.0, 0.0);
+                label.plane.position.copyFrom(pos);
             }
         }
     });
@@ -1150,7 +1163,7 @@ var Graph = /** @class */ (function () {
         
         var result = {
             min: Number.MAX_VALUE,
-            max: Number.MIN_VALUE,
+            max: -Number.MAX_VALUE,
             com: ""
         };
 
@@ -1159,14 +1172,16 @@ var Graph = /** @class */ (function () {
         for (const key in this.edges) {
             let val = this.edges[key].getValue(scope);
             
-            if (val < result.min) {
+            if (!isNaN(val)) {
                 nan = false;
-                result.min = val;
-            }
 
-            if (val > result.max) {
-                nan = false;
-                result.max = val;
+                if (val < result.min) {
+                    result.min = val;
+                }
+
+                if (result.max < val) {
+                    result.max = val;
+                }
             }
         }
 
@@ -1186,7 +1201,7 @@ var Graph = /** @class */ (function () {
         
         var result = {
             min: Number.MAX_VALUE,
-            max: Number.MIN_VALUE,
+            max: -Number.MAX_VALUE,
             com: ""
         };
 
@@ -1195,14 +1210,16 @@ var Graph = /** @class */ (function () {
         for (const key in this.nodes) {
             let val = this.nodes[key].getValue(scope);
             
-            if (val < result.min) {
+            if (!isNaN(val)) {
                 nan = false;
-                result.min = val;
-            }
 
-            if (val > result.max) {
-                nan = false;
-                result.max = val;
+                if (val < result.min) {
+                    result.min = val;
+                }
+
+                if (result.max < val) {
+                    result.max = val;
+                }
             }
         }
 
@@ -1215,38 +1232,40 @@ var Graph = /** @class */ (function () {
         return result;
     };
 
-    this.getMinMaxVal = function () {
-        var result = {
-            min: 99999.9,
-            max: -99999.9
-        };
-
-        for (const key in this.edges) {
-            if (this.edges[key].value < result.min) {
-                result.min = this.edges[key].value;
-            }
-
-            if (this.edges[key].value > result.max) {
-                result.max = this.edges[key].value;
-            }
-        }
-        for (const key in this.nodes) {
-            if (this.nodes[key].value < result.min) {
-                result.min = this.nodes[key].value;
-            }
-
-            if (this.nodes[key].value > result.max) {
-                result.max = this.nodes[key].value;
-            }
+    this.getMinMaxVal = function (scope) {
+        if ( (typeof scope === 'undefined') || ! this.scopeOfValues.includes(scope) ) {
+            scope = this.currentScope;
         }
 
-        return result;
+        let nMM = this.getMinMaxNodeVal(scope);
+        let eMM = this.getMinMaxEdgeVal(scope);
+
+        if (isNaN(nMM.min)) { // jeśli min jest NaN, to max również
+            return {
+                min: eMM.min,
+                max: eMM.max
+            };
+        }
+        else if (isNaN(eMM.min)) {
+            return {
+                min: nMM.min,
+                max: nMM.max
+            };
+        }
+        else {
+            return {
+                min: (nMM.min<eMM.min)?nMM.min:eMM.min,
+                max: (nMM.max>eMM.max)?nMM.max:eMM.max
+            };
+        }
     };
 
-    this.calcPosition = function (key) {
-        // override in derrived class
-        return new BABYLON.Vector3();
-    };
+
+    // Calculate position of node in space for visualisation.
+    // The position depends on graph type and display mode,
+    // so need to be overriden in derrived classes
+    this.calcPosition = /*virtual*/ (nodeId) => new BABYLON.Vector3();
+
 
     this.changeDisplayMode = function () {
         for (const key in this.nodes) {
@@ -1927,7 +1946,7 @@ if (typeof global !== "undefined") {
     global.sgv = sgv;
 }
 
-sgv.version = "0.1.0";
+sgv.version = "1.0.0";
 sgv.engine = null;
 sgv.scene = null;
 sgv.camera = null;
@@ -1935,6 +1954,26 @@ sgv.graf = null;
 sgv.displayMode = 'classic';
 
 sgv.createScene = function () {
+    sgv.scene = new BABYLON.Scene(sgv.engine);
+
+    createCamera();
+    createLights();
+
+//====================================================================
+// creating Solid Particle System for nodes/edges visualisation
+//
+    sgv.SPS = new SPS(sgv.scene);
+    sgv.SPS.init();
+//
+//====================================================================
+    
+    sgv.nodeToConnect = 0;
+
+    sgv.addEventsListeners();
+    
+    sgv.scene.clearColor = new BABYLON.Color3(0.7, 0.7, 0.7);
+
+
     function createCamera() {
         sgv.camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(0, 0, 0), sgv.scene);
         
@@ -1963,94 +2002,8 @@ sgv.createScene = function () {
         light.position = new BABYLON.Vector3(0, 0, 0);
         //light.radius = Math.PI;// / 2);
     };
-
-    function createDefaultObjects() {
-//        function createMaterials() {
-//            sgv.grayMat0 = new BABYLON.StandardMaterial("grayMat0", sgv.scene);
-//            sgv.grayMat0.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-//            sgv.grayMat0.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
-//            sgv.grayMat0.emissiveColor = new BABYLON.Color3(0.5, 0.5, 0.5);
-//
-//            sgv.grayMat1 = new BABYLON.StandardMaterial("grayMat1", sgv.scene);
-//            sgv.grayMat1.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-//            sgv.grayMat1.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-//            sgv.grayMat1.emissiveColor = new BABYLON.Color3(0, 0, 0);
-//
-//
-//            sgv.redMat = new BABYLON.StandardMaterial("redMat", sgv.scene);
-//            sgv.redMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-//            sgv.redMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-//            sgv.redMat.emissiveColor = BABYLON.Color3.Red();
-//
-//            sgv.greenMat = new BABYLON.StandardMaterial("greenMat", sgv.scene);
-//            sgv.greenMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-//            sgv.greenMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-//            sgv.greenMat.emissiveColor = new BABYLON.Color3(0, 0.3, 0);
-//
-//            sgv.blueMat = new BABYLON.StandardMaterial("blueMat", sgv.scene);
-//            sgv.blueMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-//            sgv.blueMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-//            sgv.blueMat.emissiveColor = BABYLON.Color3.Blue();
-//
-//            sgv.purpleMat = new BABYLON.StandardMaterial("purpleMat", sgv.scene);
-//            sgv.purpleMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-//            sgv.purpleMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-//            sgv.purpleMat.emissiveColor = BABYLON.Color3.Purple();
-//
-//            sgv.groundMaterial = new BABYLON.StandardMaterial("ground", sgv.scene);
-//            sgv.groundMaterial.specularColor = BABYLON.Color3.Black();
-//        };
-//        createMaterials();
-
-//        sgv.defaultSphere = BABYLON.MeshBuilder.CreateSphere("defaultSphere", {diameter: 3, segments: 8, updatable: false}, sgv.scene);
-//        sgv.defaultCylinder = BABYLON.MeshBuilder.CreateCylinder("cylinder", {height:1,diameter:1});
-//
-//        sgv.NodeSPS = new BABYLON.SolidParticleSystem("NodeSPS", sgv.scene, { isPickable: true, enableDepthSort: true });
-//        sgv.EdgeSPS = new BABYLON.SolidParticleSystem("EdgeSPS", sgv.scene, { isPickable: true, enableDepthSort: true });
-//        
-//        sgv.NodeSPS.addShape(sgv.defaultSphere, 10000);
-//        sgv.EdgeSPS.addShape(sgv.defaultCylinder, 10000);
-//        
-//
-//        sgv.NodeSPSmesh = sgv.NodeSPS.buildMesh();
-//        sgv.EdgeSPSmesh = sgv.EdgeSPS.buildMesh();
-//
-//        for (let i=0; i<10000; i++){
-//            sgv.NodeSPS.particles[i].isVisible = false;
-//            sgv.EdgeSPS.particles[i].isVisible = false;
-//        }
-//
-//        sgv.NodeSPS.setParticles();
-//        sgv.NodeSPS.refreshVisibleSize();
-//
-//        sgv.EdgeSPS.setParticles();
-//        sgv.EdgeSPS.refreshVisibleSize();
-//        
-//        sgv.edCounter = 0;
-//        
-//        sgv.defaultSphere.setEnabled(false);
-//        sgv.defaultCylinder.setEnabled(false);
-//        sgv.defaultSphere.dispose(); //free memory
-//        sgv.defaultCylinder.dispose(); //free memory
-        sgv.SPS = new SPS(sgv.scene);
-        sgv.SPS.init();
-    };
-    
-    
-    sgv.scene = new BABYLON.Scene(sgv.engine);
-
-    createCamera();
-    createLights();
-
-    createDefaultObjects();
-    
-    sgv.advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-    sgv.nodeToConnect = 0;
-
-    sgv.addEventsListeners();
-    
-    sgv.scene.clearColor = new BABYLON.Color3(0.7, 0.7, 0.7);
 };
+
 
 sgv.switchDisplayMode = function () {
     if (sgv.displayMode === 'classic') {
@@ -2255,9 +2208,6 @@ sgv.display = function(args) {
     }
 
     showSplashAndRun(()=>{
-        sgv.ui = new UI();
-
-
         let targetDIV = null;
         if ('target' in args) {
             targetDIV = document.getElementById(args.target);
@@ -2275,13 +2225,9 @@ sgv.display = function(args) {
         sgv.canvas.setAttribute("id", "sgvRenderCanvas");
         targetDIV.appendChild(sgv.canvas);
 
-        sgv.advancedTexture = null;
-        sgv.sceneToRender = null;
-
         function createDefaultEngine() {
             return new BABYLON.Engine(sgv.canvas, true, {doNotHandleContextLost: true, preserveDrawingBuffer: true, stencil: true, disableWebGL2Support: false});
         }
-
 
         window.initFunction = async function () {
             var asyncEngineCreation = async function () {
@@ -2304,35 +2250,31 @@ sgv.display = function(args) {
         };
 
         initFunction().then( function() {
-            sgv.sceneToRender = sgv.scene;
+            let sceneToRender = sgv.scene;
             sgv.engine.runRenderLoop(function () {
-                if (sgv.sceneToRender && sgv.sceneToRender.activeCamera) {
-                    sgv.sceneToRender.render();
+                if (sceneToRender && sceneToRender.activeCamera) {
+                    sceneToRender.render();
                 }
             });
         });
 
         // Resize
         window.addEventListener("resize",
-                function () {
-                    sgv.engine.resize();
-                });
+            function () {
+                sgv.engine.resize();
+            });
 
         desktopInit();
-        
-        
     });
 };
 
 //=========================================
-// functions overriden
-// in desktop scripts
-//
+// functions overriden in desktop scripts
+
 desktopInit = ()=>{};
-//showSplash = ()=>{};
-//hideSplash = ()=>{};
 enableMenu = (id, enabled)=>{};
 
+//=========================================
 
 /* global sgv, NaN */
 
@@ -2814,7 +2756,7 @@ sgv.dlgCPL = new function() {
     var selectScope;
     var sliderRedLimit, sliderGreenLimit;
     var spanRed, spanGreen;
-    var btnDispMode, btnShowConsole, btnSaveTXT, btnSaveGEXF, btnClear;
+    var btnDispMode, btnShowConsole, btnSaveTXT, btnClear;
 
     var btnShowConsole2, btnCreate, btnLoad;
     
@@ -2864,6 +2806,61 @@ sgv.dlgCPL = new function() {
                 return i;
             }
 
+            function createLimitSlidersPanel() {
+                let sldPanel = UI.tag('div',{'id':'panelLimitSliders'});
+                
+                sldPanel.appendChild( spanRed=UI.tag("span",{'id':'spanRed'},{'textContent':'-1.0'}) );
+
+                sliderRedLimit = UI.tag('input',{
+                    'type':'range',
+                    'class':'graphLimit',
+                    'id':'redLimit',
+                    'value':'-1.0',
+                    'min':'-1.0',
+                    'max':'0.0',
+                    'step':'0.01'
+                });
+                sliderRedLimit.addEventListener('input', async (e)=>{
+                    if (sgv.graf !== null) {
+                        sgv.graf.redLimit = e.target.value;
+
+                        spanRed.textContent = ''+sgv.graf.redLimit+' ';
+
+                        sgv.graf.displayValues();
+                    }
+                });
+
+                sldPanel.appendChild(sliderRedLimit);
+
+                sldPanel.appendChild( UI.tag("span",{'id':'spanZero'},{'textContent':' 0 '}) );
+
+                sliderGreenLimit = UI.tag('input',{
+                    'type':'range',
+                    'class':'graphLimit',
+                    'id':'greenLimit',
+                    'value':'1.0',
+                    'min':'0.0',
+                    'max':'1.0',
+                    'step':'0.01'
+                });
+                sliderGreenLimit.addEventListener('input', async (e)=>{
+                    if (sgv.graf !== null) {
+                        sgv.graf.greenLimit = e.target.value;
+
+                        spanGreen.textContent = ' '+sgv.graf.greenLimit;
+
+                        sgv.graf.displayValues();
+
+                    }
+                });
+
+                sldPanel.appendChild(sliderGreenLimit);
+
+                sldPanel.appendChild( spanGreen=UI.tag("span",{'id':'spanGreen'},{'textContent':'1.0'}) );
+                
+                return sldPanel;
+            }
+
             var divDesc = UI.tag("div", {"class": "content", "id": "graphDescription"});
 
             divDesc.appendChild(createInfoBlock());
@@ -2879,6 +2876,7 @@ sgv.dlgCPL = new function() {
             selectScope = UI.tag( "select", {'id': "cplDispValues" } );
             selectScope.addEventListener('change', () => {
                 sgv.graf.displayValues(selectScope.value);
+                updateSlidersX();
             });
             divDS.appendChild( selectScope );
 
@@ -2891,61 +2889,10 @@ sgv.dlgCPL = new function() {
             scope.appendChild(divDS);
             divDesc.appendChild(scope);
 
-            divDesc.appendChild( spanRed=UI.tag("span",{'id':'spanRed'},{'textContent':'-1.0'}) );
-            spanRed.style.display='inline-block';
-            spanRed.style.width = '3em';
-            sliderRedLimit = UI.tag('input',{
-                'type':'range',
-                'id':'redLimit',
-                'value':'-1.0',
-                'min':'-1.0',
-                'max':'0.0',
-                'step':'0.01'
-            });
-            sliderRedLimit.addEventListener('input', async (e)=>{
-                if (sgv.graf !== null) {
-                    sgv.graf.redLimit = e.target.value;
+            let sldPanel = createLimitSlidersPanel();
+            divDesc.appendChild(sldPanel);
 
-                    spanRed.textContent = ''+sgv.graf.redLimit+' ';
-                    
-                    sgv.graf.displayValues();
-                }
-            });
-            //sliderRedLimit.style.appearance = 'slider-vertical';
-            divDesc.appendChild(sliderRedLimit);
-
-            divDesc.appendChild( UI.tag("span",{'id':'spanZero'},{'textContent':' 0 '}) );
-
-            sliderGreenLimit = UI.tag('input',{
-                'type':'range',
-                'id':'greenLimit',
-                'value':'1.0',
-                'min':'0.0',
-                'max':'1.0',
-                'step':'0.01'
-            });
-            sliderGreenLimit.addEventListener('input', async (e)=>{
-                if (sgv.graf !== null) {
-                    sgv.graf.greenLimit = e.target.value;
-                    
-                    spanGreen.textContent = ' '+sgv.graf.greenLimit;
- 
-                    sgv.graf.displayValues();
-
-                }
-            });
-            //sliderGreenLimit.style.appearance = 'slider-vertical';
-
-            divDesc.appendChild(sliderGreenLimit);
-
-            divDesc.appendChild( spanGreen=UI.tag("span",{'id':'spanGreen'},{'textContent':'1.0'}) );
-            spanGreen.style.display='inline-block';
-            spanGreen.style.width = '3em';
-
-            let btnPanel = UI.tag('div',{
-                'id':'panelBtns'
-            });
-            btnPanel.style['border-top']='1px solid #000';
+            let btnPanel = UI.tag('div',{'id':'panelBtns'});
             
             btnPanel.appendChild(
                     btnDispMode = UI.createTransparentBtn1('display mode',"cplDispModeButton",()=>{
@@ -3044,6 +2991,7 @@ sgv.dlgCPL = new function() {
     };
     
     function showDialog() {
+        updateSlidersX();
         com.style.display = "block";
     };
     
@@ -3052,6 +3000,7 @@ sgv.dlgCPL = new function() {
     };
     
     function switchDialog() {
+        //updateSlidersX();
         com.style.display = (com.style.display === "none")?"block":"none";
     };
     
@@ -3085,6 +3034,61 @@ sgv.dlgCPL = new function() {
         
     };
 
+    function updateSlidersX() {
+        if (sgv.graf === null) return;
+        
+        let r = sgv.graf.getMinMaxVal();
+        
+        // min should to bee negative or :
+        if (r.min>0) r.min = Number.NaN;
+
+        // max should to bee positive:
+        if (r.max<0) r.max = Number.NaN;
+
+        
+        updateRed(r.min);
+        updateGreen(r.max);
+
+        function updateRed(min) {
+            if (isNaN(min)) {
+                sliderRedLimit.disabled = 'disabled';
+                spanRed.textContent = 'NaN';
+            }
+            else {
+                min = Math.floor(min * 100) / 100;
+                
+                if (sgv.graf.redLimit<min) {
+                    sgv.graf.redLimit = min;
+                }
+                
+                sliderRedLimit.min = min;
+                sliderRedLimit.value = sgv.graf.redLimit;
+
+                spanRed.textContent = sgv.graf.redLimit+' ';
+                sliderRedLimit.disabled = '';
+            }
+        };
+        function updateGreen(max) {
+            if (isNaN(max)) {
+                sliderGreenLimit.disabled = 'disabled'; 
+                spanGreen.textContent = 'NaN';
+            }
+            else {
+                max = Math.ceil(max * 100) / 100;
+                
+                if (sgv.graf.greenLimit>max) {
+                    sgv.graf.greenLimit=max;
+                }
+                
+                sliderGreenLimit.max = max;
+                sliderGreenLimit.value = sgv.graf.greenLimit;
+                
+                spanGreen.textContent = ' '+sgv.graf.greenLimit;
+                sliderGreenLimit.disabled = '';
+            }
+        };
+    };
+
 
     function setModeDescriptionX() {
         function refreshScopes() {
@@ -3101,6 +3105,7 @@ sgv.dlgCPL = new function() {
             }
         }
 
+        
         function updateInfoBlock() {
             elm.querySelector("#dscr_type").textContent = sgv.graf.type;
             elm.querySelector("#dscr_cols").textContent = sgv.graf.cols;
@@ -3111,61 +3116,9 @@ sgv.dlgCPL = new function() {
             elm.querySelector("#dscr_nbEdges").textContent = Object.keys(sgv.graf.edges).length;
             
             
-            nMinMax = sgv.graf.getMinMaxNodeVal();
-            eMinMax = sgv.graf.getMinMaxEdgeVal();
-            
-            //console.log(nMinMax,eMinMax);
-            
-            let min, max;
-            
-            if (nMinMax.min!==Number.NaN) {
-                min = nMinMax.min;
-                if (eMinMax.min!==Number.NaN) {
-                    min = (min<eMinMax.min)?min:eMinMax.min;
-                }
-            } else {
-                min = eMinMax.min;
-            }
-            
-            if (nMinMax.max!==Number.NaN) {
-                max = nMinMax.max;
-                if (eMinMax.max!==Number.NaN) {
-                    max = (max>eMinMax.max)?max:eMinMax.max;
-                }
-            } else {
-                max = eMinMax.max;
-            }
-            
-            if ((min!==Number.NaN)&&(min>=0)) min = Number.NaN;
-            if ((max!==Number.NaN)&&(max<=0)) max = Number.NaN;
-
-            //console.log(min,max);
-
-            if (min!==Number.NaN) {
-                if (sgv.graf.redLimit<min){
-                    sgv.graf.redLimit=min;
-                }
-                sliderRedLimit.min = Math.round(min * 100) / 100;
-                sliderRedLimit.value = sgv.graf.redLimit;
-                spanRed.textContent = ''+sgv.graf.redLimit+' ';
-                sliderRedLimit.disabled = '';
-            } else {
-                sliderRedLimit.disabled = 'disabled';
-            }
-
-            if (max!==Number.NaN) {
-                if (sgv.graf.greenLimit>max){
-                    sgv.graf.greenLimit=max;
-                }
-                sliderGreenLimit.max = Math.round(max * 100) / 100;;
-                sliderGreenLimit.value = sgv.graf.greenLimit;
-                spanGreen.textContent = ' '+sgv.graf.greenLimit;
-                sliderGreenLimit.disabled = '';
-            } else {
-                sliderGreenLimit.disabled = 'disabled';
-            }
         };
 
+        updateSlidersX();
         updateInfoBlock();
         refreshScopes();
 
@@ -3185,6 +3138,7 @@ sgv.dlgCPL = new function() {
         switchPanel: switchDialog,
         setModeDescription: setModeDescriptionX,
         setModeSelection: setModeSelectionX,
+        updateSliders: updateSlidersX,
         addScope: addScopeX,
         delScope: delScopeX,
         selScope: selScopeX
