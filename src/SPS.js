@@ -43,9 +43,9 @@ var SPS = (function(scene) {
     };
     
     function _uniqueNodeId() {
-        if (nKilled.length>0) {
-            return nKilled.pop();
-        }
+//        if (nKilled.length>0) {
+//            return nKilled.pop();
+//        }
 
         let id = nCnt++;
         let size = NodeSPS.nbParticles;
@@ -61,9 +61,9 @@ var SPS = (function(scene) {
     };
     
     function _uniqueEdgeId() {
-        if (eKilled.length>0) {
-            return eKilled.pop();
-        }
+//        if (eKilled.length>0) {
+//            return eKilled.pop();
+//        }
 
         let id = eCnt++;
         let size = EdgeSPS.nbParticles;

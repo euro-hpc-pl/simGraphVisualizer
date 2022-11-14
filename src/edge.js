@@ -1,3 +1,5 @@
+
+
 /* 
  * Copyright 2022 Dariusz Pojda.
  *
@@ -100,11 +102,7 @@ var Edge = /** @class */ (function (graf, b, e) {
         sgv.SPS.updateEdgeValue(this, edgeColor, edgeWidth);
     };
 
-    var mesh = sgv.SPS.bindEdge(this);
-    if (mesh===null) {
-        console.error("Can't bind EdgeSPS");
-    }
-    else {
+    this.update = ()=>{
         let val = this.values[this.parentGraph.currentScope];
         
         let edgeColor = valueToColor(val);
@@ -114,8 +112,17 @@ var Edge = /** @class */ (function (graf, b, e) {
         let e = this.parentGraph.nodePosition(this.end);
 
         sgv.SPS.setEdge(this, edgeColor, edgeWidth, b, e);
+    };
+
+    var mesh = sgv.SPS.bindEdge(this);
+    if (mesh===null) {
+        console.error("Can't bind EdgeSPS");
+    }
+    else {
+        this.update();
     }
 
 });
 
+//static
 Edge.calcId = (b, e) => (b < e)?("" + b + "," + e):("" + e + "," + b);

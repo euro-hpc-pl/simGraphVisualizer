@@ -1,3 +1,4 @@
+
 /* global sgv, UI, URL, Chimera, Pegasus, ParserGEXF, ParserTXT */
 var FileIO = {};
 

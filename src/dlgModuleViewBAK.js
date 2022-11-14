@@ -131,7 +131,7 @@ sgv.dlgCreateGraph = new function() {
                 setTimeout(()=>{
                     sgv.createGraph( getGraphTypeAndSize(), res );
                 }, 100);
-            },true);
+            });
         } );
 
         ui.querySelector("#cplCancelButton").addEventListener('click', ()=>{

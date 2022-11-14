@@ -1,3 +1,4 @@
+
 sgv.dlgAbout = new function() {
     var ui = null;
 
@@ -58,5 +59,6 @@ sgv.dlgAbout = new function() {
         hide: hideDialog
     };
 };
+
 
 

@@ -1,3 +1,4 @@
+
 /* 
  * Copyright 2022 Dariusz Pojda.
  *
@@ -22,44 +23,54 @@ var Pegasus = /** @class */ (function () {
 
     this.type = 'pegasus';
 
-    this.createDefaultStructure = function () {
+    this.createModules = ()=>{
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < this.rows; y++) {
                 for (let x = 0; x < this.cols; x++) {
-                    this.createModule2(x, y, z);
+                    this.createModule2(x, y, z);    // structure derrived from Chimera
+                    this.connectInternalPegasusEdges(x, y, z); // additional in-module edges
                 }
             }
         }
+    };
 
-        for (let z = 0; z < this.layers; z++) {
-            for (let y = 0; y < (this.rows - 1); y++) {
-                for (let x = 0; x < this.cols; x++) {
-                    this.connectRowModules2(x, y, z);
-                }
-            }
-        }
-
-        for (let z = 0; z < this.layers; z++) {
-            for (let y = 0; y < this.rows; y++) {
-                for (let x = 0; x < (this.cols - 1); x++) {
-                    this.connectColModules2(x, y, z);
-                }
-            }
-        }
-
+    this.pegasusConnections = ()=>{
+        // layer to layer connections
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < this.rows; y++) {
                 for (let x = 0; x < this.cols; x++) {
-                    this.connectEvenMoreIdioticPegasusEdges(x, y, z);
+                    this.connectExternalPegasusEdges(x, y, z);
                 }
             }
         }
+    };
+    
+    this.createDefaultStructure = function (then) {
+        sgv.dlgLoaderSplash.setInfo('creating modules', ()=>{
+            this.createModules(); // overriden
 
-        this.showLabels(true);
+            this.showLabels(true);
+                        
+            sgv.dlgLoaderSplash.setInfo('creating row connections',()=>{
+                this.rowConnections();  // derrived from Chimera
+
+                sgv.dlgLoaderSplash.setInfo('creating col connections',()=>{
+                    this.colConnections();  // derrived from Chimera
+
+                    sgv.dlgLoaderSplash.setInfo('creating specific pegasus connections',()=>{
+                        this.pegasusConnections();
+
+                        if (typeof then==='function') {
+                            then();
+                        }
+                    });
+                });
+            });
+        });
     };
 
 
-    this.connectEvenMoreIdioticPegasusEdges = function (x, y, z) {
+    this.connectExternalPegasusEdges = function (x, y, z) {
         let val0 = Number.NaN;
         let val1 = val0; //-1.0;
         let val2 = val0; // 1.0;

@@ -1,3 +1,4 @@
+
 /* global sgv, UI */
 
 sgv.dlgEdgeProperties = new function() {

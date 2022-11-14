@@ -98,3 +98,4 @@ function PitchYawRollToMoveBetweenPoints(start, target) {
     const ref = BABYLON.Vector3.Zero();
     return PitchYawRollToMoveBetweenPointsToRef(start, target, ref);
 }
+

@@ -2,13 +2,17 @@
 
 sgv.dlgLoaderSplash = new function() {
     var ui = null;
-
+    var info;
+    
     function createDialog() {
         if (ui===null) {
             ui = UI.tag( "dialog", { "class": "sgvModalDialog", "id": "loaderSplash" });
         }
         
-        ui.innerHTML = '<span>working hard for you</span><div class="loader"></div><span>... please wait ...</span>';
+        ui.appendChild(UI.tag('span',{},{'textContent':'working hard for you'}));
+        ui.appendChild(UI.tag('div',{'class':'loader'}));
+        ui.appendChild(UI.tag('span',{},{'textContent':'... please wait ...'}));
+        ui.appendChild(info = UI.tag('div',{'id':'infoBlock'}));
 
         ui.style.display = "none";
         window.document.body.appendChild(ui);
@@ -27,7 +31,20 @@ sgv.dlgLoaderSplash = new function() {
         ui.style.display = "none";
     };
 
+    function setInfoX(text,action) {
+        if (ui.open) ui.close();
+            ui.style.display = "block";
+        ui.showModal();
+        info.innerHTML = text;
+        if (typeof action==='function'){
+            setTimeout( ()=>{
+                action();
+            }, 200);
+        }
+    };
+    
     return {
+        setInfo: setInfoX,
         show: showDialog,
         hide: hideDialog
     };
@@ -44,10 +61,13 @@ function hideSplash() {
     }, 200);
 };
 
-function showSplashAndRun(f) {
+function showSplashAndRun(f,noHide) {
+    if (typeof noHide==='undefined')
+        noHide = false;
+    
     showSplash();
     setTimeout(()=>{
         f();
-        hideSplash();
+        if (!noHide) hideSplash();
     }, 100);
 };

@@ -31,7 +31,7 @@ sgv.dlgMissingNodes = new function() {
         let i = UI.newInput("button", " q" + nodeId + " ", "", "rest" + nodeId );
 
         i.addEventListener('click', function () {
-            restoreNode(nodeId);
+            restoreNodeX(nodeId);
         });
         
         misN.appendChild(i);
@@ -39,11 +39,14 @@ sgv.dlgMissingNodes = new function() {
         ui.style.display = "block";
     };
     
-    function restoreNode(nodeId) {
-        var but = ui.querySelector("#rest" + nodeId);
-        but.parentNode.removeChild(but);
-
-        sgv.graf.restoreNode(nodeId);
+    function restoreNodeX(nodeId) {
+        if (sgv.graf.restoreNode(nodeId)) {
+            let but = ui.querySelector("#rest" + nodeId);
+            but.parentNode.removeChild(but);
+            
+            return true;
+        }
+        return false;
     };
     
     function delMissingX() {
@@ -61,6 +64,7 @@ sgv.dlgMissingNodes = new function() {
         show: ()=>{ui.style.display = "block";},
         hide: ()=>{ui.style.display = "none";},
         addNode: addNodeX,
+        restoreNode: restoreNodeX,
         delAll: delMissingX
     };
 

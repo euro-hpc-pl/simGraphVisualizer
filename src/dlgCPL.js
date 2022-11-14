@@ -1,3 +1,4 @@
+
 "use strict";
 /* global sgv, Chimera, Pegasus, UI, parserGEXF, dialog, FileIO */
 
@@ -427,11 +428,15 @@ sgv.createGraph = function(gDesc, res) {
     }
 
     if (typeof res === 'undefined')
-        sgv.graf.createDefaultStructure();
-    else
+        sgv.graf.createDefaultStructure(()=>{
+            sgv.setModeDescription();
+            sgv.graf.displayValues();
+            hideSplash();
+        });
+    else {
         sgv.graf.createStructureFromDef(res);
-    
-    sgv.setModeDescription();
-
-    sgv.graf.displayValues();
+        sgv.setModeDescription();
+        sgv.graf.displayValues();
+        hideSplash();
+    }
 };

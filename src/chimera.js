@@ -1,3 +1,5 @@
+
+
 /* 
  * Copyright 2022 Dariusz Pojda.
  *
@@ -116,14 +118,14 @@ var Chimera = /** @class */ (function () {
                 new BABYLON.Vector3(-15, -3, 10)],
 
             'diamond': [
-                new BABYLON.Vector3(0, -3, 9),
-                new BABYLON.Vector3(0, -1, 3),
-                new BABYLON.Vector3(0, 1, -3),
-                new BABYLON.Vector3(0, 3, -9),
-                new BABYLON.Vector3(9, 3, 0),
-                new BABYLON.Vector3(3, 1, 0),
-                new BABYLON.Vector3(-3, -1, 0),
-                new BABYLON.Vector3(-9, -3, 0)],
+                new BABYLON.Vector3(0, -5, 15),
+                new BABYLON.Vector3(0, -1, 5),
+                new BABYLON.Vector3(0, 1, -5),
+                new BABYLON.Vector3(0, 5, -15),
+                new BABYLON.Vector3(15, 5, 0),
+                new BABYLON.Vector3(5, 1, 0),
+                new BABYLON.Vector3(-5, -1, 0),
+                new BABYLON.Vector3(-15, -5, 0)],
 
             'triangle': [
                 new BABYLON.Vector3(-15, -3, 9),
@@ -140,16 +142,7 @@ var Chimera = /** @class */ (function () {
         return nodeOffset[sgv.displayMode][idx];
     };
 
-
-    this.createDefaultStructure = function () {
-        for (let z = 0; z < this.layers; z++) {
-            for (let y = 0; y < this.rows; y++) {
-                for (let x = 0; x < this.cols; x++) {
-                    this.createModule2(x, y, z);
-                }
-            }
-        }
-
+    this.rowConnections = ()=>{
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < (this.rows - 1); y++) {
                 for (let x = 0; x < this.cols; x++) {
@@ -157,7 +150,9 @@ var Chimera = /** @class */ (function () {
                 }
             }
         }
+    };
 
+    this.colConnections = ()=>{
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < this.rows; y++) {
                 for (let x = 0; x < (this.cols - 1); x++) {
@@ -165,8 +160,28 @@ var Chimera = /** @class */ (function () {
                 }
             }
         }
+    };
 
+    this.createModules = ()=>{
+        for (let z = 0; z < this.layers; z++) {
+            for (let y = 0; y < this.rows; y++) {
+                for (let x = 0; x < this.cols; x++) {
+                    this.createModule2(x, y, z);    // structure derrived from Chimera
+                }
+            }
+        }
+    };
+
+    this.createDefaultStructure = function (then) {
+        this.createModules();
         this.showLabels(true);
+
+        this.rowConnections();
+        this.colConnections();
+
+        if (typeof then==='function') {
+            then();
+        }
     };
 
 

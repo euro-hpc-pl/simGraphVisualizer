@@ -83,3 +83,4 @@ the default location (usually: Downloads) or a selection window will appear."
         hide: hideDialog
     };
 };
+

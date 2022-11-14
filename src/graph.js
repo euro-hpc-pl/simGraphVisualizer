@@ -1,3 +1,4 @@
+
 /* 
  * Copyright 2022 Dariusz Pojda.
  *
@@ -30,7 +31,7 @@ var Graph = /** @class */ (function () {
     this.redLimit = -1.0;
 
     //this.labelsVisible = false;
-    this.labelsVisible = true;
+    this.labelsVisible = false;
 
     this.dispose = function () {
         for (const key in this.edges) {
@@ -146,6 +147,10 @@ var Graph = /** @class */ (function () {
     };
 
     this.restoreNode = function (nodeId) {
+        if (nodeId in this.nodes) return false;
+        
+        if (!(nodeId in this.missing)) return false;
+        
         let pos = this.calcPosition(nodeId);
         
         this.nodes[nodeId] = new Node(this, nodeId, pos.x, pos.y, pos.z, this.missing[nodeId].values);
@@ -154,22 +159,15 @@ var Graph = /** @class */ (function () {
         for (const key in this.missing[nodeId].edges) {
             var nKey = parseInt(key, 10);
             if (nKey in this.nodes) {
-                //console.log("key: ", nKey, typeof (nKey));
-                var strId;
-                if (nodeId < key) {
-                    strId = "" + nodeId + "," + key;
-                    this.edges[strId] = new Edge(this, nodeId, key);
-                    //, this.missing[nodeId].edges[nKey]);
-                } else {
-                    strId = "" + key + "," + nodeId;
-                    this.edges[strId] = new Edge(this, key, nodeId);
-                    //, this.missing[nodeId].edges[nKey]);
-                }
+                let e = new Edge(this, nodeId, key);
+
                 for (const vKey in this.missing[nodeId].edges[nKey].values) {
-                    this.edges[strId].setValue(this.missing[nodeId].edges[nKey].values[vKey],vKey);    
+                    e.setValue(this.missing[nodeId].edges[nKey].values[vKey],vKey);    
                 }
                 
-            } else if (nKey in this.missing) {
+                this.edges[e.id] = e;
+            } 
+            else if (nKey in this.missing) {
                 this.missing[nKey].edges[nodeId] = this.missing[nodeId].edges[nKey];
             }
         }
@@ -180,6 +178,8 @@ var Graph = /** @class */ (function () {
             sgv.dlgMissingNodes.hide();
         
         sgv.SPS.refresh();
+        
+        return true;
     };
 
 
@@ -222,13 +222,7 @@ var Graph = /** @class */ (function () {
                     if (d.n1===d.n2) {
                         result.nodes[d.n1] = d.val;
                     } else {
-                        if (d.n1 < d.n2) {
-                            var strId = "" + d.n1 + "," + d.n2;
-                            result.edges[strId] = d.val;
-                        } else {
-                            var strId = "" + d.n2 + "," + d.n1;
-                            result.edges[strId] = d.val;
-                        }
+                        result.edges[Edge.calcId(d.n1, d.n2)] = d.val;
                     }
                 }
             }
@@ -488,6 +482,8 @@ var Graph = /** @class */ (function () {
         for (const key in this.edges) {
             this.edges[key].update();
         }
+        
+        sgv.SPS.refresh();
     };
     
     this.showLabels = function (b) {
@@ -503,34 +499,25 @@ var Graph = /** @class */ (function () {
             if (def[i].n1 === def[i].n2) {
                 let nodeId = def[i].n1;
 
-                this.addNode(nodeId, this.calcPosition(nodeId), 0.0);
+                let n = this.addNode(nodeId, this.calcPosition(nodeId), 0.0);
 
                 for (const key in def[i].values) {
-                    let scope = def[i].values[key];
-                    this.nodes[nodeId].setValue(scope, key);
+                    n.setValue(def[i].values[key], key);
                 }
-                this.nodes[nodeId].displayValue('default');
-                this.nodes[nodeId].showLabel(false);
-                
-            } else {
+            }
+            else {
                 let n1 = def[i].n1;
                 let n2 = def[i].n2;
-                this.addEdge(n1, n2);
-         
-                var strId = "" + n1 + "," + n2;
-                if (n2 < n1) {
-                    strId = "" + n2 + "," + n1;
-                }
-
-                for (const key in def[i].values) {
-                    this.edges[strId].setValue(def[i].values[key], key);
-                }
                 
-                this.edges[strId].displayValue('default');
+                let e = this.addEdge(n1, n2);
+         
+                for (const key in def[i].values) {
+                    e.setValue(def[i].values[key], key);
+                }
             }
         }
-        //console.log(this.edges);
-        //console.log(nodes);
+
+        this.showLabels(true);
+        this.displayValues('default');
     };
 });
-

@@ -1,3 +1,4 @@
+
 /* 
  * Copyright 2022 Dariusz Pojda.
  *
@@ -164,8 +165,7 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         console.error("Can't bind NodeSPS");
     }
     else {
-        var label = createLabel(this.id, this.mesh.position, sgv.scene, this.labelIsVisible);
+        var label = createLabel(this.id, this.mesh.position, sgv.scene, false);
     }
 
 });
-

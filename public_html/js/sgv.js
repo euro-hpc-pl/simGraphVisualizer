@@ -43,9 +43,9 @@ var SPS = (function(scene) {
     };
     
     function _uniqueNodeId() {
-        if (nKilled.length>0) {
-            return nKilled.pop();
-        }
+//        if (nKilled.length>0) {
+//            return nKilled.pop();
+//        }
 
         let id = nCnt++;
         let size = NodeSPS.nbParticles;
@@ -61,9 +61,9 @@ var SPS = (function(scene) {
     };
     
     function _uniqueEdgeId() {
-        if (eKilled.length>0) {
-            return eKilled.pop();
-        }
+//        if (eKilled.length>0) {
+//            return eKilled.pop();
+//        }
 
         let id = eCnt++;
         let size = EdgeSPS.nbParticles;
@@ -216,6 +216,7 @@ var SPS = (function(scene) {
         unbindEdge: unbindEdgeX
     };
 });
+
 /* global BABYLON, sgv */
 
 
@@ -316,6 +317,7 @@ function PitchYawRollToMoveBetweenPoints(start, target) {
     const ref = BABYLON.Vector3.Zero();
     return PitchYawRollToMoveBetweenPointsToRef(start, target, ref);
 }
+
 
 /* 
  * Copyright 2022 Dariusz Pojda.
@@ -428,6 +430,7 @@ var Label = (function (labelId, txt, position, enabled) {
     this.plane = null;
     this.createMe(position, enabled);
 });
+
 
 /* 
  * Copyright 2022 Dariusz Pojda.
@@ -595,10 +598,11 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         console.error("Can't bind NodeSPS");
     }
     else {
-        var label = createLabel(this.id, this.mesh.position, sgv.scene, this.labelIsVisible);
+        var label = createLabel(this.id, this.mesh.position, sgv.scene, false);
     }
 
 });
+
 
 
 /* 
@@ -703,11 +707,7 @@ var Edge = /** @class */ (function (graf, b, e) {
         sgv.SPS.updateEdgeValue(this, edgeColor, edgeWidth);
     };
 
-    var mesh = sgv.SPS.bindEdge(this);
-    if (mesh===null) {
-        console.error("Can't bind EdgeSPS");
-    }
-    else {
+    this.update = ()=>{
         let val = this.values[this.parentGraph.currentScope];
         
         let edgeColor = valueToColor(val);
@@ -717,11 +717,21 @@ var Edge = /** @class */ (function (graf, b, e) {
         let e = this.parentGraph.nodePosition(this.end);
 
         sgv.SPS.setEdge(this, edgeColor, edgeWidth, b, e);
+    };
+
+    var mesh = sgv.SPS.bindEdge(this);
+    if (mesh===null) {
+        console.error("Can't bind EdgeSPS");
+    }
+    else {
+        this.update();
     }
 
 });
 
+//static
 Edge.calcId = (b, e) => (b < e)?("" + b + "," + e):("" + e + "," + b);
+
 
 /* 
  * Copyright 2022 darek.
@@ -786,6 +796,7 @@ QbDescr.fromNodeId = function (nodeIdA, rows, cols) {
 };
 
 
+
 /* 
  * Copyright 2022 Dariusz Pojda.
  *
@@ -818,7 +829,7 @@ var Graph = /** @class */ (function () {
     this.redLimit = -1.0;
 
     //this.labelsVisible = false;
-    this.labelsVisible = true;
+    this.labelsVisible = false;
 
     this.dispose = function () {
         for (const key in this.edges) {
@@ -934,6 +945,10 @@ var Graph = /** @class */ (function () {
     };
 
     this.restoreNode = function (nodeId) {
+        if (nodeId in this.nodes) return false;
+        
+        if (!(nodeId in this.missing)) return false;
+        
         let pos = this.calcPosition(nodeId);
         
         this.nodes[nodeId] = new Node(this, nodeId, pos.x, pos.y, pos.z, this.missing[nodeId].values);
@@ -942,22 +957,15 @@ var Graph = /** @class */ (function () {
         for (const key in this.missing[nodeId].edges) {
             var nKey = parseInt(key, 10);
             if (nKey in this.nodes) {
-                //console.log("key: ", nKey, typeof (nKey));
-                var strId;
-                if (nodeId < key) {
-                    strId = "" + nodeId + "," + key;
-                    this.edges[strId] = new Edge(this, nodeId, key);
-                    //, this.missing[nodeId].edges[nKey]);
-                } else {
-                    strId = "" + key + "," + nodeId;
-                    this.edges[strId] = new Edge(this, key, nodeId);
-                    //, this.missing[nodeId].edges[nKey]);
-                }
+                let e = new Edge(this, nodeId, key);
+
                 for (const vKey in this.missing[nodeId].edges[nKey].values) {
-                    this.edges[strId].setValue(this.missing[nodeId].edges[nKey].values[vKey],vKey);    
+                    e.setValue(this.missing[nodeId].edges[nKey].values[vKey],vKey);    
                 }
                 
-            } else if (nKey in this.missing) {
+                this.edges[e.id] = e;
+            } 
+            else if (nKey in this.missing) {
                 this.missing[nKey].edges[nodeId] = this.missing[nodeId].edges[nKey];
             }
         }
@@ -968,6 +976,8 @@ var Graph = /** @class */ (function () {
             sgv.dlgMissingNodes.hide();
         
         sgv.SPS.refresh();
+        
+        return true;
     };
 
 
@@ -1010,13 +1020,7 @@ var Graph = /** @class */ (function () {
                     if (d.n1===d.n2) {
                         result.nodes[d.n1] = d.val;
                     } else {
-                        if (d.n1 < d.n2) {
-                            var strId = "" + d.n1 + "," + d.n2;
-                            result.edges[strId] = d.val;
-                        } else {
-                            var strId = "" + d.n2 + "," + d.n1;
-                            result.edges[strId] = d.val;
-                        }
+                        result.edges[Edge.calcId(d.n1, d.n2)] = d.val;
                     }
                 }
             }
@@ -1276,6 +1280,8 @@ var Graph = /** @class */ (function () {
         for (const key in this.edges) {
             this.edges[key].update();
         }
+        
+        sgv.SPS.refresh();
     };
     
     this.showLabels = function (b) {
@@ -1291,36 +1297,29 @@ var Graph = /** @class */ (function () {
             if (def[i].n1 === def[i].n2) {
                 let nodeId = def[i].n1;
 
-                this.addNode(nodeId, this.calcPosition(nodeId), 0.0);
+                let n = this.addNode(nodeId, this.calcPosition(nodeId), 0.0);
 
                 for (const key in def[i].values) {
-                    let scope = def[i].values[key];
-                    this.nodes[nodeId].setValue(scope, key);
+                    n.setValue(def[i].values[key], key);
                 }
-                this.nodes[nodeId].displayValue('default');
-                this.nodes[nodeId].showLabel(false);
-                
-            } else {
+            }
+            else {
                 let n1 = def[i].n1;
                 let n2 = def[i].n2;
-                this.addEdge(n1, n2);
-         
-                var strId = "" + n1 + "," + n2;
-                if (n2 < n1) {
-                    strId = "" + n2 + "," + n1;
-                }
-
-                for (const key in def[i].values) {
-                    this.edges[strId].setValue(def[i].values[key], key);
-                }
                 
-                this.edges[strId].displayValue('default');
+                let e = this.addEdge(n1, n2);
+         
+                for (const key in def[i].values) {
+                    e.setValue(def[i].values[key], key);
+                }
             }
         }
-        //console.log(this.edges);
-        //console.log(nodes);
+
+        this.showLabels(true);
+        this.displayValues('default');
     };
 });
+
 
 
 /* 
@@ -1441,14 +1440,14 @@ var Chimera = /** @class */ (function () {
                 new BABYLON.Vector3(-15, -3, 10)],
 
             'diamond': [
-                new BABYLON.Vector3(0, -3, 9),
-                new BABYLON.Vector3(0, -1, 3),
-                new BABYLON.Vector3(0, 1, -3),
-                new BABYLON.Vector3(0, 3, -9),
-                new BABYLON.Vector3(9, 3, 0),
-                new BABYLON.Vector3(3, 1, 0),
-                new BABYLON.Vector3(-3, -1, 0),
-                new BABYLON.Vector3(-9, -3, 0)],
+                new BABYLON.Vector3(0, -5, 15),
+                new BABYLON.Vector3(0, -1, 5),
+                new BABYLON.Vector3(0, 1, -5),
+                new BABYLON.Vector3(0, 5, -15),
+                new BABYLON.Vector3(15, 5, 0),
+                new BABYLON.Vector3(5, 1, 0),
+                new BABYLON.Vector3(-5, -1, 0),
+                new BABYLON.Vector3(-15, -5, 0)],
 
             'triangle': [
                 new BABYLON.Vector3(-15, -3, 9),
@@ -1465,16 +1464,7 @@ var Chimera = /** @class */ (function () {
         return nodeOffset[sgv.displayMode][idx];
     };
 
-
-    this.createDefaultStructure = function () {
-        for (let z = 0; z < this.layers; z++) {
-            for (let y = 0; y < this.rows; y++) {
-                for (let x = 0; x < this.cols; x++) {
-                    this.createModule2(x, y, z);
-                }
-            }
-        }
-
+    this.rowConnections = ()=>{
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < (this.rows - 1); y++) {
                 for (let x = 0; x < this.cols; x++) {
@@ -1482,7 +1472,9 @@ var Chimera = /** @class */ (function () {
                 }
             }
         }
+    };
 
+    this.colConnections = ()=>{
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < this.rows; y++) {
                 for (let x = 0; x < (this.cols - 1); x++) {
@@ -1490,8 +1482,28 @@ var Chimera = /** @class */ (function () {
                 }
             }
         }
+    };
 
+    this.createModules = ()=>{
+        for (let z = 0; z < this.layers; z++) {
+            for (let y = 0; y < this.rows; y++) {
+                for (let x = 0; x < this.cols; x++) {
+                    this.createModule2(x, y, z);    // structure derrived from Chimera
+                }
+            }
+        }
+    };
+
+    this.createDefaultStructure = function (then) {
+        this.createModules();
         this.showLabels(true);
+
+        this.rowConnections();
+        this.colConnections();
+
+        if (typeof then==='function') {
+            then();
+        }
     };
 
 
@@ -1533,6 +1545,7 @@ Chimera.createNewGraph = function (size) {
 };
 
 
+
 /* 
  * Copyright 2022 Dariusz Pojda.
  *
@@ -1557,44 +1570,54 @@ var Pegasus = /** @class */ (function () {
 
     this.type = 'pegasus';
 
-    this.createDefaultStructure = function () {
+    this.createModules = ()=>{
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < this.rows; y++) {
                 for (let x = 0; x < this.cols; x++) {
-                    this.createModule2(x, y, z);
+                    this.createModule2(x, y, z);    // structure derrived from Chimera
+                    this.connectInternalPegasusEdges(x, y, z); // additional in-module edges
                 }
             }
         }
+    };
 
-        for (let z = 0; z < this.layers; z++) {
-            for (let y = 0; y < (this.rows - 1); y++) {
-                for (let x = 0; x < this.cols; x++) {
-                    this.connectRowModules2(x, y, z);
-                }
-            }
-        }
-
-        for (let z = 0; z < this.layers; z++) {
-            for (let y = 0; y < this.rows; y++) {
-                for (let x = 0; x < (this.cols - 1); x++) {
-                    this.connectColModules2(x, y, z);
-                }
-            }
-        }
-
+    this.pegasusConnections = ()=>{
+        // layer to layer connections
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < this.rows; y++) {
                 for (let x = 0; x < this.cols; x++) {
-                    this.connectEvenMoreIdioticPegasusEdges(x, y, z);
+                    this.connectExternalPegasusEdges(x, y, z);
                 }
             }
         }
+    };
+    
+    this.createDefaultStructure = function (then) {
+        sgv.dlgLoaderSplash.setInfo('creating modules', ()=>{
+            this.createModules(); // overriden
 
-        this.showLabels(true);
+            this.showLabels(true);
+                        
+            sgv.dlgLoaderSplash.setInfo('creating row connections',()=>{
+                this.rowConnections();  // derrived from Chimera
+
+                sgv.dlgLoaderSplash.setInfo('creating col connections',()=>{
+                    this.colConnections();  // derrived from Chimera
+
+                    sgv.dlgLoaderSplash.setInfo('creating specific pegasus connections',()=>{
+                        this.pegasusConnections();
+
+                        if (typeof then==='function') {
+                            then();
+                        }
+                    });
+                });
+            });
+        });
     };
 
 
-    this.connectEvenMoreIdioticPegasusEdges = function (x, y, z) {
+    this.connectExternalPegasusEdges = function (x, y, z) {
         let val0 = Number.NaN;
         let val1 = val0; //-1.0;
         let val2 = val0; // 1.0;
@@ -1666,6 +1689,7 @@ Pegasus.createNewGraph = function (size) {
     }
     return g;
 };
+
 
 /* global sgv */
 
@@ -1915,6 +1939,7 @@ UI.createTransparentBtn1 = function (txt, id, onclick) {
 
     return btn;
 };
+
 
 /* 
  * Copyright 2022 Dariusz Pojda.
@@ -2276,6 +2301,7 @@ enableMenu = (id, enabled)=>{};
 
 //=========================================
 
+
 /* global sgv, NaN */
 
 "use strict";
@@ -2363,6 +2389,7 @@ ParserTXT.exportGraph = (graph) => {
 
     return string;
 };
+
 
 /* global sgv, Chimera, Pegasus */
 
@@ -2615,6 +2642,7 @@ ParserGEXF.exportGraph = function(graph) {
     return xml;
 };
 
+
 /* global sgv, UI, URL, Chimera, Pegasus, ParserGEXF, ParserTXT */
 var FileIO = {};
 
@@ -2746,6 +2774,7 @@ FileIO.loadGraph2 = function(name,data) {
         }
     };
 };
+
 
 "use strict";
 /* global sgv, Chimera, Pegasus, UI, parserGEXF, dialog, FileIO */
@@ -3176,14 +3205,19 @@ sgv.createGraph = function(gDesc, res) {
     }
 
     if (typeof res === 'undefined')
-        sgv.graf.createDefaultStructure();
-    else
+        sgv.graf.createDefaultStructure(()=>{
+            sgv.setModeDescription();
+            sgv.graf.displayValues();
+            hideSplash();
+        });
+    else {
         sgv.graf.createStructureFromDef(res);
-    
-    sgv.setModeDescription();
-
-    sgv.graf.displayValues();
+        sgv.setModeDescription();
+        sgv.graf.displayValues();
+        hideSplash();
+    }
 };
+
 
 /* 
  * Copyright 2022 Dariusz Pojda.
@@ -3312,9 +3346,14 @@ sgv.dlgConsole = new function () {
                     if (id in sgv.graf.nodes) {
                         sgv.graf.setNodeValue(id, val);
                         return "modified node q" + id + " = " + val;
-                    } else {
-                        sgv.graf.addNode(id, val);
-                        return "added node q" + id + " = " + val;
+                    } else if ( sgv.dlgMissingNodes.restoreNode(id) ) {
+                            sgv.graf.setNodeValue(id, val);
+                            return "restored node q" + id + " = " + val;
+                    }
+                    else {
+                        //sgv.graf.addNode(id, sgv.graf.calcPosition(id), val);
+                        //return "added node q" + id + " = " + val;
+                        return "not implemented yet";
                     }
                 } else {
                     return "no graph defined";
@@ -3474,7 +3513,7 @@ sgv.dlgConsole = new function () {
                             sgv.graf.setNodeValue(id, val);
                             return "restored and modified node q" + id + " = " + val;
                         } else {
-                            sgv.graf.addNode(id, val);
+                            sgv.graf.addNode(id, sgv.graf.calcPosition(id), val);
                             return "added node q" + id + " = " + val;
                         }
                     }
@@ -3712,6 +3751,303 @@ sgv.dlgConsole = new function () {
         }
     };
 };
+
+/* global sgv, UI */
+
+sgv.dlgModuleView = new function() {
+    var selectGraphCols, selectGraphRows, selectGraphLays, selectScope;
+
+    var r,c,l;
+    
+    var ui = createUI();
+
+    window.addEventListener('load',()=>{
+        window.document.body.appendChild(ui);
+    });
+
+    function createUI() {
+        r = c = l = 0;
+        
+        let ui = UI.createEmptyWindow("sgvUIwindow", "sgvDlgModuleView", "Cell view", true);
+
+        ui.querySelector(".hidebutton").addEventListener('click', function () {
+            hideDialog();
+        });
+
+        let content = UI.tag( "div", { "class": "content", "id": "graphSelection" });
+
+        content.appendChild(UI.tag('div',{'id':'description'}));
+        let g = UI.tag('div',{'id':'description'});
+
+        g.style['text-align']='center';
+
+        selectGraphCols = UI.tag('select',{'id':'graphCols'});
+        selectGraphCols.addEventListener('change', () => {
+            drawModule(
+                    parseInt(selectGraphCols.value, 10),
+                    parseInt(selectGraphRows.value, 10),
+                    parseInt(selectGraphLays.value, 10)); 
+            });
+
+        g.appendChild(UI.tag('label',{'for':'graphCols'},{'innerHTML':' column: '}));
+        g.appendChild(selectGraphCols);
+
+        selectGraphRows = UI.tag('select',{'id':'graphRows'});
+        selectGraphRows.addEventListener('change', () => {
+            drawModule(
+                    parseInt(selectGraphCols.value, 10),
+                    parseInt(selectGraphRows.value, 10),
+                    parseInt(selectGraphLays.value, 10)); 
+            });
+
+        g.appendChild(UI.tag('label',{'for':'graphRows'},{'innerHTML':' row: '}));
+        g.appendChild(selectGraphRows);
+
+        selectGraphLays = UI.tag('select',{'id':'graphLays'});
+        selectGraphLays.addEventListener('change', () => {
+            drawModule(
+                    parseInt(selectGraphCols.value, 10),
+                    parseInt(selectGraphRows.value, 10),
+                    parseInt(selectGraphLays.value, 10)); 
+            });
+
+        g.appendChild(UI.tag('label',{'for':'graphLays'},{'innerHTML':' layer: '}));
+        g.appendChild(selectGraphLays);
+
+        selectScope = UI.tag( "select", {'id': "selectScope" } );
+        selectScope.addEventListener('change', () => {
+            sgv.graf.displayValues(selectScope.value);
+            sgv.dlgCPL.selScope(selectScope.value);
+            sgv.dlgCPL.updateSliders();
+            drawModule();
+        });
+        g.appendChild(UI.tag('label',{'for':'selectScope'},{'innerHTML':' scope: '}));
+        g.appendChild( selectScope );
+
+
+        content.appendChild(g);
+
+        let div = UI.tag('div');
+        div.style.width='fit-content';
+        div.style.height='fit-content';
+        div.style.background='#fff';
+        content.appendChild(div);
+
+        var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttributeNS(null, "id",'svgView');
+        svg.setAttributeNS(null, "height",600);
+        svg.setAttributeNS(null, "width",400);
+        div.appendChild(svg);
+
+        ui.appendChild(content);
+
+        ui.style.display = "none";
+        ui.style['top']='10vh';
+        return ui;
+    };
+
+    function onClick(e) {
+        var element = e.target;
+        var offsetX = 0, offsetY = 0;
+
+            if (element.offsetParent) {
+          do {
+            offsetX += element.offsetLeft;
+            offsetY += element.offsetTop;
+          } while ((element = element.offsetParent));
+        }
+
+        x = e.pageX - offsetX;
+        y = e.pageY - offsetY;
+        
+        console.log(x,y);
+    }
+
+    function pos(id, mode) {
+        const pos = {
+            'classic': [
+                {x: -60, y: 150},
+                {x: -90, y:  50},
+                {x:-120, y: -50},
+                {x:-150, y:-150},
+                {x: 140, y: 200},
+                {x: 110, y: 100},
+                {x:  80, y:   0},
+                {x:  50, y:-100}]
+        };
+        
+        const ctrX = 200;
+        const ctrY = 300;
+        
+        mode = 'classic'; //temporary
+        
+        return {
+            x: ctrX+pos[mode][id].x,
+            y: ctrY+pos[mode][id].y
+        };
+    }
+    
+    function drawInternalEdge(offset, iB, iE) {
+        let b = offset + iB;
+        let e = offset + iE;
+        let eid = (b < e)?("" + b + "," + e):("" + e + "," + b);
+        if (eid in sgv.graf.edges) {
+            let val = sgv.graf.edgeValue(eid);
+            let color = valueToColor(val);
+            let wth = 5*valueToEdgeWidth(val);
+            
+            var svgns = "http://www.w3.org/2000/svg",
+            container = document.getElementById( 'svgView' );
+            
+            var newLine = document.createElementNS(svgns,'line');
+            newLine.setAttributeNS(null, 'id',eid);
+            newLine.setAttributeNS(null, 'x1',pos(iB).x);
+            newLine.setAttributeNS(null, 'y1',pos(iB).y);
+            newLine.setAttributeNS(null, 'x2',pos(iE).x);
+            newLine.setAttributeNS(null, 'y2',pos(iE).y);
+            newLine.setAttributeNS(null, 'style', 'stroke: '+color.toHexString()+'; stroke-width: '+wth+'px;' );
+            container.appendChild(newLine);
+
+            newLine.addEventListener('click',(e)=>{
+                e.preventDefault();
+                let rect = newLine.getBoundingClientRect();
+                sgv.dlgEdgeProperties.show(newLine.id,rect.x,rect.y);
+            });            
+            
+        }
+    }
+    
+
+    function drawNode(offset, id) {
+        if ((offset+id) in sgv.graf.nodes) {
+            let val = sgv.graf.nodeValue(offset+id);
+            let color = valueToColor(val);
+
+            var svgns = "http://www.w3.org/2000/svg",
+            container = document.getElementById( 'svgView' );
+
+            x = pos(id).x;
+            y = pos(id).y;
+
+            var circle = document.createElementNS(svgns, 'circle');
+            circle.setAttributeNS(null, 'id', offset+id);
+            circle.setAttributeNS(null, 'cx', x);
+            circle.setAttributeNS(null, 'cy', y);
+            circle.setAttributeNS(null, 'r', 20);
+            circle.setAttributeNS(null, 'style', 'fill: '+color.toHexString()+'; stroke: black; stroke-width: 1px;' );
+            container.appendChild(circle);
+
+            circle.addEventListener('click',(e)=>{
+                e.preventDefault();
+                let rect = circle.getBoundingClientRect();
+                sgv.dlgNodeProperties.show(circle.id,rect.x,rect.y);
+            });
+        }
+    }
+
+    function drawExtEdge(offset, ijk, e, endX, endY) {
+        let b = offset+ijk;
+        eid = (b < e)?("" + b + "," + e):("" + e + "," + b);
+            console.log(eid);
+        if (eid in sgv.graf.edges) {
+            console.log(eid);
+            let val = sgv.graf.edgeValue(eid);
+            let color = valueToColor(val);
+            let wth = 5*valueToEdgeWidth(val);
+            
+            var svgns = "http://www.w3.org/2000/svg",
+            container = document.getElementById( 'svgView' );
+            
+            var newLine = document.createElementNS(svgns,'line');
+            newLine.setAttributeNS(null, 'id',eid);
+            newLine.setAttributeNS(null, 'x1',pos(ijk).x);
+            newLine.setAttributeNS(null, 'y1',pos(ijk).y);
+            newLine.setAttributeNS(null, 'x2',endX);
+            newLine.setAttributeNS(null, 'y2',endY);
+            newLine.setAttributeNS(null, 'style', 'stroke: '+color.toHexString()+'; stroke-width: '+wth+'px;' );
+            container.appendChild(newLine);
+
+            newLine.addEventListener('click',(e)=>{
+                e.preventDefault();
+                let rect = newLine.getBoundingClientRect();
+                sgv.dlgEdgeProperties.show(newLine.id,rect.x,rect.y);
+            });            
+        }            
+    }
+    
+    function calcOffset(col, row, layer) {
+        let offset = layer*sgv.graf.cols*sgv.graf.rows;
+        offset += row*sgv.graf.cols;
+        offset += col;
+        offset *= 8;
+
+        offset += 1;
+        
+        return offset;
+    }
+    
+    function drawModule(col, row, layer) {
+        container = document.getElementById( 'svgView' );
+        container.innerHTML = '';
+
+        if (sgv.graf===null) return;
+
+        if (typeof col==='undefined') col=c;
+        else c=col;
+
+        if (typeof row==='undefined') row=r;
+        else r=row;
+
+        if (typeof layer==='undefined') layer=l;
+        else l=layer;
+        
+        UI.selectByKey(selectGraphCols, col);
+        UI.selectByKey(selectGraphRows, row);
+        UI.selectByKey(selectGraphLays, layer);
+        
+        if ((col>=sgv.graf.cols)||(row>=sgv.graf.rows)||(layer>=sgv.graf.layers)) return;
+
+        let offset = calcOffset(col, row, layer);
+        let offDown = calcOffset(col, row-1, layer);
+        let offUp = calcOffset(col, row+1, layer);
+        let offRight = calcOffset(col+1, row, layer);
+        let offLeft = calcOffset(col-1, row, layer);
+
+        for (i=0;i<4;i++){
+            if(row<(sgv.graf.rows-1)) {
+                drawExtEdge(offset, i, offUp+i, pos(i).x, 20);
+            }
+
+            if(row>0) {
+                drawExtEdge(offset, i, offDown+i, pos(i).x, 580);
+            }
+
+            if(col<(sgv.graf.cols-1)) {
+                drawExtEdge(offset, i+4, offRight+i+4, 380, pos(i+4).y);
+            }
+            
+            if(col>0) {
+                drawExtEdge(offset, i+4, offLeft+i+4, 20, pos(i+4).y);
+            }
+        }
+
+        for (let iL=0;iL<4;iL++){
+            for (let iR=4;iR<8;iR++){
+                drawInternalEdge(offset, iL, iR);
+            }
+        }
+
+        if (sgv.graf.type==='pegasus') {
+            drawInternalEdge(offset, 0, 1);
+            drawInternalEdge(offset, 2, 3);
+            drawInternalEdge(offset, 4, 5);
+            drawInternalEdge(offset, 6, 7);
+            
+            //if (layer===(sgv.graf.layers-1) {
+            //    drawExtEdge(offset, i+4, offLeft+i+4, 20, pos(i+4).y);
+        }
+    };
+};
 /* global sgv, UI */
 
 sgv.dlgCreateGraph = new function() {
@@ -3845,7 +4181,7 @@ sgv.dlgCreateGraph = new function() {
                 setTimeout(()=>{
                     sgv.createGraph( getGraphTypeAndSize(), res );
                 }, 100);
-            });
+            },true);
         } );
 
         ui.querySelector("#cplCancelButton").addEventListener('click', ()=>{
@@ -3878,6 +4214,7 @@ sgv.dlgCreateGraph = new function() {
         hide: hideDialog
     };
 };
+
 
 
 
@@ -4094,6 +4431,7 @@ sgv.dlgEdgeProperties = new function() {
         }
     };
 };
+
 /* global UI, sgv, Edge */
 
 sgv.dlgNodeProperties = new function() {
@@ -4391,6 +4729,7 @@ sgv.dlgNodeProperties = new function() {
     };
     
 };
+
 /* global sgv, UI, FileIO */
 
 sgv.dlgAlternateFileSave = new function() {
@@ -4477,6 +4816,7 @@ the default location (usually: Downloads) or a selection window will appear."
     };
 };
 
+
 /* global sgv, UI */
 
 sgv.dlgMissingNodes = new function() {
@@ -4510,7 +4850,7 @@ sgv.dlgMissingNodes = new function() {
         let i = UI.newInput("button", " q" + nodeId + " ", "", "rest" + nodeId );
 
         i.addEventListener('click', function () {
-            restoreNode(nodeId);
+            restoreNodeX(nodeId);
         });
         
         misN.appendChild(i);
@@ -4518,11 +4858,14 @@ sgv.dlgMissingNodes = new function() {
         ui.style.display = "block";
     };
     
-    function restoreNode(nodeId) {
-        var but = ui.querySelector("#rest" + nodeId);
-        but.parentNode.removeChild(but);
-
-        sgv.graf.restoreNode(nodeId);
+    function restoreNodeX(nodeId) {
+        if (sgv.graf.restoreNode(nodeId)) {
+            let but = ui.querySelector("#rest" + nodeId);
+            but.parentNode.removeChild(but);
+            
+            return true;
+        }
+        return false;
     };
     
     function delMissingX() {
@@ -4540,10 +4883,12 @@ sgv.dlgMissingNodes = new function() {
         show: ()=>{ui.style.display = "block";},
         hide: ()=>{ui.style.display = "none";},
         addNode: addNodeX,
+        restoreNode: restoreNodeX,
         delAll: delMissingX
     };
 
 };
+
 
 sgv.dlgAbout = new function() {
     var ui = null;
@@ -4608,17 +4953,22 @@ sgv.dlgAbout = new function() {
 
 
 
+
 /* global sgv, UI */
 
 sgv.dlgLoaderSplash = new function() {
     var ui = null;
-
+    var info;
+    
     function createDialog() {
         if (ui===null) {
             ui = UI.tag( "dialog", { "class": "sgvModalDialog", "id": "loaderSplash" });
         }
         
-        ui.innerHTML = '<span>working hard for you</span><div class="loader"></div><span>... please wait ...</span>';
+        ui.appendChild(UI.tag('span',{},{'textContent':'working hard for you'}));
+        ui.appendChild(UI.tag('div',{'class':'loader'}));
+        ui.appendChild(UI.tag('span',{},{'textContent':'... please wait ...'}));
+        ui.appendChild(info = UI.tag('div',{'id':'infoBlock'}));
 
         ui.style.display = "none";
         window.document.body.appendChild(ui);
@@ -4637,7 +4987,20 @@ sgv.dlgLoaderSplash = new function() {
         ui.style.display = "none";
     };
 
+    function setInfoX(text,action) {
+        if (ui.open) ui.close();
+            ui.style.display = "block";
+        ui.showModal();
+        info.innerHTML = text;
+        if (typeof action==='function'){
+            setTimeout( ()=>{
+                action();
+            }, 200);
+        }
+    };
+    
     return {
+        setInfo: setInfoX,
         show: showDialog,
         hide: hideDialog
     };
@@ -4654,10 +5017,13 @@ function hideSplash() {
     }, 200);
 };
 
-function showSplashAndRun(f) {
+function showSplashAndRun(f,noHide) {
+    if (typeof noHide==='undefined')
+        noHide = false;
+    
     showSplash();
     setTimeout(()=>{
         f();
-        hideSplash();
+        if (!noHide) hideSplash();
     }, 100);
 };

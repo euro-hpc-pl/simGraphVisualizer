@@ -1,3 +1,4 @@
+
 /* global sgv, NaN */
 
 "use strict";

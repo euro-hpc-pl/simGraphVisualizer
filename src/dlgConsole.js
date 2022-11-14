@@ -1,3 +1,4 @@
+
 /* 
  * Copyright 2022 Dariusz Pojda.
  *
@@ -125,9 +126,14 @@ sgv.dlgConsole = new function () {
                     if (id in sgv.graf.nodes) {
                         sgv.graf.setNodeValue(id, val);
                         return "modified node q" + id + " = " + val;
-                    } else {
-                        sgv.graf.addNode(id, val);
-                        return "added node q" + id + " = " + val;
+                    } else if ( sgv.dlgMissingNodes.restoreNode(id) ) {
+                            sgv.graf.setNodeValue(id, val);
+                            return "restored node q" + id + " = " + val;
+                    }
+                    else {
+                        //sgv.graf.addNode(id, sgv.graf.calcPosition(id), val);
+                        //return "added node q" + id + " = " + val;
+                        return "not implemented yet";
                     }
                 } else {
                     return "no graph defined";
@@ -287,7 +293,7 @@ sgv.dlgConsole = new function () {
                             sgv.graf.setNodeValue(id, val);
                             return "restored and modified node q" + id + " = " + val;
                         } else {
-                            sgv.graf.addNode(id, val);
+                            sgv.graf.addNode(id, sgv.graf.calcPosition(id), val);
                             return "added node q" + id + " = " + val;
                         }
                     }
