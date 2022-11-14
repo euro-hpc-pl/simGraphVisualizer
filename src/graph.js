@@ -45,6 +45,7 @@ var Graph = /** @class */ (function () {
         
         sgv.SPS.reset();
         sgv.SPS.refresh();
+        sgv.dlgModuleView.refresh();
 
 //        for (const key in this.missing) {
 //
@@ -97,6 +98,7 @@ var Graph = /** @class */ (function () {
         delete this.edges[edgeId];
         
         sgv.SPS.refresh();
+        sgv.dlgModuleView.refresh();
     };
 
     this.findAndDeleteEdges = function (nodeId) {
@@ -144,6 +146,7 @@ var Graph = /** @class */ (function () {
         sgv.dlgMissingNodes.addNode(nodeId);
         
         sgv.SPS.refresh();
+        sgv.dlgModuleView.refresh();
     };
 
     this.restoreNode = function (nodeId) {
@@ -178,6 +181,7 @@ var Graph = /** @class */ (function () {
             sgv.dlgMissingNodes.hide();
         
         sgv.SPS.refresh();
+        sgv.dlgModuleView.refresh();
         
         return true;
     };
@@ -303,6 +307,7 @@ var Graph = /** @class */ (function () {
         }
         
         sgv.SPS.refresh();
+        sgv.dlgModuleView.refresh();
 
         return true;
     };
@@ -484,6 +489,7 @@ var Graph = /** @class */ (function () {
         }
         
         sgv.SPS.refresh();
+        sgv.dlgModuleView.refresh();
     };
     
     this.showLabels = function (b) {

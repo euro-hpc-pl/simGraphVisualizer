@@ -2,9 +2,12 @@
 
 sgv.dlgModuleView = new function() {
     var selectGraphCols, selectGraphRows, selectGraphLays, selectScope;
-
+    var svgView;
     var r,c,l;
     
+    const svgns = "http://www.w3.org/2000/svg";
+
+
     var ui = createUI();
 
     window.addEventListener('load',()=>{
@@ -17,7 +20,7 @@ sgv.dlgModuleView = new function() {
         let ui = UI.createEmptyWindow("sgvUIwindow", "sgvDlgModuleView", "Cell view", true);
 
         ui.querySelector(".hidebutton").addEventListener('click', function () {
-            hideDialog();
+            hideDialogX();
         });
 
         let content = UI.tag( "div", { "class": "content", "id": "graphSelection" });
@@ -79,11 +82,11 @@ sgv.dlgModuleView = new function() {
         div.style.background='#fff';
         content.appendChild(div);
 
-        var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        svg.setAttributeNS(null, "id",'svgView');
-        svg.setAttributeNS(null, "height",600);
-        svg.setAttributeNS(null, "width",400);
-        div.appendChild(svg);
+        svgView = document.createElementNS(svgns, "svg");
+        svgView.setAttributeNS(null, "id",'svgView');
+        svgView.setAttributeNS(null, "height",600);
+        svgView.setAttributeNS(null, "width",400);
+        div.appendChild(svgView);
 
         ui.appendChild(content);
 
@@ -136,15 +139,14 @@ sgv.dlgModuleView = new function() {
     function drawInternalEdge(offset, iB, iE) {
         let b = offset + iB;
         let e = offset + iE;
-        let eid = (b < e)?("" + b + "," + e):("" + e + "," + b);
+        //let eid = (b < e)?("" + b + "," + e):("" + e + "," + b);
+        let eid = Edge.calcId(b,e);
         if (eid in sgv.graf.edges) {
             let val = sgv.graf.edgeValue(eid);
             let color = valueToColor(val);
             let wth = 5*valueToEdgeWidth(val);
             
-            var svgns = "http://www.w3.org/2000/svg",
-            container = document.getElementById( 'svgView' );
-            
+           
             var newLine = document.createElementNS(svgns,'line');
             newLine.setAttributeNS(null, 'id',eid);
             newLine.setAttributeNS(null, 'x1',pos(iB).x);
@@ -152,7 +154,7 @@ sgv.dlgModuleView = new function() {
             newLine.setAttributeNS(null, 'x2',pos(iE).x);
             newLine.setAttributeNS(null, 'y2',pos(iE).y);
             newLine.setAttributeNS(null, 'style', 'stroke: '+color.toHexString()+'; stroke-width: '+wth+'px;' );
-            container.appendChild(newLine);
+            svgView.appendChild(newLine);
 
             newLine.addEventListener('click',(e)=>{
                 e.preventDefault();
@@ -169,9 +171,6 @@ sgv.dlgModuleView = new function() {
             let val = sgv.graf.nodeValue(offset+id);
             let color = valueToColor(val);
 
-            var svgns = "http://www.w3.org/2000/svg",
-            container = document.getElementById( 'svgView' );
-
             x = pos(id).x;
             y = pos(id).y;
 
@@ -181,7 +180,7 @@ sgv.dlgModuleView = new function() {
             circle.setAttributeNS(null, 'cy', y);
             circle.setAttributeNS(null, 'r', 20);
             circle.setAttributeNS(null, 'style', 'fill: '+color.toHexString()+'; stroke: black; stroke-width: 1px;' );
-            container.appendChild(circle);
+            svgView.appendChild(circle);
 
             circle.addEventListener('click',(e)=>{
                 e.preventDefault();
@@ -193,16 +192,12 @@ sgv.dlgModuleView = new function() {
 
     function drawExtEdge(offset, ijk, e, endX, endY) {
         let b = offset+ijk;
-        eid = (b < e)?("" + b + "," + e):("" + e + "," + b);
-            console.log(eid);
+        //eid = (b < e)?("" + b + "," + e):("" + e + "," + b);
+        let eid = Edge.calcId(b,e);
         if (eid in sgv.graf.edges) {
-            console.log(eid);
             let val = sgv.graf.edgeValue(eid);
             let color = valueToColor(val);
             let wth = 5*valueToEdgeWidth(val);
-            
-            var svgns = "http://www.w3.org/2000/svg",
-            container = document.getElementById( 'svgView' );
             
             var newLine = document.createElementNS(svgns,'line');
             newLine.setAttributeNS(null, 'id',eid);
@@ -211,7 +206,7 @@ sgv.dlgModuleView = new function() {
             newLine.setAttributeNS(null, 'x2',endX);
             newLine.setAttributeNS(null, 'y2',endY);
             newLine.setAttributeNS(null, 'style', 'stroke: '+color.toHexString()+'; stroke-width: '+wth+'px;' );
-            container.appendChild(newLine);
+            svgView.appendChild(newLine);
 
             newLine.addEventListener('click',(e)=>{
                 e.preventDefault();
@@ -233,8 +228,7 @@ sgv.dlgModuleView = new function() {
     }
     
     function drawModule(col, row, layer) {
-        container = document.getElementById( 'svgView' );
-        container.innerHTML = '';
+        svgView.innerHTML = '';
 
         if (sgv.graf===null) return;
 
@@ -292,5 +286,66 @@ sgv.dlgModuleView = new function() {
             //if (layer===(sgv.graf.layers-1) {
             //    drawExtEdge(offset, i+4, offLeft+i+4, 20, pos(i+4).y);
         }
+        
+        for (let i=0;i<8;i++){
+            drawNode(offset, i);
+        }
+        
     };
+    
+    
+    function showDialogX() {
+        UI.clearSelect(selectGraphCols,true);
+        for (let i=0;i<sgv.graf.cols;i++)
+            selectGraphCols.appendChild(UI.option(i,i));
+        selectGraphCols.selectedIndex = c;
+
+        UI.clearSelect(selectGraphRows,true);
+        for (let i=0;i<sgv.graf.rows;i++)
+            selectGraphRows.appendChild(UI.option(i,i));
+        selectGraphRows.selectedIndex = r;
+
+        UI.clearSelect(selectGraphLays,true);
+        for (let i=0;i<sgv.graf.layers;i++)
+            selectGraphLays.appendChild(UI.option(i,i));
+        selectGraphLays.selectedIndex = l;
+
+        if (sgv.graf.layers===1) {
+            selectGraphLays.disabled = 'disabled';
+        }
+        else {
+            selectGraphLays.disabled = '';
+        }
+
+        UI.clearSelect(selectScope,true);
+        for (let s in sgv.graf.scopeOfValues)
+            selectScope.appendChild(UI.option(sgv.graf.scopeOfValues[s],sgv.graf.scopeOfValues[s]));
+        UI.selectByKey(selectScope,sgv.graf.currentScope);
+        
+        drawModule();
+        
+        ui.style.display = "block";
+    };
+    
+    
+    function hideDialogX() {
+        ui.style.display = "none";
+    };    
+
+    function switchDialogX() {
+        if (ui.style.display === "none") {
+            showDialogX();
+        }
+        else {
+            hideDialogX();
+        }
+    };    
+    
+    
+    return {
+        refresh: drawModule,
+        switchDialog: switchDialogX,
+        show: showDialogX,
+        hide: hideDialogX
+    };    
 };

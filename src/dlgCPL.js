@@ -8,7 +8,7 @@ sgv.dlgCPL = new function() {
     var selectScope;
     var sliderRedLimit, sliderGreenLimit;
     var spanRed, spanGreen;
-    var btnDispMode, btnShowConsole, btnSaveTXT, btnClear;
+    var btnDispMode, btnCellView, btnShowConsole, btnSaveTXT, btnClear;
 
     var btnShowConsole2, btnCreate, btnLoad;
     
@@ -149,6 +149,11 @@ sgv.dlgCPL = new function() {
             btnPanel.appendChild(
                     btnDispMode = UI.createTransparentBtn1('display mode',"cplDispModeButton",()=>{
                         sgv.switchDisplayMode();
+                    }));
+
+            btnPanel.appendChild(
+                    btnCellView = UI.createTransparentBtn1('cell view',"cplCellViewButton",()=>{
+                        sgv.dlgModuleView.switchDialog();
                     }));
 
             btnPanel.appendChild(

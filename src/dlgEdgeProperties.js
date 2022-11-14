@@ -183,6 +183,8 @@ sgv.dlgEdgeProperties = new function() {
         
         sgv.graf.setEdgeValue(id, val, scope);
         ui.style.display = "none";
+        sgv.SPS.refresh();
+        sgv.dlgModuleView.refresh();
     };
 
     function activateE() {
@@ -202,6 +204,8 @@ sgv.dlgEdgeProperties = new function() {
             btnSetE.disabled = "disabled";
             sgv.graf.delEdgeValue(ui.querySelector("#edgeId").value, scope);
         }
+        sgv.SPS.refresh();
+        sgv.dlgModuleView.refresh();
     };
 
     return {

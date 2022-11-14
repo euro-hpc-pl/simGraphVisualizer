@@ -249,6 +249,7 @@ sgv.dlgNodeProperties = new function() {
         sgv.graf.setNodeValue(id, val, scope);
         ui.style.display = "none";
         sgv.SPS.refresh();
+        sgv.dlgModuleView.refresh();
     };
 
     function activateN() {
@@ -269,6 +270,7 @@ sgv.dlgNodeProperties = new function() {
             sgv.graf.delNodeValue(ui.querySelector("#nodeId").value, scope);
         }
         sgv.SPS.refresh();
+        sgv.dlgModuleView.refresh();
     };
     
     function connectSelectN() {
@@ -283,6 +285,7 @@ sgv.dlgNodeProperties = new function() {
         if (sgv.graf !== null) {
             sgv.graf.addEdge(node1, node2);
             sgv.SPS.refresh();
+            sgv.dlgModuleView.refresh();
         }
     };
     

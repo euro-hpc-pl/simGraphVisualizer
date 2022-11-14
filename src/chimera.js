@@ -50,7 +50,7 @@ var Chimera = /** @class */ (function () {
     this.connectRowModules2 = function (x, y, z) {
         for (let j = 0; j < 2; j++) {
             for (let k = 0; k < 2; k++) {
-                this.connect(new QbDescr(x, y, z, 1, j, k), new QbDescr(x, y + 1, z, 1, j, k));
+                this.connect(new QbDescr(x, y, z, 0, j, k), new QbDescr(x, y + 1, z, 0, j, k));
             }
         }
     };
@@ -58,7 +58,7 @@ var Chimera = /** @class */ (function () {
     this.connectColModules2 = function (x, y, z) {
         for (let j = 0; j < 2; j++) {
             for (let k = 0; k < 2; k++) {
-                this.connect(new QbDescr(x, y, z, 0, j, k), new QbDescr(x + 1, y, z, 0, j, k));
+                this.connect(new QbDescr(x, y, z, 1, j, k), new QbDescr(x + 1, y, z, 1, j, k));
             }
         }
     };
@@ -66,8 +66,8 @@ var Chimera = /** @class */ (function () {
 
     this.modulePosition = function( x, y, z ) {
         let d = 50.0;
-        let mX = (d * ( ( this.cols - 1 ) / 2.0 ))-(d * x);
-        let mY = (d * y) - (d * ( ( this.rows - 1 ) / 2.0 ));
+        let mX = (d * ( ( this.cols - 1 ) / 2.0 ))-(d * y);
+        let mY = (d * x) - (d * ( ( this.rows - 1 ) / 2.0 ));
         let mZ = ( d * z ) - (d*((this.layers - 1) / 2.0));
         return new BABYLON.Vector3(mX, mZ, mY);
     };
