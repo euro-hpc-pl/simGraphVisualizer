@@ -3910,6 +3910,11 @@ sgv.dlgModuleView = new function() {
     var upButton, leftButton, rightButton, downButton;
     var svgView;
     var r,c,l;
+
+    const _width = 600;
+    const _height = 600;
+    const ctrX = _width/2;
+    const ctrY = _height/2;
     
     const svgns = "http://www.w3.org/2000/svg";
 
@@ -4089,8 +4094,8 @@ sgv.dlgModuleView = new function() {
         
         svgView = document.createElementNS(svgns, "svg");
         svgView.setAttributeNS(null, "id",'svgView');
-        svgView.setAttributeNS(null, "height",600);
-        svgView.setAttributeNS(null, "width",400);
+        svgView.setAttributeNS(null, "height",_height);
+        svgView.setAttributeNS(null, "width",_width);
         div.appendChild(svgView);
 //        t[1][1].appendChild(div);
         content.appendChild(div);
@@ -4159,9 +4164,6 @@ sgv.dlgModuleView = new function() {
                 {x:  50, y:-100}]
         };
         
-        const ctrX = 200;
-        const ctrY = 300;
-        
         mode = 'classic'; //temporary
         
         return {
@@ -4169,6 +4171,28 @@ sgv.dlgModuleView = new function() {
             y: ctrY+pos[mode][id].y
         };
     }
+    
+    function drawSvgText(id, x, y, txt, txtColor) {
+        var text = document.createElementNS(svgns, 'text');
+        text.setAttributeNS(null, 'x', x);
+        text.setAttributeNS(null, 'y', y);
+        text.setAttributeNS(null, 'text-anchor', 'middle');
+        text.setAttributeNS(null, 'alignment-baseline', 'middle');
+        text.setAttributeNS(null, 'stroke', txtColor);
+        text.setAttributeNS(null, 'stroke-width', '1px');
+        text.setAttributeNS(null, 'font-size', '12px');
+        //text.setAttributeNS(null, 'fill', 'red');
+        //text.setAttributeNS(null, 'fill-opacity', '1');
+        text.textContent = txt;
+        svgView.appendChild(text);
+
+        text.addEventListener('click',(e)=>{
+            e.preventDefault();
+//            let rect = circle.getBoundingClientRect();
+//            sgv.dlgNodeProperties.show(circle.id,rect.x,rect.y);
+            sgv.dlgNodeProperties.show(id, x, y);
+        });
+    };
     
     function drawSvgEdge( eid, bX, bY, eX, eY, color, wth ) {
         var newLine = document.createElementNS(svgns,'line');
@@ -4196,6 +4220,7 @@ sgv.dlgModuleView = new function() {
             let wth = 2+5*valueToEdgeWidth(val);
             
             drawSvgEdge(eid, pos(ijk).x, pos(ijk).y, endX, endY, color.toHexString(), wth );
+            drawSvgText(e, endX, endY, e, 'black');
         }            
     }
     
@@ -4215,83 +4240,6 @@ sgv.dlgModuleView = new function() {
         }
     }
     
-    function drawPegasusEdges(offset, x, y, z) {
-        for (let i of [0,2,4,6]) {
-            drawInternalEdge(offset, i, i+1);
-        }
-
-        let cols = sgv.graf.cols;
-        let rows = sgv.graf.rows;
-        let layers = sgv.graf.layers;
-
-        let firstColumn = (x===0);
-        let lastColumn = (x===(cols-1));
-        let firstRow = (y===0);
-        let lastRow = (y===(rows-1));
-        let lastLayer = (z===(layers-1));
-
-        for (let kA of [0,1]) {
-            for (let jB of [0,1]) {
-                for (let kB of [0,1]) {
-                    if (! lastLayer) {
-                        let ijk = kA;
-                        let q = qD(x, y, z + 1, 1, jB, kB);
-                        let e = q.toNodeId(rows,cols);
-                        //console.log('edge',offset+ijk,e);
-                        drawExtEdge(offset, ijk, e, 20, pos(ijk).y-(10*(q.n1()-4)));
-                        
-                        ijk = 4+kA;
-                        q = qD(x, y, z + 1, 0, jB, kB);
-                        e = q.toNodeId(rows,cols);
-                        //console.log('edge',offset+ijk,e);
-                        drawExtEdge(offset, ijk, e, 380, pos(ijk).y+10*q.n1());
-
-                        if (! firstColumn) {
-                            ijk = 2+kA;
-                            q = qD(x-1, y, z + 1, 1, jB, kB);
-                            e = q.toNodeId(rows,cols);
-                            //console.log('edge',offset+ijk,e);
-                            drawExtEdge(offset, ijk, e, 20, pos(ijk).y-(10*(q.n1()-4)));
-                            //this.connect(new QbDescr(x, y, z, 0, 1, kA), new QbDescr(x - 1, y, z + 1, 1, jB, kB), val);
-                        }
-                        if (! firstRow) {
-                            ijk = 6+kA;
-                            q = qD(x, y - 1, z + 1, 0, jB, kB);
-                            e = q.toNodeId(rows,cols);
-                            //console.log('edge',offset+ijk,e);
-                            drawExtEdge(offset, ijk, e, 380, pos(ijk).y+(10*q.n1()));
-                            //this.connect(new QbDescr(x, y, z, 1, 1, kA), new QbDescr(x, y - 1, z + 1, 0, jB, kB), val);
-                        }
-                    }
-                    else {
-                        if (! (lastColumn || lastRow) ) {
-                            ijk = kA;
-                            q = qD(x + 1, y + 1, 0, 1, jB, kB);
-                            e = q.toNodeId(rows,cols);
-                            //console.log('edge',offset+ijk,e);
-                            drawExtEdge(offset, ijk, e, 20, pos(ijk).y-(10*q.n1()));
-                            //this.connect(new QbDescr(x, y, z, 0, 0, kA), new QbDescr(x + 1, y + 1, 0, 1, jB, kB), val);
-
-                            ijk = 4+kA;
-                            q = qD(x, y - 1, z + 1, 0, jB, kB);
-                            e = q.toNodeId(rows,cols);
-                            //console.log('edge',offset+ijk,e);
-                            drawExtEdge(offset, ijk, e, 380, pos(ijk).y+(10*q.n1()));
-                            //this.connect(new QbDescr(x, y, z, 1, 0, kA), new QbDescr(x + 1, y + 1, 0, 0, jB, kB), val);
-                        }
-//
-//                        if (! lastRow) {
-//                            this.connect(new QbDescr(x, y, z, 0, 1, kA), new QbDescr(x, y + 1, 0, 1, jB, kB), val);
-//                        }
-//
-//                        if (! lastColumn) {
-//                            this.connect(new QbDescr(x, y, z, 1, 1, kA), new QbDescr(x + 1, y, 0, 0, jB, kB), val);
-//                        }
-                    }
-                }
-            }
-        }
-    }
     
     function drawSvgNode(nodeId, x, y, r, color, txt, txtColor ) {
         var circle = document.createElementNS(svgns, 'circle');
@@ -4308,23 +4256,7 @@ sgv.dlgModuleView = new function() {
             sgv.dlgNodeProperties.show(circle.id,rect.x,rect.y);
         });
 
-        var text = document.createElementNS(svgns, 'text');
-        text.setAttributeNS(null, 'x', x);
-        text.setAttributeNS(null, 'y', y);
-        text.setAttributeNS(null, 'text-anchor', 'middle');
-        text.setAttributeNS(null, 'alignment-baseline', 'middle');
-        text.setAttributeNS(null, 'stroke', txtColor);
-        text.setAttributeNS(null, 'stroke-width', '1px');
-        //text.setAttributeNS(null, 'fill', 'red');
-        //text.setAttributeNS(null, 'fill-opacity', '1');
-        text.textContent = txt;
-        svgView.appendChild(text);
-
-        text.addEventListener('click',(e)=>{
-            e.preventDefault();
-            let rect = circle.getBoundingClientRect();
-            sgv.dlgNodeProperties.show(circle.id,rect.x,rect.y);
-        });
+        drawSvgText(nodeId, x, y, txt, txtColor);
     }
     
     function drawNode(offset, id) {
@@ -4384,113 +4316,79 @@ sgv.dlgModuleView = new function() {
         UI.selectByKey(selectScope,sgv.graf.currentScope);
 
         let offset = calcOffset(col, row, layer);
-        let offDown = calcOffset(col, row-1, layer);
-        let offUp = calcOffset(col, row+1, layer);
-        let offRight = calcOffset(col+1, row, layer);
-        let offLeft = calcOffset(col-1, row, layer);
 
-        let connected = [];
-        for (let i=0; i<8; i++){
-            connected[i] = sgv.graf.findAllConnected(offset+i);
-        }
-        console.log(connected);
+        let LT = 20;
+        let RT = _width-20;
+        let TP = 20;
+        let BT = _height-20;
+        
+        let ltpos = [
+            {x: LT+95, y: -40},  
+            {x: LT+55, y: -40},  
+            {x: LT+25, y: -30},  
+            {x: LT+25, y: -10},  
+            {x: LT+25, y: 10},  
+            {x: LT+25, y: 30},  
+            {x: LT+55, y: 40},  
+            {x: LT+95, y: 40}  
+        ];
+
+        let rtpos = [
+            {x: RT-95, y: -40},  
+            {x: RT-55, y: -40},  
+            {x: RT-25, y: -30},  
+            {x: RT-25, y: -10},  
+            {x: RT-25, y: 10},  
+            {x: RT-25, y: 30},  
+            {x: RT-55, y: 40},  
+            {x: RT-95, y: 40}  
+        ];
         
         let ready = {};
         for (let i=0;i<8;i++){
-            //console.log('eid: ',eid);
-            for (let j of connected[i].internal){
+            let connected = sgv.graf.findAllConnected(offset+i);
+            
+            for (let j of connected.internal){
                 let eid = Edge.calcId(offset+i,j);
-                //console.log('eid: ',eid);
                 if (!(eid in ready)){
-                    let j2 = j-1;
-                    drawInternalEdge(offset, i, j2%8);
+                    drawInternalEdge(offset, i, (j-1)%8);
                     ready[eid]=1;
-                    //console.log('drawing it');
-                }
-            }
-        }
-        
-        for (let i=0;i<8;i++){
-            //console.log('eid: ',eid);
-            for (let j of connected[i].horizontal){
-                if (offset+i<j){
-                    drawExtEdge(offset, i, j, 380, pos(i).y);
-                }
-                else {
-                    drawExtEdge(offset, i, j, 20, pos(i).y);
                 }
             }
 
-            for (let j of connected[i].vertical){
-                if (offset+i<j){
-                    drawExtEdge(offset, i, j, pos(i).x, 20);
-                }
-                else {
-                    drawExtEdge(offset, i, j, pos(i).x, 580);
-                }
+            for (let j of connected.horizontal){
+                drawExtEdge(offset, i, j, (offset+i<j)?RT:LT, pos(i).y);
+            }
+
+            for (let j of connected.vertical){
+                drawExtEdge(offset, i, j, pos(i).x, (offset+i<j)?TP:BT);
             }
             
-            let u = 1;
-            for (let j of connected[i].up){
-                if (i<4){
-                    drawExtEdge(offset, i, j, 20, pos(i).y+10*u);
+            
+            let it=0;
+            if (i<4) {
+                for (let j of connected.up){
+                    drawExtEdge(offset, i, j, ltpos[it].x, pos(i).y+ltpos[it].y);
+                    it++;
                 }
-                else {
-                    drawExtEdge(offset, i, j, 380, pos(i).y+10*u);
+                for (let j of connected.down){
+                    drawExtEdge(offset, i, j, ltpos[it].x, pos(i).y+ltpos[it].y);
+                    it++;
                 }
-                u+=1;
-            }
+            }            
+            else {
+                for (let j of connected.up){
+                    drawExtEdge(offset, i, j, rtpos[it].x, pos(i).y+rtpos[it].y);
+                    it++;
+                }
+                for (let j of connected.down){
+                    drawExtEdge(offset, i, j, rtpos[it].x, pos(i).y+rtpos[it].y);
+                    it++;
+                }
+            }            
 
-            let d = 1;
-            for (let j of connected[i].down){
-                if (i<4){
-                    drawExtEdge(offset, i, j, 20, pos(i).y-10*d);
-                }
-                else {
-                    drawExtEdge(offset, i, j, 380, pos(i).y-10*d);
-                }
-                d+=1;
-            }
-        }
-        
-        
-//        for (let iL=0;iL<4;iL++){
-//            let iR = iL+4;
-//            //if(row<(sgv.graf.rows-1)) {
-//            if(!lastRow) {
-//                drawExtEdge(offset, iL, offUp+iL, pos(iL).x, 20);
-//            }
-//
-//            //if(row>0) {
-//            if(!firstRow) {
-//                drawExtEdge(offset, iL, offDown+iL, pos(iL).x, 580);
-//            }
-//
-//            //if(col<(sgv.graf.cols-1)) {
-//            if(!lastCol) {    
-//                drawExtEdge(offset, iR, offRight+iR, 380, pos(iR).y);
-//            }
-//            
-//            //if(col>0) {
-//            if(!firstCol) {
-//                drawExtEdge(offset, iR, offLeft+iR, 20, pos(iR).y);
-//            }
-//        }
-
-//        for (let iL=0;iL<4;iL++){
-//            for (let iR=4;iR<8;iR++){
-//                drawInternalEdge(offset, iL, iR);
-//            }
-//        }
-
-//        if (sgv.graf.type==='pegasus') {
-//            drawPegasusEdges(offset, col, row, layer);
-//        }
-        
-        for (let i=0;i<8;i++){
             drawNode(offset, i);
         }
-        
     };
     
     
