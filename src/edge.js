@@ -26,6 +26,18 @@ var Edge = /** @class */ (function (graf, b, e) {
         'default' : Number.NaN
     };
 
+    if (typeof b==='string') b = parseInt(b,10); 
+    if (typeof e==='string') e = parseInt(e,10); 
+
+    if ((typeof b !== 'number')||(typeof e !== 'number'))
+        console.warning("Edge begin and end ids should be both a numbers, but are: "+b+" and "+e);
+
+    if (!(b in this.parentGraph.nodes))
+        console.warning("First node not exists in graph: "+b);
+
+    if (!(e in this.parentGraph.nodes))
+        console.warning("Second node not exists in graph: "+e);
+
     if (b < e) {
         this.begin = b;
         this.end = e;
@@ -125,4 +137,13 @@ var Edge = /** @class */ (function (graf, b, e) {
 });
 
 //static
-Edge.calcId = (b, e) => (b < e)?("" + b + "," + e):("" + e + "," + b);
+Edge.calcId = (b, e) => {
+    if (typeof b==='string') b = parseInt(b,10); 
+    if (typeof e==='string') e = parseInt(e,10); 
+
+    if ((typeof b !== 'number')||(typeof e !== 'number')) {
+        console.error("Edge begin and end must be a numbers");
+    }
+    
+    return (b < e)?("" + b + "," + e):("" + e + "," + b);
+};

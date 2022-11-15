@@ -26,7 +26,13 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
     var name = "node:" + id;
 
     this.parentGraph = graf;
+    
+    if (typeof id==='string') id = parseInt(id,10); 
+    if (typeof id !== 'number')
+        console.warning("Node id should be a number, but is: "+id);
+    
     this.id = id;
+
     this.active = true;
     this._chckedEdges = 0;
 

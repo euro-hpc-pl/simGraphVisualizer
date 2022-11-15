@@ -13,6 +13,7 @@ var concat = require('gulp-concat');
 var del = require('del');
 
 var srcfiles = [
+    "./src/Dispatcher.js",
     "./src/SPS.js",
     "./src/helpers.js",
     "./src/label.js",

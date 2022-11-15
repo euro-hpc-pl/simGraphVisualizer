@@ -19,7 +19,7 @@ sgv.dlgCPL = new function() {
     });
 
     function createDialog() {
-        let elm = UI.tag( "dialog", { "class": "sgvUIwindow", "id": "sgvDlgCPL" });
+        let elm = UI.tag( "dialog", { "class": "sgvUIwindow disable-select", "id": "sgvDlgCPL" });
         
         function divSel() {
             var divSel = UI.tag( "div", { "class": "content", "id": "graphSelection" });

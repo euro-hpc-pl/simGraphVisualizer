@@ -36,7 +36,7 @@ const QbDescr = /** @class */ (function (x, y, z, i, j, k) {
     this.n1 = function () {
         return (((this.i << 1) + this.j) << 1) + this.k + 1;
     };
-    this.toNodeId = function (rows, cols) {
+    this.toNodeId = function(rows, cols) {
         return 8 * (this.x + (this.y + this.z * rows) * cols) + this.n1();
     };
 
@@ -53,11 +53,16 @@ QbDescr.fromNodeId = function (nodeIdA, rows, cols) {
 
     let modId = nodeId >> 3;
 
+    
     let layerSize = cols * rows;
-    let currentLayer = Math.floor(modId / layerSize);
+
+    let z = Math.floor(modId / layerSize);
+
     let modIdInLayer = modId % layerSize;
-    let currentRow = Math.floor(modIdInLayer / cols);
-    let currentCol = modIdInLayer % cols;
-    return new QbDescr(currentCol, currentRow, currentLayer, i, j, k);
+    let y = Math.floor(modIdInLayer / cols);
+    let x = modIdInLayer % cols;
+    let q =new QbDescr(x, y, z, i, j, k);
+    
+    return q;
 };
 

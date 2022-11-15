@@ -69,8 +69,7 @@ var Pegasus = /** @class */ (function () {
         });
     };
 
-
-    this.connectExternalPegasusEdges = function (x, y, z) {
+    this.connectExternalPegasusEdgesBAK = function (x, y, z) {
         let val0 = Number.NaN;
         let val1 = val0; //-1.0;
         let val2 = val0; // 1.0;
@@ -98,6 +97,45 @@ var Pegasus = /** @class */ (function () {
 
                         if (x < this.cols - 1) {
                             this.connect(new QbDescr(x, y, z, 1, 1, kA), new QbDescr(x + 1, y, 0, 0, jB, kB), val3);
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    this.connectExternalPegasusEdges = function (x, y, z) {
+        let val = Number.NaN;
+
+        let firstColumn = (x===0);
+        let lastColumn = (x===(this.cols-1));
+        let firstRow = (y===0);
+        let lastRow = (y===(this.rows-1));
+        let lastLayer = (z===(this.layers-1));
+
+        for (let kA = 0; kA < 2; kA++) {
+            for (let jB = 0; jB < 2; jB++) {
+                for (let kB = 0; kB < 2; kB++) {
+                    if (! lastLayer) {
+                        this.connect(new QbDescr(x, y, z, 0, 0, kA), new QbDescr(x, y, z + 1, 1, jB, kB), val);
+                        this.connect(new QbDescr(x, y, z, 1, 0, kA), new QbDescr(x, y, z + 1, 0, jB, kB), val);
+                        if (! firstColumn)
+                            this.connect(new QbDescr(x, y, z, 0, 1, kA), new QbDescr(x - 1, y, z + 1, 1, jB, kB), val);
+                        if (! firstRow)
+                            this.connect(new QbDescr(x, y, z, 1, 1, kA), new QbDescr(x, y - 1, z + 1, 0, jB, kB), val);
+                    }
+                    else {
+                        if (! (lastColumn || lastRow) ) {
+                            this.connect(new QbDescr(x, y, z, 0, 0, kA), new QbDescr(x + 1, y + 1, 0, 1, jB, kB), val);
+                            this.connect(new QbDescr(x, y, z, 1, 0, kA), new QbDescr(x + 1, y + 1, 0, 0, jB, kB), val);
+                        }
+
+                        if (! lastRow) {
+                            this.connect(new QbDescr(x, y, z, 0, 1, kA), new QbDescr(x, y + 1, 0, 1, jB, kB), val);
+                        }
+
+                        if (! lastColumn) {
+                            this.connect(new QbDescr(x, y, z, 1, 1, kA), new QbDescr(x + 1, y, 0, 0, jB, kB), val);
                         }
                     }
                 }

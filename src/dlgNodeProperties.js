@@ -1,4 +1,4 @@
-/* global UI, sgv, Edge */
+/* global UI, sgv, Edge, Dispatcher */
 
 sgv.dlgNodeProperties = new function() {
    
@@ -248,8 +248,7 @@ sgv.dlgNodeProperties = new function() {
         let scope = sgv.graf.scopeOfValues[ui.querySelector("#nsSelectN").value];
         sgv.graf.setNodeValue(id, val, scope);
         ui.style.display = "none";
-        sgv.SPS.refresh();
-        sgv.dlgModuleView.refresh();
+        Dispatcher.graphChanged();
     };
 
     function activateN() {
@@ -269,8 +268,7 @@ sgv.dlgNodeProperties = new function() {
             ui.querySelector("#setN").disabled = "disabled";
             sgv.graf.delNodeValue(ui.querySelector("#nodeId").value, scope);
         }
-        sgv.SPS.refresh();
-        sgv.dlgModuleView.refresh();
+        Dispatcher.graphChanged();
     };
     
     function connectSelectN() {
@@ -284,8 +282,7 @@ sgv.dlgNodeProperties = new function() {
 
         if (sgv.graf !== null) {
             sgv.graf.addEdge(node1, node2);
-            sgv.SPS.refresh();
-            sgv.dlgModuleView.refresh();
+            Dispatcher.graphChanged();
         }
     };
     

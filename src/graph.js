@@ -16,7 +16,7 @@
  */
 
 "use strict";
-/* global BABYLON, labelsVisible, sgv, Edge */
+/* global BABYLON, labelsVisible, sgv, Edge, Dispatcher */
 
 //const txtFile = require("io_TXT.js");
 
@@ -43,9 +43,7 @@ var Graph = /** @class */ (function () {
             delete this.nodes[key];
         }
         
-        sgv.SPS.reset();
-        sgv.SPS.refresh();
-        sgv.dlgModuleView.refresh();
+        Dispatcher.graphDeleted();
 
 //        for (const key in this.missing) {
 //
@@ -97,8 +95,54 @@ var Graph = /** @class */ (function () {
         this.edges[edgeId].clear();
         delete this.edges[edgeId];
         
-        sgv.SPS.refresh();
-        sgv.dlgModuleView.refresh();
+        Dispatcher.graphChanged();
+    };
+
+    this.findAllConnected = (nodeId) => {
+        var connected = {
+                //all: [],
+                internal: [],
+                horizontal: [],
+                vertical: [],
+                up: [],
+                down: [],
+                other: []
+            };
+
+        function add(n2) {
+            let q1 = QbDescr.fromNodeId(nodeId, sgv.graf.rows, sgv.graf.cols);
+            let q2 = QbDescr.fromNodeId(n2, sgv.graf.rows, sgv.graf.cols);
+
+            if ((q1.x===q2.x)&&(q1.y===q2.y)&&(q1.z===q2.z)) {
+                connected.internal.push(n2);
+            }
+            else if ((q1.x!==q2.x)&&(q1.y===q2.y)&&(q1.z===q2.z)) {
+                connected.horizontal.push(n2);
+            }
+            else if ((q1.x===q2.x)&&(q1.y!==q2.y)&&(q1.z===q2.z)) {
+                connected.vertical.push(n2);
+            }
+            else if (q1.z<q2.z) {
+                connected.up.push(n2);
+            }
+            else if (q1.z>q2.z) {
+                connected.down.push(n2);
+            }
+            else {
+                connected.other.push(n2);
+            }
+        }
+
+        //console.log("graf.findEdges", nodeId);
+        for (const key in this.edges) {
+            if (this.edges[key].begin === nodeId) {
+                add( this.edges[key].end );
+            } else if (this.edges[key].end === nodeId) {
+                add( this.edges[key].begin );
+            }
+        }
+
+        return connected;
     };
 
     this.findAndDeleteEdges = function (nodeId) {
@@ -145,8 +189,7 @@ var Graph = /** @class */ (function () {
 
         sgv.dlgMissingNodes.addNode(nodeId);
         
-        sgv.SPS.refresh();
-        sgv.dlgModuleView.refresh();
+        Dispatcher.graphChanged();
     };
 
     this.restoreNode = function (nodeId) {
@@ -163,12 +206,13 @@ var Graph = /** @class */ (function () {
             var nKey = parseInt(key, 10);
             if (nKey in this.nodes) {
                 let e = new Edge(this, nodeId, key);
-
+                console.log(e);
                 for (const vKey in this.missing[nodeId].edges[nKey].values) {
                     e.setValue(this.missing[nodeId].edges[nKey].values[vKey],vKey);    
                 }
                 
                 this.edges[e.id] = e;
+                console.log(e.id);
             } 
             else if (nKey in this.missing) {
                 this.missing[nKey].edges[nodeId] = this.missing[nodeId].edges[nKey];
@@ -180,8 +224,7 @@ var Graph = /** @class */ (function () {
         if (Object.keys(this.missing).length === 0)
             sgv.dlgMissingNodes.hide();
         
-        sgv.SPS.refresh();
-        sgv.dlgModuleView.refresh();
+        Dispatcher.graphChanged();
         
         return true;
     };
@@ -306,8 +349,7 @@ var Graph = /** @class */ (function () {
             this.edges[key].displayValue(scope);
         }
         
-        sgv.SPS.refresh();
-        sgv.dlgModuleView.refresh();
+        Dispatcher.currentScopeChanged();
 
         return true;
     };
@@ -488,8 +530,7 @@ var Graph = /** @class */ (function () {
             this.edges[key].update();
         }
         
-        sgv.SPS.refresh();
-        sgv.dlgModuleView.refresh();
+        Dispatcher.viewModeChanged();
     };
     
     this.showLabels = function (b) {

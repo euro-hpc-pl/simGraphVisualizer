@@ -26,6 +26,12 @@
     background: rgba(0, 0, 0, 0.3);
     border-width: 1px;
     border-radius: 10px;
+    
+    user-select: none; /* supported by Chrome and Opera */
+   -webkit-user-select: none; /* Safari */
+   -khtml-user-select: none; /* Konqueror HTML */
+   -moz-user-select: none; /* Firefox */
+   -ms-user-select: none; /* Internet Explorer/Edge */
 }
 
 .sgvUIwindow .content {
@@ -394,4 +400,12 @@ dialog#loaderSplash div.loader {
   width: 80px;
   height: 80px;
   animation: spin 2s linear infinite;
+}
+
+.disable-select {
+    user-select: none; /* supported by Chrome and Opera */
+   -webkit-user-select: none; /* Safari */
+   -khtml-user-select: none; /* Konqueror HTML */
+   -moz-user-select: none; /* Firefox */
+   -ms-user-select: none; /* Internet Explorer/Edge */
 }
