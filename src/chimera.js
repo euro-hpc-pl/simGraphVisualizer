@@ -193,21 +193,6 @@ var Chimera = /** @class */ (function () {
     };
 
 
-    this.createStructureFromDef = function (def) {
-        for (let i = 0; i < def.length; i++) {
-            if (def[i].n1 === def[i].n2) {
-                let nodeId = def[i].n1;
-
-                this.addNode(nodeId, this.calcPosition(nodeId), def[i].val);
-                this.nodes[nodeId].showLabel(false);
-            } else {
-                let n1 = def[i].n1;
-                let n2 = def[i].n2;
-                this.addEdge(n1, n2).setValue(def[i].val, 'default');
-            }
-        }
-    };
-
     this.setSize = function(c, r, kl, kr, lay) {
         this.cols = c;
         this.rows = r;

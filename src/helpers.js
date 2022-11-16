@@ -100,6 +100,42 @@ var Def2 = /*class*/( (_n1, _n2) => {
         };    
 });
 
+var TempGraphStructure = (function() {
+    this.nodes = [];
+    this.edges = [];
+    
+    this.addEdge1 = function(_n1, _n2, _value) {
+        this.edges.push({
+            n1: _n1,
+            n2: _n2,
+            values: {
+                'default': _value
+            }
+        });
+    };
+    
+    this.addNode1 = function(_id, _value, _label) {
+        let node = {
+            id: _id,
+            values: {
+                'default': _value
+            },
+            label: {
+                text: _id,
+                enabled: false
+            }
+        };
+        
+        if (typeof _label !== 'undefined') {
+            node.label.text = _label;
+            node.label.enabled = true;
+        }
+        
+        this.nodes.push( node );
+    };
+
+});
+
 
 function PitchYawRollToMoveBetweenPointsToRef(start, target, ref) {
     const diff = BABYLON.TmpVectors.Vector3[0];

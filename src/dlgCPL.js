@@ -3,7 +3,7 @@
 /* global sgv, Chimera, Pegasus, UI, parserGEXF, dialog, FileIO */
 
 
-sgv.dlgCPL = new function() {
+sgv.dlgCPL = new function () {
     var com, sel, des;
     var selectScope;
     var sliderRedLimit, sliderGreenLimit;
@@ -11,46 +11,47 @@ sgv.dlgCPL = new function() {
     var btnDispMode, btnCellView, btnShowConsole, btnSaveTXT, btnClear;
 
     var btnShowConsole2, btnCreate, btnLoad;
-    
+
     var elm = createDialog();
-    
-    window.addEventListener('load',()=>{
+
+    window.addEventListener('load', () => {
         window.document.body.appendChild(elm);
     });
 
     function createDialog() {
-        let elm = UI.tag( "dialog", { "class": "sgvUIwindow disable-select", "id": "sgvDlgCPL" });
-        
+        let elm = UI.tag("dialog", {"class": "sgvUIwindow disable-select", "id": "sgvDlgCPL"});
+
         function divSel() {
-            var divSel = UI.tag( "div", { "class": "content", "id": "graphSelection" });
-            
+            var divSel = UI.tag("div", {"class": "content", "id": "graphSelection"});
+
             divSel.appendChild(
-                    btnShowConsole2 = UI.createTransparentBtn1('show console',"cplShowConsoleButton",()=>{
+                    btnShowConsole2 = UI.createTransparentBtn1('show console', "cplShowConsoleButton", () => {
                         sgv.dlgConsole.switchConsole();
                     }));
 
             divSel.appendChild(
-                    btnCreate = UI.createTransparentBtn1('create graph',"cplCreateButton",()=>{
+                    btnCreate = UI.createTransparentBtn1('create graph', "cplCreateButton", () => {
                         sgv.dlgCreateGraph.show();
                     }));
 
             divSel.appendChild(
-                    btnLoad = UI.createTransparentBtn1('load graph', 'cplLoadButton', ()=>{
+                    btnLoad = UI.createTransparentBtn1('load graph', 'cplLoadButton', () => {
                         FileIO.onLoadButton();
-            }));
+                    }));
 
             divSel.style.display = "block";
-            
-            return divSel;
-        };
 
-        
+            return divSel;
+        }
+        ;
+
+
         function divDesc() {
             function createInfoBlock() {
                 var i = UI.tag("div", {});
 
                 i.innerHTML = "Current graph type: ";
-                i.appendChild( UI.span("unknown", {'id':"dscr_type"}) );
+                i.appendChild(UI.span("unknown", {'id': "dscr_type"}));
 
                 i.innerHTML += ', size: <span id="dscr_cols">0</span>x<span id="dscr_rows">0</span>xK<sub><span id="dscr_KL">0</span>,<span id="dscr_KR">0</span></sub><br/> \
                         Number of nodes: <span id="dscr_nbNodes">0</span>, number of edges: <span id="dscr_nbEdges">0</span>';
@@ -59,24 +60,24 @@ sgv.dlgCPL = new function() {
             }
 
             function createLimitSlidersPanel() {
-                let sldPanel = UI.tag('div',{'id':'panelLimitSliders'});
-                
-                sldPanel.appendChild( spanRed=UI.tag("span",{'id':'spanRed'},{'textContent':'-1.0'}) );
+                let sldPanel = UI.tag('div', {'id': 'panelLimitSliders'});
 
-                sliderRedLimit = UI.tag('input',{
-                    'type':'range',
-                    'class':'graphLimit',
-                    'id':'redLimit',
-                    'value':'-1.0',
-                    'min':'-1.0',
-                    'max':'0.0',
-                    'step':'0.01'
+                sldPanel.appendChild(spanRed = UI.tag("span", {'id': 'spanRed'}, {'textContent': '-1.0'}));
+
+                sliderRedLimit = UI.tag('input', {
+                    'type': 'range',
+                    'class': 'graphLimit',
+                    'id': 'redLimit',
+                    'value': '-1.0',
+                    'min': '-1.0',
+                    'max': '0.0',
+                    'step': '0.01'
                 });
-                sliderRedLimit.addEventListener('input', async (e)=>{
+                sliderRedLimit.addEventListener('input', async (e) => {
                     if (sgv.graf !== null) {
                         sgv.graf.redLimit = e.target.value;
 
-                        spanRed.textContent = ''+sgv.graf.redLimit+' ';
+                        spanRed.textContent = '' + sgv.graf.redLimit + ' ';
 
                         sgv.graf.displayValues();
                     }
@@ -84,22 +85,22 @@ sgv.dlgCPL = new function() {
 
                 sldPanel.appendChild(sliderRedLimit);
 
-                sldPanel.appendChild( UI.tag("span",{'id':'spanZero'},{'textContent':' 0 '}) );
+                sldPanel.appendChild(UI.tag("span", {'id': 'spanZero'}, {'textContent': ' 0 '}));
 
-                sliderGreenLimit = UI.tag('input',{
-                    'type':'range',
-                    'class':'graphLimit',
-                    'id':'greenLimit',
-                    'value':'1.0',
-                    'min':'0.0',
-                    'max':'1.0',
-                    'step':'0.01'
+                sliderGreenLimit = UI.tag('input', {
+                    'type': 'range',
+                    'class': 'graphLimit',
+                    'id': 'greenLimit',
+                    'value': '1.0',
+                    'min': '0.0',
+                    'max': '1.0',
+                    'step': '0.01'
                 });
-                sliderGreenLimit.addEventListener('input', async (e)=>{
+                sliderGreenLimit.addEventListener('input', async (e) => {
                     if (sgv.graf !== null) {
                         sgv.graf.greenLimit = e.target.value;
 
-                        spanGreen.textContent = ' '+sgv.graf.greenLimit;
+                        spanGreen.textContent = ' ' + sgv.graf.greenLimit;
 
                         sgv.graf.displayValues();
 
@@ -108,8 +109,8 @@ sgv.dlgCPL = new function() {
 
                 sldPanel.appendChild(sliderGreenLimit);
 
-                sldPanel.appendChild( spanGreen=UI.tag("span",{'id':'spanGreen'},{'textContent':'1.0'}) );
-                
+                sldPanel.appendChild(spanGreen = UI.tag("span", {'id': 'spanGreen'}, {'textContent': '1.0'}));
+
                 return sldPanel;
             }
 
@@ -117,26 +118,26 @@ sgv.dlgCPL = new function() {
 
             divDesc.appendChild(createInfoBlock());
 
-            let divNS = UI.tag( "div", {'class': "sgvD1", 'id': "cplDivNS" }, {'textContent': "add new scope: "} );
-            divNS.appendChild( UI.tag("input", { 'type': "button", 'class': "sgvC", 'id': "cplSkipAddScope", 'value': "<" } ) );
-            divNS.appendChild( UI.tag("input", { 'type': "text", 'id': "cplAddScopeInput", 'value': "newScope" } ) );
-            divNS.appendChild( UI.tag("input", { 'type': "button", 'class': "sgvC", 'id': "cplAcceptAddScope",'value': "+" } ) );
+            let divNS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivNS"}, {'textContent': "add new scope: "});
+            divNS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplSkipAddScope", 'value': "<"}));
+            divNS.appendChild(UI.tag("input", {'type': "text", 'id': "cplAddScopeInput", 'value': "newScope"}));
+            divNS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAcceptAddScope", 'value': "+"}));
             divNS.style.display = "none";
 
-            let divDS = UI.tag( "div", {'class': "sgvD1", 'id': "cplDivDS" }, {'textContent': "current scope: "} );
-            
-            selectScope = UI.tag( "select", {'id': "cplDispValues" } );
+            let divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': "current scope: "});
+
+            selectScope = UI.tag("select", {'id': "cplDispValues"});
             selectScope.addEventListener('change', () => {
                 sgv.graf.displayValues(selectScope.value);
                 updateSlidersX();
             });
-            divDS.appendChild( selectScope );
+            divDS.appendChild(selectScope);
 
-            divDS.appendChild( UI.tag("input", { 'type': "button", 'class': "sgvC", 'id': "cplAddScope", 'value': "+" } ) );
-            divDS.appendChild( UI.tag("input", { 'type': "button", 'class': "sgvC", 'id': "cplDelScope", 'value': "-" } ) );
+            divDS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAddScope", 'value': "+"}));
+            divDS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplDelScope", 'value': "-"}));
 
-            
-            let scope = UI.tag( "div", {'class': "sgvSelectBox", 'id': "cplScope" } );
+
+            let scope = UI.tag("div", {'class': "sgvSelectBox", 'id': "cplScope"});
             scope.appendChild(divNS);
             scope.appendChild(divDS);
             divDesc.appendChild(scope);
@@ -144,165 +145,174 @@ sgv.dlgCPL = new function() {
             let sldPanel = createLimitSlidersPanel();
             divDesc.appendChild(sldPanel);
 
-            let btnPanel = UI.tag('div',{'id':'panelBtns'});
-            
+            let btnPanel = UI.tag('div', {'id': 'panelBtns'});
+
             btnPanel.appendChild(
-                    btnDispMode = UI.createTransparentBtn1('display mode',"cplDispModeButton",()=>{
+                    btnDispMode = UI.createTransparentBtn1('display mode', "cplDispModeButton", () => {
                         sgv.switchDisplayMode();
                     }));
 
             btnPanel.appendChild(
-                    btnCellView = UI.createTransparentBtn1('cell view',"cplCellViewButton",()=>{
+                    btnCellView = UI.createTransparentBtn1('cell view', "cplCellViewButton", () => {
                         sgv.dlgCellView.switchDialog();
                     }));
 
             btnPanel.appendChild(
-                    btnShowConsole = UI.createTransparentBtn1('show console',"cplShowConsoleButton",()=>{
+                    btnShowConsole = UI.createTransparentBtn1('show console', "cplShowConsoleButton", () => {
                         sgv.dlgConsole.switchConsole();
                     }));
 
             btnPanel.appendChild(
-                    btnSaveTXT = UI.createTransparentBtn1('save graph',"cplSaveButton", ()=>{
+                    btnSaveTXT = UI.createTransparentBtn1('save graph', "cplSaveButton", () => {
                         FileIO.onSaveButton()
-                            .then( result => console.log( result ) )
-                            .catch( error => console.log( error ) );
+                                .then(result => console.log(result))
+                                .catch(error => console.log(error));
                     }));
 
             btnPanel.appendChild(
-                    btnClear = UI.createTransparentBtn1('delete graph',"cplClearButton",()=>{
+                    btnClear = UI.createTransparentBtn1('delete graph', "cplClearButton", () => {
                         sgv.removeGraph();
                     }));
 
             divDesc.appendChild(btnPanel);
-            
+
             divDesc.style.display = "none";
             return divDesc;
-        };
+        }
+        ;
 
         sel = divSel();
         des = divDesc();
-        
+
         com = UI.tag('div', {});
         com.style.display = 'block';
-        
+
         com.appendChild(sel);
         com.appendChild(des);
-        
+
         elm.appendChild(com);
 
 
 
         elm.querySelector("#cplSkipAddScope").addEventListener('click',
-            function() {
-                elm.querySelector("#cplDivNS").style.display = "none";
-                elm.querySelector("#cplDivDS").style.display = "block";
-            });
+                function () {
+                    elm.querySelector("#cplDivNS").style.display = "none";
+                    elm.querySelector("#cplDivDS").style.display = "block";
+                });
 
         elm.querySelector("#cplAcceptAddScope").addEventListener('click',
-            function() {
-                let scope = elm.querySelector("#cplAddScopeInput").value;
-                let idx = sgv.graf.addScopeOfValues(scope);
+                function () {
+                    let scope = elm.querySelector("#cplAddScopeInput").value;
+                    let idx = sgv.graf.addScopeOfValues(scope);
 
-                if (idx>=0) {
-                    elm.querySelector("#cplDispValues").add(UI.option(scope,scope));
-                    elm.querySelector("#cplDispValues").selectedIndex = idx;
-                    sgv.graf.displayValues(scope);
-                }
+                    if (idx >= 0) {
+                        elm.querySelector("#cplDispValues").add(UI.option(scope, scope));
+                        elm.querySelector("#cplDispValues").selectedIndex = idx;
+                        sgv.graf.displayValues(scope);
+                    }
 
-                elm.querySelector("#cplDivNS").style.display = "none";
-                elm.querySelector("#cplDivDS").style.display = "inline";
-            });
+                    elm.querySelector("#cplDivNS").style.display = "none";
+                    elm.querySelector("#cplDivDS").style.display = "inline";
+                });
 
         elm.querySelector("#cplAddScope").addEventListener('click',
-            function() {
-                elm.querySelector("#cplDivNS").style.display = "inline";
-                elm.querySelector("#cplDivDS").style.display = "none";
-            });
+                function () {
+                    elm.querySelector("#cplDivNS").style.display = "inline";
+                    elm.querySelector("#cplDivDS").style.display = "none";
+                });
 
         elm.querySelector("#cplDelScope").addEventListener('click',
-            function() {
-                const select = elm.querySelector("#cplDispValues"); 
+                function () {
+                    const select = elm.querySelector("#cplDispValues");
 
-                let idx = sgv.graf.delScopeOfValues(select.value);
+                    let idx = sgv.graf.delScopeOfValues(select.value);
 
-                if (  idx >= 0 ) {
-                    select.remove(select.selectedIndex);
-                    select.selectedIndex = idx;
-                }
-            });
+                    if (idx >= 0) {
+                        select.remove(select.selectedIndex);
+                        select.selectedIndex = idx;
+                    }
+                });
 
 
 
-        var swt = UI.tag('div', {'id':'switch'});
-        
-        swt.addEventListener('click',() => {
-           switchDialog(); 
+        var swt = UI.tag('div', {'id': 'switch'});
+
+        swt.addEventListener('click', () => {
+            switchDialog();
         });
-        
+
         swt.innerHTML = '. . .';
         elm.appendChild(swt);
-        
+
         elm.style.display = 'block';
-        
+
         return elm;
-    };
-    
+    }
+    ;
+
     function showDialog() {
         updateSlidersX();
         com.style.display = "block";
-    };
-    
+    }
+    ;
+
     function hideDialog() {
         com.style.display = "none";
-    };
-    
+    }
+    ;
+
     function switchDialog() {
         //updateSlidersX();
-        com.style.display = (com.style.display === "none")?"block":"none";
-    };
-    
-    function addScopeX(scope,idx) {
-        selectScope.add(UI.option(scope,scope));
+        com.style.display = (com.style.display === "none") ? "block" : "none";
+    }
+    ;
+
+    function addScopeX(scope, idx) {
+        selectScope.add(UI.option(scope, scope));
         selectScope.selectedIndex = idx;
     }
-    
-    function delScopeX(scope,idx2) {
+
+    function delScopeX(scope, idx2) {
         let i = UI.findOption(selectScope, scope);
-        if ( i>-1 ) {
+        if (i > -1) {
             selectScope.remove(i);
         }
         selectScope.selectedIndex = idx2;
     }
-    
+
     function selScopeX(scope) {
         let i = UI.findOption(selectScope, scope);
-        if ( i>-1 ) {
+        if (i > -1) {
             selectScope.selectedIndex = i;
         }
     }
-    
+
     function setModeSelectionX() {
         sel.style.display = "block";
         des.style.display = "none";
-        
+
         enableMenu('menuGraphSave', false);
         enableMenu('menuGraphClear', false);
         enableMenu('menuViewDisplayMode', false);
-        
-    };
+
+    }
+    ;
 
     function updateSlidersX() {
-        if (sgv.graf === null) return;
-        
+        if (sgv.graf === null)
+            return;
+
         let r = sgv.graf.getMinMaxVal();
-        
+
         // min should to bee negative or :
-        if (r.min>0) r.min = Number.NaN;
+        if (r.min > 0)
+            r.min = Number.NaN;
 
         // max should to bee positive:
-        if (r.max<0) r.max = Number.NaN;
+        if (r.max < 0)
+            r.max = Number.NaN;
 
-        
+
         updateRed(r.min);
         updateGreen(r.max);
 
@@ -310,51 +320,52 @@ sgv.dlgCPL = new function() {
             if (isNaN(min)) {
                 sliderRedLimit.disabled = 'disabled';
                 spanRed.textContent = 'NaN';
-            }
-            else {
+            } else {
                 min = Math.floor(min * 100) / 100;
-                
-                if (sgv.graf.redLimit<min) {
+
+                if (sgv.graf.redLimit < min) {
                     sgv.graf.redLimit = min;
                 }
-                
+
                 sliderRedLimit.min = min;
                 sliderRedLimit.value = sgv.graf.redLimit;
 
-                spanRed.textContent = sgv.graf.redLimit+' ';
+                spanRed.textContent = sgv.graf.redLimit + ' ';
                 sliderRedLimit.disabled = '';
             }
-        };
+        }
+        ;
         function updateGreen(max) {
             if (isNaN(max)) {
-                sliderGreenLimit.disabled = 'disabled'; 
+                sliderGreenLimit.disabled = 'disabled';
                 spanGreen.textContent = 'NaN';
-            }
-            else {
+            } else {
                 max = Math.ceil(max * 100) / 100;
-                
-                if (sgv.graf.greenLimit>max) {
-                    sgv.graf.greenLimit=max;
+
+                if (sgv.graf.greenLimit > max) {
+                    sgv.graf.greenLimit = max;
                 }
-                
+
                 sliderGreenLimit.max = max;
                 sliderGreenLimit.value = sgv.graf.greenLimit;
-                
-                spanGreen.textContent = ' '+sgv.graf.greenLimit;
+
+                spanGreen.textContent = ' ' + sgv.graf.greenLimit;
                 sliderGreenLimit.disabled = '';
             }
-        };
-    };
+        }
+        ;
+    }
+    ;
 
 
     function setModeDescriptionX() {
         function refreshScopes() {
-            if (sgv.graf!==null){
+            if (sgv.graf !== null) {
                 UI.clearSelect(selectScope, true);
                 for (const key in sgv.graf.scopeOfValues) {
                     let scope = sgv.graf.scopeOfValues[key];
                     let opt = UI.option(scope, scope);
-                    if ( sgv.graf.currentScope === sgv.graf.scopeOfValues[key]) {
+                    if (sgv.graf.currentScope === sgv.graf.scopeOfValues[key]) {
                         opt.selected = "selected";
                     }
                     selectScope.appendChild(opt);
@@ -362,7 +373,7 @@ sgv.dlgCPL = new function() {
             }
         }
 
-        
+
         function updateInfoBlock() {
             elm.querySelector("#dscr_type").textContent = sgv.graf.type;
             elm.querySelector("#dscr_cols").textContent = sgv.graf.cols;
@@ -371,9 +382,10 @@ sgv.dlgCPL = new function() {
             elm.querySelector("#dscr_KR").textContent = sgv.graf.KR;
             elm.querySelector("#dscr_nbNodes").textContent = Object.keys(sgv.graf.nodes).length;
             elm.querySelector("#dscr_nbEdges").textContent = Object.keys(sgv.graf.edges).length;
-            
-            
-        };
+
+
+        }
+        ;
 
         updateSlidersX();
         updateInfoBlock();
@@ -385,7 +397,8 @@ sgv.dlgCPL = new function() {
 
         sel.style.display = "none";
         des.style.display = "block";
-    };
+    }
+    ;
 
 
     return {
@@ -405,8 +418,8 @@ sgv.dlgCPL = new function() {
 sgv.setModeSelection = sgv.dlgCPL.setModeSelection;
 sgv.setModeDescription = sgv.dlgCPL.setModeDescription;
 
-sgv.removeGraph = function() {
-    if (sgv.graf!==null) {
+sgv.removeGraph = function () {
+    if (sgv.graf !== null) {
         sgv.graf.dispose();
         //delete graf;
         sgv.graf = null;
@@ -416,12 +429,12 @@ sgv.removeGraph = function() {
     sgv.setModeSelection();
 };
 
-sgv.createGraph = function(gDesc, res) {
-    if (sgv.graf!==null) {
+sgv.createGraph = function (gDesc, res) {
+    if (sgv.graf !== null) {
         sgv.removeGraph();
     }
 
-    switch ( gDesc.type ) {
+    switch (gDesc.type) {
         case "chimera" :
             sgv.graf = Chimera.createNewGraph(gDesc.size);
             break;
@@ -433,7 +446,7 @@ sgv.createGraph = function(gDesc, res) {
     }
 
     if (typeof res === 'undefined')
-        sgv.graf.createDefaultStructure(()=>{
+        sgv.graf.createDefaultStructure(() => {
             sgv.setModeDescription();
             sgv.graf.displayValues();
             hideSplash();

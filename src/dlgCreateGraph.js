@@ -42,20 +42,26 @@ sgv.dlgCreateGraph = new function() {
         g.appendChild(UI.tag('hr'));
         
         selectGraphCols = UI.tag('select',{'id':'graphCols'});
-        selectGraphCols.appendChild(UI.option('4','4',true));
-        selectGraphCols.appendChild(UI.option('8','8'));
-        selectGraphCols.appendChild(UI.option('12','12'));
-        selectGraphCols.appendChild(UI.option('16','16'));
+        for (let i=1; i<17; i++ ) {
+            selectGraphCols.appendChild(UI.option(i,i));
+        }
+//        selectGraphCols.appendChild(UI.option('4','4',true));
+//        selectGraphCols.appendChild(UI.option('8','8'));
+//        selectGraphCols.appendChild(UI.option('12','12'));
+//        selectGraphCols.appendChild(UI.option('16','16'));
 
         g.appendChild(UI.tag('label',{'for':'graphCols'},{'innerHTML':' columns: '}));
         g.appendChild(selectGraphCols);
 
         selectGraphRows = UI.tag('select',{'id':'graphRows'});
-        selectGraphRows.appendChild(UI.option('4','4',true));
-        selectGraphRows.appendChild(UI.option('8','8'));
-        selectGraphRows.appendChild(UI.option('12','12'));
-        selectGraphRows.appendChild(UI.option('16','16'));
-
+//        selectGraphRows.appendChild(UI.option('4','4',true));
+//        selectGraphRows.appendChild(UI.option('8','8'));
+//        selectGraphRows.appendChild(UI.option('12','12'));
+//        selectGraphRows.appendChild(UI.option('16','16'));
+        for (let i=1; i<17; i++ ) {
+            selectGraphRows.appendChild(UI.option(i,i));
+        }
+ 
         g.appendChild(UI.tag('label',{'for':'graphRows'},{'innerHTML':' rows: '}));
         g.appendChild(selectGraphRows);
 
