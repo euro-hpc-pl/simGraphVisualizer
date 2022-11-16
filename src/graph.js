@@ -16,7 +16,7 @@
  */
 
 "use strict";
-/* global BABYLON, labelsVisible, sgv, Edge, Dispatcher */
+/* global BABYLON, labelsVisible, sgv, Edge, Dispatcher, QbDescr */
 
 //const txtFile = require("io_TXT.js");
 

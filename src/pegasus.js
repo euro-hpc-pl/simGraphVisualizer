@@ -16,30 +16,19 @@
  */
 
 "use strict";
-/* global BABYLON, sgv, Graph, QbDescr, Chimera */
+/* global BABYLON, sgv, Graph, QbDescr, Chimera, DEMO_MODE */
 
 var Pegasus = /** @class */ (function () {
     Chimera.call(this);
 
     this.type = 'pegasus';
 
-    this.createModules = ()=>{
-        for (let z = 0; z < this.layers; z++) {
-            for (let y = 0; y < this.rows; y++) {
-                for (let x = 0; x < this.cols; x++) {
-                    this.createModule2(x, y, z);    // structure derrived from Chimera
-                    this.connectInternalPegasusEdges(x, y, z); // additional in-module edges
-                }
-            }
-        }
-    };
-
     this.pegasusConnections = ()=>{
-        // layer to layer connections
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < this.rows; y++) {
                 for (let x = 0; x < this.cols; x++) {
-                    this.connectExternalPegasusEdges(x, y, z);
+                    this.connectInternalPegasusEdges(x, y, z); // additional in-module edges [eq4]
+                    this.connectExternalPegasusEdges(x, y, z); // layer to layer edges [eq12 - eq19]
                 }
             }
         }
@@ -47,7 +36,7 @@ var Pegasus = /** @class */ (function () {
     
     this.createDefaultStructure = function (then) {
         sgv.dlgLoaderSplash.setInfo('creating modules', ()=>{
-            this.createModules(); // overriden
+            this.createModules(); // derrived from Chimera
 
             this.showLabels(true);
                         
@@ -69,43 +58,18 @@ var Pegasus = /** @class */ (function () {
         });
     };
 
-    this.connectExternalPegasusEdgesBAK = function (x, y, z) {
-        let val0 = Number.NaN;
-        let val1 = val0; //-1.0;
-        let val2 = val0; // 1.0;
-        let val3 = val0; // 0.5;
-
-        for (let kA = 0; kA < 2; kA++) {
-            for (let jB = 0; jB < 2; jB++) {
-                for (let kB = 0; kB < 2; kB++) {
-                    if (z < this.layers - 1) {
-                        this.connect(new QbDescr(x, y, z, 0, 0, kA), new QbDescr(x, y, z + 1, 1, jB, kB), val0);
-                        this.connect(new QbDescr(x, y, z, 1, 0, kA), new QbDescr(x, y, z + 1, 0, jB, kB), val1);
-                        if (x > 0)
-                            this.connect(new QbDescr(x, y, z, 0, 1, kA), new QbDescr(x - 1, y, z + 1, 1, jB, kB), val2);
-                        if (y > 0)
-                            this.connect(new QbDescr(x, y, z, 1, 1, kA), new QbDescr(x, y - 1, z + 1, 0, jB, kB), val3);
-                    } else {
-                        if ((x < this.cols - 1) && (y < this.rows - 1)) {
-                            this.connect(new QbDescr(x, y, z, 0, 0, kA), new QbDescr(x + 1, y + 1, 0, 1, jB, kB), val0);
-                            this.connect(new QbDescr(x, y, z, 1, 0, kA), new QbDescr(x + 1, y + 1, 0, 0, jB, kB), val1);
-                        }
-
-                        if (y < this.rows - 1) {
-                            this.connect(new QbDescr(x, y, z, 0, 1, kA), new QbDescr(x, y + 1, 0, 1, jB, kB), val2);
-                        }
-
-                        if (x < this.cols - 1) {
-                            this.connect(new QbDescr(x, y, z, 1, 1, kA), new QbDescr(x + 1, y, 0, 0, jB, kB), val3);
-                        }
-                    }
-                }
-            }
-        }
-    };
-
     this.connectExternalPegasusEdges = function (x, y, z) {
-        let val = Number.NaN;
+        let v12,v13,v14,v15,v16,v17,v18,v19;
+        
+        if (DEMO_MODE) {
+            v12 = v16 = 0;
+            v13 = v17 = -1;
+            v14 = v18 = 1;
+            v15 = v19 = 0.5;
+        }
+        else {
+            v12 = v13 = v14 = v15 = v16 = v17 = v18 = v19 = Number.NaN;
+        }
 
         let firstColumn = (x===0);
         let lastColumn = (x===(this.cols-1));
@@ -117,25 +81,36 @@ var Pegasus = /** @class */ (function () {
             for (let jB = 0; jB < 2; jB++) {
                 for (let kB = 0; kB < 2; kB++) {
                     if (! lastLayer) {
-                        this.connect(new QbDescr(x, y, z, 0, 0, kA), new QbDescr(x, y, z + 1, 1, jB, kB), val);
-                        this.connect(new QbDescr(x, y, z, 1, 0, kA), new QbDescr(x, y, z + 1, 0, jB, kB), val);
+                        // eq12
+                        this.connect(new QbDescr(x, y, z, 0, 0, kA), new QbDescr(x, y, z + 1, 1, jB, kB), v12);
+                        
+                        //eq13
+                        this.connect(new QbDescr(x, y, z, 1, 0, kA), new QbDescr(x, y, z + 1, 0, jB, kB), v13);
+                        
+                        //eq14
                         if (! firstColumn)
-                            this.connect(new QbDescr(x, y, z, 0, 1, kA), new QbDescr(x - 1, y, z + 1, 1, jB, kB), val);
+                            this.connect(new QbDescr(x, y, z, 0, 1, kA), new QbDescr(x - 1, y, z + 1, 1, jB, kB), v14);
+                        
+                        //eq15
                         if (! firstRow)
-                            this.connect(new QbDescr(x, y, z, 1, 1, kA), new QbDescr(x, y - 1, z + 1, 0, jB, kB), val);
+                            this.connect(new QbDescr(x, y, z, 1, 1, kA), new QbDescr(x, y - 1, z + 1, 0, jB, kB), v15);
                     }
-                    else {
+                    else { // for last layer (z===2 if 3-layers pegasus)
                         if (! (lastColumn || lastRow) ) {
-                            this.connect(new QbDescr(x, y, z, 0, 0, kA), new QbDescr(x + 1, y + 1, 0, 1, jB, kB), val);
-                            this.connect(new QbDescr(x, y, z, 1, 0, kA), new QbDescr(x + 1, y + 1, 0, 0, jB, kB), val);
+                            //eq16
+                            this.connect(new QbDescr(x, y, z, 0, 0, kA), new QbDescr(x + 1, y + 1, 0, 1, jB, kB), v16);
+                            //eq17
+                            this.connect(new QbDescr(x, y, z, 1, 0, kA), new QbDescr(x + 1, y + 1, 0, 0, jB, kB), v17);
                         }
 
+                        //eq18
                         if (! lastRow) {
-                            this.connect(new QbDescr(x, y, z, 0, 1, kA), new QbDescr(x, y + 1, 0, 1, jB, kB), val);
+                            this.connect(new QbDescr(x, y, z, 0, 1, kA), new QbDescr(x, y + 1, 0, 1, jB, kB), v18);
                         }
 
+                        //eq19
                         if (! lastColumn) {
-                            this.connect(new QbDescr(x, y, z, 1, 1, kA), new QbDescr(x + 1, y, 0, 0, jB, kB), val);
+                            this.connect(new QbDescr(x, y, z, 1, 1, kA), new QbDescr(x + 1, y, 0, 0, jB, kB), v19);
                         }
                     }
                 }
@@ -143,28 +118,23 @@ var Pegasus = /** @class */ (function () {
         }
     };
 
-
     this.connectInternalPegasusEdges = function (x, y, z) {
-        let moduleId = x + (y + z * this.rows) * this.cols;
-
-        let offset = 8 * moduleId;
-
-        // PEGASUS ADDITIONAL EDGES
-        if (this.KL > 1) {
-            this.addEdge(offset + 1, offset + 2);
-            if (this.KL > 3) {
-                this.addEdge(offset + 3, offset + 4);
-            }
+        let v;
+        
+        if (DEMO_MODE) {
+            v = -0.5;
+        }
+        else {
+            v = Number.NaN;
         }
 
-        offset += 4;
-
-        if (this.KR > 1) {
-            this.addEdge(offset + 1, offset + 2);
-            if (this.KR > 3) {
-                this.addEdge(offset + 3, offset + 4);
+        // eq4
+        for (let i of [0,1]) {
+            for (let j of [0,1]) {
+                this.connect(new QbDescr(x, y, z, i, j, 0), new QbDescr(x, y, z, i, j, 1), v);
             }
         }
+        
     };
 });
 

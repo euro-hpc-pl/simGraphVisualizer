@@ -166,22 +166,30 @@ var Chimera = /** @class */ (function () {
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < this.rows; y++) {
                 for (let x = 0; x < this.cols; x++) {
-                    this.createModule2(x, y, z);    // structure derrived from Chimera
+                    this.createModule2(x, y, z);
                 }
             }
         }
     };
 
     this.createDefaultStructure = function (then) {
-        this.createModules();
-        this.showLabels(true);
+        sgv.dlgLoaderSplash.setInfo('creating modules', ()=>{
+            this.createModules();
 
-        this.rowConnections();
-        this.colConnections();
+            this.showLabels(true);
+                        
+            sgv.dlgLoaderSplash.setInfo('creating row connections',()=>{
+                this.rowConnections();
 
-        if (typeof then==='function') {
-            then();
-        }
+                sgv.dlgLoaderSplash.setInfo('creating col connections',()=>{
+                    this.colConnections();
+
+                    if (typeof then==='function') {
+                        then();
+                    }
+                });
+            });
+        });
     };
 
 

@@ -153,7 +153,7 @@ sgv.dlgCPL = new function() {
 
             btnPanel.appendChild(
                     btnCellView = UI.createTransparentBtn1('cell view',"cplCellViewButton",()=>{
-                        sgv.dlgModuleView.switchDialog();
+                        sgv.dlgCellView.switchDialog();
                     }));
 
             btnPanel.appendChild(

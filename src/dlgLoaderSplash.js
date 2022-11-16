@@ -39,7 +39,7 @@ sgv.dlgLoaderSplash = new function() {
         if (typeof action==='function'){
             setTimeout( ()=>{
                 action();
-            }, 200);
+            }, 100);
         }
     };
     

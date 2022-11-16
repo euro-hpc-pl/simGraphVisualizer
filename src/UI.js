@@ -174,6 +174,7 @@ UI.createEmptyWindow = function (_class, _id, _title, _closebuttonVisible ) {//,
     
     o.appendChild(t);
     
+    o.setAttribute('tabindex', '0');
     return o;
 };
 

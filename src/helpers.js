@@ -1,10 +1,22 @@
 /* global BABYLON, sgv */
 
+const DEMO_MODE = false;
 
-function valueToColorBAK(val) {
+
+function valueToColor(val) {
     if ((typeof val ==='undefined')||(val === null)|| isNaN(val)) {
         return new BABYLON.Color3(0.9, 0.9, 0.9);
     };
+    
+    if (DEMO_MODE) {
+        if (val===0) return new BABYLON.Color3(0.0, 0.0, 1.0);
+        else if (val===-1) return new BABYLON.Color3(1.0, 0.0, 0.0);
+        else if (val===1) return new BABYLON.Color3(0.0, 1.0, 0.0);
+        else if (val===0.5) return new BABYLON.Color3(1.0, 0.65, 0.0);
+        else if (val===-0.5) return new BABYLON.Color3(1.0, 0.0, 1.0);
+        else return new BABYLON.Color3(0.9, 0.9, 0.9);
+    }
+
 
     let max = sgv.graf.greenLimit;
     let min = sgv.graf.redLimit;
@@ -27,7 +39,7 @@ function valueToColorBAK(val) {
 }
 
 
-function valueToColor(val) {
+function valueToColorBAK(val) {
     if ((typeof val ==='undefined')||(val === null)|| isNaN(val)) {
         return new BABYLON.Color3(0.9, 0.9, 0.9);
     };
@@ -54,6 +66,8 @@ function valueToColor(val) {
 
 
 function valueToEdgeWidth(val) {
+    if (DEMO_MODE) return 0.2;
+    
     if ((typeof val ==='undefined')||(val === null)|| isNaN(val)) {
         return 0.2;
     };
@@ -62,6 +76,8 @@ function valueToEdgeWidth(val) {
     let min = Math.abs(sgv.graf.redLimit);
 
     max = (max>min)?max:min;
+    
+    if ((val===0)||(max===0)) return 0.2;
     
     val = Math.abs(val);
     

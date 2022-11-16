@@ -1,5 +1,5 @@
 
-/* global sgv, UI */
+/* global sgv, UI, Dispatcher */
 
 sgv.dlgEdgeProperties = new function() {
     var precontent, content, zeroInfo;
@@ -7,8 +7,11 @@ sgv.dlgEdgeProperties = new function() {
     var selectEdgeId, selectScope;
     var checkValueE, editWagaE;
     var btnSetE, btnDeleteE;
+    var prevFocused=null;
 
     var ui = createUI();
+    
+    ui.addEventListener('keydown', onKeyDownX );
     
     window.addEventListener('load',()=>{
         window.document.body.appendChild(ui);
@@ -57,6 +60,9 @@ sgv.dlgEdgeProperties = new function() {
         content.appendChild(checkValueE);
 
         editWagaE = UI.newInput("number", "0", "", "wagaE");
+        editWagaE.addEventListener('change', function () {
+            edycjaE();
+        });
         content.appendChild(editWagaE);
 
         btnSetE = UI.newInput("button", "set", "setvaluebutton", "setE");
@@ -80,6 +86,7 @@ sgv.dlgEdgeProperties = new function() {
         zeroInfo.style['min-width'] = '240px'; 
         zeroInfo.style['min-height'] = '105px'; 
         ui.appendChild(zeroInfo);
+        
         
         return ui;
     };
@@ -117,7 +124,7 @@ sgv.dlgEdgeProperties = new function() {
         }
 
         let currentValue = sgv.graf.edgeValue(edgeId);
-        if (currentValue===null) {
+        if ((currentValue===null)||isNaN(currentValue)) {
             checkValueE.checked = "";
             editWagaE.value = null;
             editWagaE.disabled = "disabled";
@@ -136,10 +143,22 @@ sgv.dlgEdgeProperties = new function() {
         }
 
         ui.style.display = "block";
+        prevFocused = window.document.activeElement;
+        ui.focus({focusVisible: false});
     };
 
+    function onKeyDownX(event) {
+//        if (!ui.contains(document.activeElement)) return;
+
+        let key = event.key;
+        
+        if (key==='Escape') {
+           hideDialog();
+        }
+    }
 
     function hideDialog() {
+        if (prevFocused!==null) prevFocused.focus({focusVisible: false});
         if (ui!==null) ui.style.display = "none";
     };
 
@@ -182,9 +201,8 @@ sgv.dlgEdgeProperties = new function() {
         let scope = sgv.graf.scopeOfValues[selectScope.value];
         
         sgv.graf.setEdgeValue(id, val, scope);
-        ui.style.display = "none";
-        sgv.SPS.refresh();
-        sgv.dlgModuleView.refresh();
+        //ui.style.display = "none";
+        Dispatcher.graphChanged();
     };
 
     function activateE() {
@@ -204,8 +222,7 @@ sgv.dlgEdgeProperties = new function() {
             btnSetE.disabled = "disabled";
             sgv.graf.delEdgeValue(ui.querySelector("#edgeId").value, scope);
         }
-        sgv.SPS.refresh();
-        sgv.dlgModuleView.refresh();
+        Dispatcher.graphChanged();
     };
 
     return {

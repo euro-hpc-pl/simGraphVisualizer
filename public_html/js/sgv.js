@@ -2,28 +2,27 @@
 
 var Dispatcher = {};
 
-
 Dispatcher.graphDeleted = ()=>{
     sgv.SPS.reset();
     sgv.SPS.refresh();
     sgv.dlgCPL.setModeSelection();
-    sgv.dlgModuleView.hide();
+    sgv.dlgCellView.hide();
 };
 
 Dispatcher.graphChanged = ()=>{
     sgv.dlgCPL.updateSliders();
-    sgv.dlgModuleView.refresh();
+    sgv.dlgCellView.refresh();
     sgv.SPS.refresh();
 };
 
 Dispatcher.currentScopeChanged = ()=>{
     sgv.dlgCPL.updateSliders();
-    sgv.dlgModuleView.refresh();
+    sgv.dlgCellView.refresh();
     sgv.SPS.refresh();
 };
 
 Dispatcher.viewModeChanged = ()=>{
-    sgv.dlgModuleView.refresh();
+    sgv.dlgCellView.refresh();
     sgv.SPS.refresh();
 };
 
@@ -248,11 +247,23 @@ var SPS = (function(scene) {
 
 /* global BABYLON, sgv */
 
+const DEMO_MODE = false;
 
-function valueToColorBAK(val) {
+
+function valueToColor(val) {
     if ((typeof val ==='undefined')||(val === null)|| isNaN(val)) {
         return new BABYLON.Color3(0.9, 0.9, 0.9);
     };
+    
+    if (DEMO_MODE) {
+        if (val===0) return new BABYLON.Color3(0.0, 0.0, 1.0);
+        else if (val===-1) return new BABYLON.Color3(1.0, 0.0, 0.0);
+        else if (val===1) return new BABYLON.Color3(0.0, 1.0, 0.0);
+        else if (val===0.5) return new BABYLON.Color3(1.0, 0.65, 0.0);
+        else if (val===-0.5) return new BABYLON.Color3(1.0, 0.0, 1.0);
+        else return new BABYLON.Color3(0.9, 0.9, 0.9);
+    }
+
 
     let max = sgv.graf.greenLimit;
     let min = sgv.graf.redLimit;
@@ -275,7 +286,7 @@ function valueToColorBAK(val) {
 }
 
 
-function valueToColor(val) {
+function valueToColorBAK(val) {
     if ((typeof val ==='undefined')||(val === null)|| isNaN(val)) {
         return new BABYLON.Color3(0.9, 0.9, 0.9);
     };
@@ -302,6 +313,8 @@ function valueToColor(val) {
 
 
 function valueToEdgeWidth(val) {
+    if (DEMO_MODE) return 0.2;
+    
     if ((typeof val ==='undefined')||(val === null)|| isNaN(val)) {
         return 0.2;
     };
@@ -310,6 +323,8 @@ function valueToEdgeWidth(val) {
     let min = Math.abs(sgv.graf.redLimit);
 
     max = (max>min)?max:min;
+    
+    if ((val===0)||(max===0)) return 0.2;
     
     val = Math.abs(val);
     
@@ -875,7 +890,7 @@ QbDescr.fromNodeId = function (nodeIdA, rows, cols) {
  */
 
 "use strict";
-/* global BABYLON, labelsVisible, sgv, Edge, Dispatcher */
+/* global BABYLON, labelsVisible, sgv, Edge, Dispatcher, QbDescr */
 
 //const txtFile = require("io_TXT.js");
 
@@ -1596,22 +1611,30 @@ var Chimera = /** @class */ (function () {
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < this.rows; y++) {
                 for (let x = 0; x < this.cols; x++) {
-                    this.createModule2(x, y, z);    // structure derrived from Chimera
+                    this.createModule2(x, y, z);
                 }
             }
         }
     };
 
     this.createDefaultStructure = function (then) {
-        this.createModules();
-        this.showLabels(true);
+        sgv.dlgLoaderSplash.setInfo('creating modules', ()=>{
+            this.createModules();
 
-        this.rowConnections();
-        this.colConnections();
+            this.showLabels(true);
+                        
+            sgv.dlgLoaderSplash.setInfo('creating row connections',()=>{
+                this.rowConnections();
 
-        if (typeof then==='function') {
-            then();
-        }
+                sgv.dlgLoaderSplash.setInfo('creating col connections',()=>{
+                    this.colConnections();
+
+                    if (typeof then==='function') {
+                        then();
+                    }
+                });
+            });
+        });
     };
 
 
@@ -1671,30 +1694,19 @@ Chimera.createNewGraph = function (size) {
  */
 
 "use strict";
-/* global BABYLON, sgv, Graph, QbDescr, Chimera */
+/* global BABYLON, sgv, Graph, QbDescr, Chimera, DEMO_MODE */
 
 var Pegasus = /** @class */ (function () {
     Chimera.call(this);
 
     this.type = 'pegasus';
 
-    this.createModules = ()=>{
-        for (let z = 0; z < this.layers; z++) {
-            for (let y = 0; y < this.rows; y++) {
-                for (let x = 0; x < this.cols; x++) {
-                    this.createModule2(x, y, z);    // structure derrived from Chimera
-                    this.connectInternalPegasusEdges(x, y, z); // additional in-module edges
-                }
-            }
-        }
-    };
-
     this.pegasusConnections = ()=>{
-        // layer to layer connections
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < this.rows; y++) {
                 for (let x = 0; x < this.cols; x++) {
-                    this.connectExternalPegasusEdges(x, y, z);
+                    this.connectInternalPegasusEdges(x, y, z); // additional in-module edges [eq4]
+                    this.connectExternalPegasusEdges(x, y, z); // layer to layer edges [eq12 - eq19]
                 }
             }
         }
@@ -1702,7 +1714,7 @@ var Pegasus = /** @class */ (function () {
     
     this.createDefaultStructure = function (then) {
         sgv.dlgLoaderSplash.setInfo('creating modules', ()=>{
-            this.createModules(); // overriden
+            this.createModules(); // derrived from Chimera
 
             this.showLabels(true);
                         
@@ -1724,43 +1736,18 @@ var Pegasus = /** @class */ (function () {
         });
     };
 
-    this.connectExternalPegasusEdgesBAK = function (x, y, z) {
-        let val0 = Number.NaN;
-        let val1 = val0; //-1.0;
-        let val2 = val0; // 1.0;
-        let val3 = val0; // 0.5;
-
-        for (let kA = 0; kA < 2; kA++) {
-            for (let jB = 0; jB < 2; jB++) {
-                for (let kB = 0; kB < 2; kB++) {
-                    if (z < this.layers - 1) {
-                        this.connect(new QbDescr(x, y, z, 0, 0, kA), new QbDescr(x, y, z + 1, 1, jB, kB), val0);
-                        this.connect(new QbDescr(x, y, z, 1, 0, kA), new QbDescr(x, y, z + 1, 0, jB, kB), val1);
-                        if (x > 0)
-                            this.connect(new QbDescr(x, y, z, 0, 1, kA), new QbDescr(x - 1, y, z + 1, 1, jB, kB), val2);
-                        if (y > 0)
-                            this.connect(new QbDescr(x, y, z, 1, 1, kA), new QbDescr(x, y - 1, z + 1, 0, jB, kB), val3);
-                    } else {
-                        if ((x < this.cols - 1) && (y < this.rows - 1)) {
-                            this.connect(new QbDescr(x, y, z, 0, 0, kA), new QbDescr(x + 1, y + 1, 0, 1, jB, kB), val0);
-                            this.connect(new QbDescr(x, y, z, 1, 0, kA), new QbDescr(x + 1, y + 1, 0, 0, jB, kB), val1);
-                        }
-
-                        if (y < this.rows - 1) {
-                            this.connect(new QbDescr(x, y, z, 0, 1, kA), new QbDescr(x, y + 1, 0, 1, jB, kB), val2);
-                        }
-
-                        if (x < this.cols - 1) {
-                            this.connect(new QbDescr(x, y, z, 1, 1, kA), new QbDescr(x + 1, y, 0, 0, jB, kB), val3);
-                        }
-                    }
-                }
-            }
-        }
-    };
-
     this.connectExternalPegasusEdges = function (x, y, z) {
-        let val = Number.NaN;
+        let v12,v13,v14,v15,v16,v17,v18,v19;
+        
+        if (DEMO_MODE) {
+            v12 = v16 = 0;
+            v13 = v17 = -1;
+            v14 = v18 = 1;
+            v15 = v19 = 0.5;
+        }
+        else {
+            v12 = v13 = v14 = v15 = v16 = v17 = v18 = v19 = Number.NaN;
+        }
 
         let firstColumn = (x===0);
         let lastColumn = (x===(this.cols-1));
@@ -1772,25 +1759,36 @@ var Pegasus = /** @class */ (function () {
             for (let jB = 0; jB < 2; jB++) {
                 for (let kB = 0; kB < 2; kB++) {
                     if (! lastLayer) {
-                        this.connect(new QbDescr(x, y, z, 0, 0, kA), new QbDescr(x, y, z + 1, 1, jB, kB), val);
-                        this.connect(new QbDescr(x, y, z, 1, 0, kA), new QbDescr(x, y, z + 1, 0, jB, kB), val);
+                        // eq12
+                        this.connect(new QbDescr(x, y, z, 0, 0, kA), new QbDescr(x, y, z + 1, 1, jB, kB), v12);
+                        
+                        //eq13
+                        this.connect(new QbDescr(x, y, z, 1, 0, kA), new QbDescr(x, y, z + 1, 0, jB, kB), v13);
+                        
+                        //eq14
                         if (! firstColumn)
-                            this.connect(new QbDescr(x, y, z, 0, 1, kA), new QbDescr(x - 1, y, z + 1, 1, jB, kB), val);
+                            this.connect(new QbDescr(x, y, z, 0, 1, kA), new QbDescr(x - 1, y, z + 1, 1, jB, kB), v14);
+                        
+                        //eq15
                         if (! firstRow)
-                            this.connect(new QbDescr(x, y, z, 1, 1, kA), new QbDescr(x, y - 1, z + 1, 0, jB, kB), val);
+                            this.connect(new QbDescr(x, y, z, 1, 1, kA), new QbDescr(x, y - 1, z + 1, 0, jB, kB), v15);
                     }
-                    else {
+                    else { // for last layer (z===2 if 3-layers pegasus)
                         if (! (lastColumn || lastRow) ) {
-                            this.connect(new QbDescr(x, y, z, 0, 0, kA), new QbDescr(x + 1, y + 1, 0, 1, jB, kB), val);
-                            this.connect(new QbDescr(x, y, z, 1, 0, kA), new QbDescr(x + 1, y + 1, 0, 0, jB, kB), val);
+                            //eq16
+                            this.connect(new QbDescr(x, y, z, 0, 0, kA), new QbDescr(x + 1, y + 1, 0, 1, jB, kB), v16);
+                            //eq17
+                            this.connect(new QbDescr(x, y, z, 1, 0, kA), new QbDescr(x + 1, y + 1, 0, 0, jB, kB), v17);
                         }
 
+                        //eq18
                         if (! lastRow) {
-                            this.connect(new QbDescr(x, y, z, 0, 1, kA), new QbDescr(x, y + 1, 0, 1, jB, kB), val);
+                            this.connect(new QbDescr(x, y, z, 0, 1, kA), new QbDescr(x, y + 1, 0, 1, jB, kB), v18);
                         }
 
+                        //eq19
                         if (! lastColumn) {
-                            this.connect(new QbDescr(x, y, z, 1, 1, kA), new QbDescr(x + 1, y, 0, 0, jB, kB), val);
+                            this.connect(new QbDescr(x, y, z, 1, 1, kA), new QbDescr(x + 1, y, 0, 0, jB, kB), v19);
                         }
                     }
                 }
@@ -1798,28 +1796,23 @@ var Pegasus = /** @class */ (function () {
         }
     };
 
-
     this.connectInternalPegasusEdges = function (x, y, z) {
-        let moduleId = x + (y + z * this.rows) * this.cols;
-
-        let offset = 8 * moduleId;
-
-        // PEGASUS ADDITIONAL EDGES
-        if (this.KL > 1) {
-            this.addEdge(offset + 1, offset + 2);
-            if (this.KL > 3) {
-                this.addEdge(offset + 3, offset + 4);
-            }
+        let v;
+        
+        if (DEMO_MODE) {
+            v = -0.5;
+        }
+        else {
+            v = Number.NaN;
         }
 
-        offset += 4;
-
-        if (this.KR > 1) {
-            this.addEdge(offset + 1, offset + 2);
-            if (this.KR > 3) {
-                this.addEdge(offset + 3, offset + 4);
+        // eq4
+        for (let i of [0,1]) {
+            for (let j of [0,1]) {
+                this.connect(new QbDescr(x, y, z, i, j, 0), new QbDescr(x, y, z, i, j, 1), v);
             }
         }
+        
     };
 });
 
@@ -2012,6 +2005,7 @@ UI.createEmptyWindow = function (_class, _id, _title, _closebuttonVisible ) {//,
     
     o.appendChild(t);
     
+    o.setAttribute('tabindex', '0');
     return o;
 };
 
@@ -3076,7 +3070,7 @@ sgv.dlgCPL = new function() {
 
             btnPanel.appendChild(
                     btnCellView = UI.createTransparentBtn1('cell view',"cplCellViewButton",()=>{
-                        sgv.dlgModuleView.switchDialog();
+                        sgv.dlgCellView.switchDialog();
                     }));
 
             btnPanel.appendChild(
@@ -3903,125 +3897,121 @@ sgv.dlgConsole = new function () {
     };
 };
 
-/* global sgv, UI, Edge, qD */
+/* global sgv, UI, Edge, qD, QbDescr */
 
-sgv.dlgModuleView = new function() {
+sgv.dlgCellView = new function () {
     var selectGraphCols, selectGraphRows, selectGraphLays, selectScope;
     var upButton, leftButton, rightButton, downButton;
     var svgView;
-    var r,c,l;
+    var r, c, l;
+
+    var prevFocused = null;
 
     const _width = 600;
     const _height = 600;
-    const ctrX = _width/2;
-    const ctrY = _height/2;
-    
-    const svgns = "http://www.w3.org/2000/svg";
+    const ctrX = _width / 2;
+    const ctrY = _height / 2;
 
+    const svgns = "http://www.w3.org/2000/svg";
 
     var ui = createUI();
 
-    window.addEventListener('load',()=>{
+    ui.addEventListener('keydown', onKeyDownX);
+
+    window.addEventListener('load', () => {
         window.document.body.appendChild(ui);
     });
 
     function onKeyDownX(event) {
         let key = event.key;
         //console.log(key);
-        if (key==='ArrowLeft') {
-           if (c>0) {
-               drawModule(c-1,r,l);
-           }
+        if (key === 'ArrowLeft') {
+            if (c > 0) {
+                drawModule(c - 1, r, l);
+            }
+        } else if (key === 'ArrowRight') {
+            if (c < (sgv.graf.cols - 1)) {
+                drawModule(c + 1, r, l);
+            }
+        } else if (key === 'ArrowUp') {
+            if (r < (sgv.graf.rows - 1)) {
+                drawModule(c, r + 1, l);
+            }
+        } else if (key === 'ArrowDown') {
+            if (r > 0) {
+                drawModule(c, r - 1, l);
+            }
+        } else if (key === 'PageUp') {
+            if (l < (sgv.graf.layers - 1)) {
+                drawModule(c, r, l + 1);
+            }
+        } else if (key === 'PageDown') {
+            if (l > 0) {
+                drawModule(c, r, l - 1);
+            }
+        } else if (key === 'Escape') {
+            hideDialogX();
         }
-        else if (key==='ArrowRight') {
-           if (c<(sgv.graf.cols-1)) {
-               drawModule(c+1,r,l);
-           }
-        }
-        else if (key==='ArrowUp') {
-           if (r<(sgv.graf.rows-1)) {
-               drawModule(c,r+1,l);
-           }
-        }
-        else if (key==='ArrowDown') {
-           if (r>0) {
-               drawModule(c,r-1,l);
-           }
-        }
-        else if (key==='PageUp') {
-           if (l<(sgv.graf.layers-1)) {
-               drawModule(c,r,l+1);
-           }
-        }
-        else if (key==='PageDown') {
-           if (l>0) {
-               drawModule(c,r,l-1);
-           }
-        }
-        else if (key==='Escape') {
-           hideDialogX();
-        }
-        
     }
-    
+
     function createUI() {
         r = c = l = 0;
-        
-        let ui = UI.createEmptyWindow("sgvUIwindow", "sgvDlgModuleView", "Cell view", true);
+
+        let ui = UI.createEmptyWindow("sgvUIwindow", "sgvdlgCellView", "Cell view", true);
 
         ui.querySelector(".hidebutton").addEventListener('click', function () {
             hideDialogX();
         });
 
-        let content = UI.tag( "div", { "class": "content", "id": "graphSelection" });
+        let content = UI.tag("div", {"class": "content", "id": "graphSelection"});
 
-        content.appendChild(UI.tag('div',{'id':'description'}));
-        let g = UI.tag('div',{'id':'description'});
+        content.appendChild(UI.tag('div', {'id': 'description'}));
+        let g = UI.tag('div', {'id': 'description'});
 
-        g.style['text-align']='center';
+        g.style['text-align'] = 'center';
 
-        selectGraphCols = UI.tag('select',{'id':'graphCols'});
+        selectGraphCols = UI.tag('select', {'id': 'graphCols'});
         selectGraphCols.addEventListener('change', () => {
             drawModule(
                     parseInt(selectGraphCols.value, 10),
                     parseInt(selectGraphRows.value, 10),
-                    parseInt(selectGraphLays.value, 10)); 
-            });
+                    parseInt(selectGraphLays.value, 10));
+        });
 
-        g.appendChild(UI.tag('label',{'for':'graphCols'},{'innerHTML':' column: '}));
+        g.appendChild(UI.tag('label', {'for': 'graphCols'}, {'innerHTML': ' column: '}));
         g.appendChild(selectGraphCols);
 
-        selectGraphRows = UI.tag('select',{'id':'graphRows'});
+        selectGraphRows = UI.tag('select', {'id': 'graphRows'});
         selectGraphRows.addEventListener('change', () => {
             drawModule(
                     parseInt(selectGraphCols.value, 10),
                     parseInt(selectGraphRows.value, 10),
-                    parseInt(selectGraphLays.value, 10)); 
-            });
+                    parseInt(selectGraphLays.value, 10));
+        });
 
-        g.appendChild(UI.tag('label',{'for':'graphRows'},{'innerHTML':' row: '}));
+        g.appendChild(UI.tag('label', {'for': 'graphRows'}, {'innerHTML': ' row: '}));
         g.appendChild(selectGraphRows);
 
-        selectGraphLays = UI.tag('select',{'id':'graphLays'});
+        selectGraphLays = UI.tag('select', {'id': 'graphLays'});
         selectGraphLays.addEventListener('change', () => {
             drawModule(
                     parseInt(selectGraphCols.value, 10),
                     parseInt(selectGraphRows.value, 10),
-                    parseInt(selectGraphLays.value, 10)); 
-            });
+                    parseInt(selectGraphLays.value, 10));
+        });
 
-        g.appendChild(UI.tag('label',{'for':'graphLays'},{'innerHTML':' layer: '}));
+        g.appendChild(UI.tag('label', {'for': 'graphLays'}, {'innerHTML': ' layer: '}));
         g.appendChild(selectGraphLays);
 
-        selectScope = UI.tag( "select", {'id': "selectScope" } );
+        selectScope = UI.tag("select", {'id': "selectScope"});
         selectScope.addEventListener('change', () => {
             sgv.graf.displayValues(selectScope.value);
             sgv.dlgCPL.selScope(selectScope.value);
             sgv.dlgCPL.updateSliders();
             drawModule();
         });
-        g.appendChild(UI.tag('label',{'for':'selectScope'},{'innerHTML':' scope: '}));
-        g.appendChild( selectScope );
+        g.appendChild(UI.tag('label', {'for': 'selectScope'}, {'innerHTML': ' scope: '}));
+        g.appendChild(selectScope);
 
 
         content.appendChild(g);
@@ -4056,7 +4046,7 @@ sgv.dlgModuleView = new function() {
 //        tbl.setAttribute("bgcolor", "#ffffff");
 //        tbl.setAttribute("cellpadding", "0");
 //        tbl.setAttribute("cellspacing", "0");
-        
+
 //        upButton = UI.tag('button',{'class':''},{'innerHTML':'^'});
 //        upButton.style['width'] = '400px';
 //        upButton.style['height'] = '24px';
@@ -4085,21 +4075,27 @@ sgv.dlgModuleView = new function() {
 
 
         let div = UI.tag('div');
-        div.style.width='fit-content';
-        div.style.height='fit-content';
-        div.style.background='#fff';
+        div.style.width = 'fit-content';
+        div.style.height = 'fit-content';
+        div.style.background = '#fff';
         div.style['border'] = '0';
         div.style['margin'] = '0';
         div.style['padding'] = '0';
-        
+
         svgView = document.createElementNS(svgns, "svg");
-        svgView.setAttributeNS(null, "id",'svgView');
-        svgView.setAttributeNS(null, "height",_height);
-        svgView.setAttributeNS(null, "width",_width);
+        svgView.setAttributeNS(null, "id", 'svgView');
+        svgView.setAttributeNS(null, "height", _height);
+        svgView.setAttributeNS(null, "width", _width);
+        svgView.addEventListener('click', (event) => {
+            if (event.target.id === 'svgView') {
+                sgv.dlgNodeProperties.hide();
+                sgv.dlgEdgeProperties.hide();
+            }
+        });
         div.appendChild(svgView);
-//        t[1][1].appendChild(div);
         content.appendChild(div);
 
+//        t[1][1].appendChild(div);
 //        rightButton = UI.tag('button',{'class':''},{'innerHTML':'>'});
 //        rightButton.style['height'] = '600px';
 //        rightButton.style['width'] = '24px';
@@ -4129,326 +4125,385 @@ sgv.dlgModuleView = new function() {
         ui.appendChild(content);
 
         ui.style.display = "none";
-        ui.style['top']='10vh';
-        ui.style['left']='10vh';
+        ui.style['top'] = '10vh';
+        ui.style['left'] = '10vh';
         return ui;
-    };
+    }
+    ;
 
     function onClick(e) {
         var element = e.target;
         var offsetX = 0, offsetY = 0;
 
-            if (element.offsetParent) {
-          do {
-            offsetX += element.offsetLeft;
-            offsetY += element.offsetTop;
-          } while ((element = element.offsetParent));
+        if (element.offsetParent) {
+            do {
+                offsetX += element.offsetLeft;
+                offsetY += element.offsetTop;
+            } while ((element = element.offsetParent));
         }
 
         x = e.pageX - offsetX;
         y = e.pageY - offsetY;
-        
-        console.log(x,y);
+
+        console.log(x, y);
     }
 
     function pos(id, mode) {
         const pos = {
             'classic': [
                 {x: -60, y: 150},
-                {x: -90, y:  50},
-                {x:-120, y: -50},
-                {x:-150, y:-150},
+                {x: -90, y: 50},
+                {x: -120, y: -50},
+                {x: -150, y: -150},
                 {x: 140, y: 200},
                 {x: 110, y: 100},
-                {x:  80, y:   0},
-                {x:  50, y:-100}]
+                {x: 80, y: 0},
+                {x: 50, y: -100}]
         };
-        
+
         mode = 'classic'; //temporary
-        
+
         return {
-            x: ctrX+pos[mode][id].x,
-            y: ctrY+pos[mode][id].y
+            x: ctrX + pos[mode][id].x,
+            y: ctrY + pos[mode][id].y
         };
     }
-    
-    function drawSvgText(id, x, y, txt, txtColor) {
+
+    function onExternalNodeClick(event) {
+        event.preventDefault();
+        let sp = event.target.id.split('_');
+        if (sp.length > 1)
+            id = sp[1];
+        else
+            id = event.target.id;
+
+        let q = QbDescr.fromNodeId(id, sgv.graf.rows, sgv.graf.cols);
+        drawModule(q.x, q.y, q.z);
+    }
+    ;
+
+    function onNodeClick(event) {
+        event.preventDefault();
+        let sp = event.target.id.split('_');
+        let rect = event.target.getBoundingClientRect();
+        if (sp.length > 1)
+            sgv.dlgNodeProperties.show(sp[1], rect.x, rect.y);
+        else
+            sgv.dlgNodeProperties.show(event.target.id, rect.x, rect.y);
+    }
+    ;
+
+    function onEdgeClick(event) {
+        event.preventDefault();
+        let sp = event.target.id.split('_');
+        let rect = event.target.getBoundingClientRect();
+        if (sp.length > 1)
+            sgv.dlgEdgeProperties.show(sp[1], rect.x, rect.y);
+        else
+            sgv.dlgEdgeProperties.show(event.target.id, rect.x, rect.y);
+    }
+    ;
+
+    function drawSvgText(id, x, y, txt, txtColor, bgColor, onClick) {
+
         var text = document.createElementNS(svgns, 'text');
+        text.setAttributeNS(null, 'id', 'text_' + id);
         text.setAttributeNS(null, 'x', x);
         text.setAttributeNS(null, 'y', y);
         text.setAttributeNS(null, 'text-anchor', 'middle');
         text.setAttributeNS(null, 'alignment-baseline', 'middle');
-        text.setAttributeNS(null, 'stroke', txtColor);
-        text.setAttributeNS(null, 'stroke-width', '1px');
+        //text.setAttributeNS(null, 'stroke', txtColor);
+        //text.setAttributeNS(null, 'stroke-width', '0');
         text.setAttributeNS(null, 'font-size', '12px');
-        //text.setAttributeNS(null, 'fill', 'red');
+        text.setAttributeNS(null, 'font-family', 'Arial, Helvetica, sans-serif');
+        text.setAttributeNS(null, 'fill', txtColor);
         //text.setAttributeNS(null, 'fill-opacity', '1');
         text.textContent = txt;
         svgView.appendChild(text);
 
-        text.addEventListener('click',(e)=>{
-            e.preventDefault();
-//            let rect = circle.getBoundingClientRect();
-//            sgv.dlgNodeProperties.show(circle.id,rect.x,rect.y);
-            sgv.dlgNodeProperties.show(id, x, y);
-        });
-    };
-    
-    function drawSvgEdge( eid, bX, bY, eX, eY, color, wth ) {
-        var newLine = document.createElementNS(svgns,'line');
-        newLine.setAttributeNS(null, 'id',eid);
-        newLine.setAttributeNS(null, 'x1',bX);
-        newLine.setAttributeNS(null, 'y1',bY);
-        newLine.setAttributeNS(null, 'x2',eX);
-        newLine.setAttributeNS(null, 'y2',eY);
-        newLine.setAttributeNS(null, 'style', 'stroke: '+color+'; stroke-width: '+wth+'px;' );
+        text.addEventListener('click', onClick);
+
+        if (bgColor !== '') {
+            var rect = document.createElementNS(svgns, 'rect');
+            rect.setAttributeNS(null, 'id', 'textBG_' + id);
+            rect.setAttributeNS(null, "x", x - 12);
+            rect.setAttributeNS(null, "y", y - 8);
+            rect.setAttributeNS(null, "width", 24);
+            rect.setAttributeNS(null, "height", 14);
+            rect.setAttributeNS(null, "fill", bgColor);
+            svgView.insertBefore(rect, text);
+
+            rect.addEventListener('click', onClick);
+        }
+    }
+    ;
+
+    function drawSvgEdge(eid, bX, bY, eX, eY, color, wth, onClick) {
+        var newLine = document.createElementNS(svgns, 'line');
+        newLine.setAttributeNS(null, 'id', 'edge_' + eid);
+        newLine.setAttributeNS(null, 'x1', bX);
+        newLine.setAttributeNS(null, 'y1', bY);
+        newLine.setAttributeNS(null, 'x2', eX);
+        newLine.setAttributeNS(null, 'y2', eY);
+        //newLine.setAttributeNS(null, 'style', 'stroke: ' + color + '; stroke-width: ' + wth + 'px;');
+        newLine.setAttributeNS(null, 'stroke', color);
+        newLine.setAttributeNS(null, 'stroke-width', wth);
         svgView.appendChild(newLine);
 
-        newLine.addEventListener('click',(e)=>{
-            e.preventDefault();
-            let rect = newLine.getBoundingClientRect();
-            sgv.dlgEdgeProperties.show(newLine.id,rect.x,rect.y);
-        });            
-    };
-    
+        newLine.addEventListener('click', onClick);
+    }
+    ;
+
     function drawExtEdge(offset, ijk, e, endX, endY) {
-        let b = offset+ijk;
-        let eid = Edge.calcId(b,e);
+
+        let b = offset + ijk;
+        let eid = Edge.calcId(b, e);
         if (eid in sgv.graf.edges) {
             let val = sgv.graf.edgeValue(eid);
             let color = valueToColor(val);
-            let wth = 2+5*valueToEdgeWidth(val);
-            
-            drawSvgEdge(eid, pos(ijk).x, pos(ijk).y, endX, endY, color.toHexString(), wth );
-            drawSvgText(e, endX, endY, e, 'black');
-        }            
+            let wth = 2 + 5 * valueToEdgeWidth(val);
+
+            let eVal = sgv.graf.nodeValue(e);
+            let eColor = valueToColor(eVal);
+
+            drawSvgEdge(eid, pos(ijk).x, pos(ijk).y, endX, endY, color.toHexString(), wth, onEdgeClick);
+            drawSvgText(e, endX, endY, e, 'yellow', eColor.toHexString(), onExternalNodeClick);
+        }
     }
-    
+
     function drawInternalEdge(offset, iB, iE) {
         let b = offset + iB;
         let e = offset + iE;
 
-        let eid = Edge.calcId(b,e);
-        console.log('eid2: ',eid);
-                
+        let eid = Edge.calcId(b, e);
+        console.log('eid2: ', eid);
+
         if (eid in sgv.graf.edges) {
             let val = sgv.graf.edgeValue(eid);
             let color = valueToColor(val);
-            let wth = 2+5*valueToEdgeWidth(val);
-            
-            drawSvgEdge(eid, pos(iB).x, pos(iB).y, pos(iE).x, pos(iE).y, color.toHexString(), wth );
+            let wth = 2 + 5 * valueToEdgeWidth(val);
+
+            drawSvgEdge(eid, pos(iB).x, pos(iB).y, pos(iE).x, pos(iE).y, color.toHexString(), wth, onEdgeClick);
         }
     }
-    
-    
-    function drawSvgNode(nodeId, x, y, r, color, txt, txtColor ) {
+
+
+    function drawSvgNode(nodeId, x, y, r, color, onClick) {
         var circle = document.createElementNS(svgns, 'circle');
-        circle.setAttributeNS(null, 'id', nodeId);
+        circle.setAttributeNS(null, 'id', 'node_' + nodeId);
         circle.setAttributeNS(null, 'cx', x);
         circle.setAttributeNS(null, 'cy', y);
         circle.setAttributeNS(null, 'r', r);
-        circle.setAttributeNS(null, 'style', 'fill: '+color+'; stroke: black; stroke-width: 1px;' );
+        //circle.setAttributeNS(null, 'style', 'fill: ' + color + '; stroke: black; stroke-width: 1px;');
+        circle.setAttributeNS(null, 'fill', color);
+        circle.setAttributeNS(null, 'stroke', 'black');
+        circle.setAttributeNS(null, 'stroke-width', '1');
         svgView.appendChild(circle);
 
-        circle.addEventListener('click',(e)=>{
-            e.preventDefault();
-            let rect = circle.getBoundingClientRect();
-            sgv.dlgNodeProperties.show(circle.id,rect.x,rect.y);
-        });
-
-        drawSvgText(nodeId, x, y, txt, txtColor);
+        circle.addEventListener('click', onClick);
     }
-    
+
     function drawNode(offset, id) {
-        let nodeId = offset+id;
+        let nodeId = offset + id;
         if ((nodeId) in sgv.graf.nodes) {
             let val = sgv.graf.nodeValue(nodeId);
             let color = valueToColor(val);
 
-            drawSvgNode( nodeId, pos(id).x, pos(id).y, 20, color.toHexString(), nodeId, 'white' );
+            drawSvgNode(nodeId, pos(id).x, pos(id).y, 20, color.toHexString(), onNodeClick);
+            drawSvgText(nodeId, pos(id).x, pos(id).y, nodeId.toString(), 'yellow', '', onNodeClick);
         }
     }
 
-    
+
     function calcOffset(col, row, layer) {
-        let offset = layer*sgv.graf.cols*sgv.graf.rows;
-        offset += row*sgv.graf.cols;
+        let offset = layer * sgv.graf.cols * sgv.graf.rows;
+        offset += row * sgv.graf.cols;
         offset += col;
         offset *= 8;
 
         offset += 1;
-        
+
         return offset;
     }
-    
+
     function drawModule(col, row, layer) {
         svgView.innerHTML = '';
 
-        if (sgv.graf===null) return;
+        if (sgv.graf === null)
+            return;
 
-        if (typeof col==='undefined') col = c;
-        else if (col<sgv.graf.cols) c = col;
-        else c = col = 0;
-        
-        if (typeof row==='undefined') row = r;
-        else if (row<sgv.graf.rows) r = row;
-        else r = row = 0;
-        
-        if (typeof layer==='undefined') layer = l;
-        else if (layer<sgv.graf.layers) l = layer;
-        else l = layer = 0;
+        if (typeof col === 'undefined')
+            col = c;
+        else if (col < sgv.graf.cols)
+            c = col;
+        else
+            c = col = 0;
 
-        //console.log(layer, 'of', sgv.graf.layers);
-        
-        let firstRow = (row===0);
-        let lastRow = (row===(sgv.graf.rows-1));
-        let firstCol = (col===0);
-        let lastCol = (col===(sgv.graf.cols-1));
-        
+        if (typeof row === 'undefined')
+            row = r;
+        else if (row < sgv.graf.rows)
+            r = row;
+        else
+            r = row = 0;
+
+        if (typeof layer === 'undefined')
+            layer = l;
+        else if (layer < sgv.graf.layers)
+            l = layer;
+        else
+            l = layer = 0;
+
+        let firstRow = (row === 0);
+        let lastRow = (row === (sgv.graf.rows - 1));
+        let firstCol = (col === 0);
+        let lastCol = (col === (sgv.graf.cols - 1));
+
 //        upButton.disabled = lastRow?'disabled':'';
 //        leftButton.disabled = firstCol?'disabled':'';
 //        rightButton.disabled = lastCol?'disabled':'';
 //        downButton.disabled = firstRow?'disabled':'';
-        
+
         UI.selectByKey(selectGraphCols, col);
         UI.selectByKey(selectGraphRows, row);
         UI.selectByKey(selectGraphLays, layer);
-        UI.selectByKey(selectScope,sgv.graf.currentScope);
+        UI.selectByKey(selectScope, sgv.graf.currentScope);
 
         let offset = calcOffset(col, row, layer);
 
         let LT = 20;
-        let RT = _width-20;
+        let RT = _width - 20;
         let TP = 20;
-        let BT = _height-20;
-        
+        let BT = _height - 20;
+
         let ltpos = [
-            {x: LT+95, y: -40},  
-            {x: LT+55, y: -40},  
-            {x: LT+25, y: -30},  
-            {x: LT+25, y: -10},  
-            {x: LT+25, y: 10},  
-            {x: LT+25, y: 30},  
-            {x: LT+55, y: 40},  
-            {x: LT+95, y: 40}  
+            {x: LT + 95, y: -40},
+            {x: LT + 55, y: -40},
+            {x: LT + 25, y: -30},
+            {x: LT + 25, y: -10},
+            {x: LT + 25, y: 10},
+            {x: LT + 25, y: 30},
+            {x: LT + 55, y: 40},
+            {x: LT + 95, y: 40}
         ];
 
         let rtpos = [
-            {x: RT-95, y: -40},  
-            {x: RT-55, y: -40},  
-            {x: RT-25, y: -30},  
-            {x: RT-25, y: -10},  
-            {x: RT-25, y: 10},  
-            {x: RT-25, y: 30},  
-            {x: RT-55, y: 40},  
-            {x: RT-95, y: 40}  
+            {x: RT - 95, y: -40},
+            {x: RT - 55, y: -40},
+            {x: RT - 25, y: -30},
+            {x: RT - 25, y: -10},
+            {x: RT - 25, y: 10},
+            {x: RT - 25, y: 30},
+            {x: RT - 55, y: 40},
+            {x: RT - 95, y: 40}
         ];
-        
+
         let ready = {};
-        for (let i=0;i<8;i++){
-            let connected = sgv.graf.findAllConnected(offset+i);
-            
-            for (let j of connected.internal){
-                let eid = Edge.calcId(offset+i,j);
-                if (!(eid in ready)){
-                    drawInternalEdge(offset, i, (j-1)%8);
-                    ready[eid]=1;
+        for (let i = 0; i < 8; i++) {
+            let connected = sgv.graf.findAllConnected(offset + i);
+
+            for (let j of connected.internal) {
+                let eid = Edge.calcId(offset + i, j);
+                if (!(eid in ready)) {
+                    drawInternalEdge(offset, i, (j - 1) % 8);
+                    ready[eid] = 1;
                 }
             }
 
-            for (let j of connected.horizontal){
-                drawExtEdge(offset, i, j, (offset+i<j)?RT:LT, pos(i).y);
+            for (let j of connected.horizontal) {
+                drawExtEdge(offset, i, j, (offset + i < j) ? RT : LT, pos(i).y);
             }
 
-            for (let j of connected.vertical){
-                drawExtEdge(offset, i, j, pos(i).x, (offset+i<j)?TP:BT);
+            for (let j of connected.vertical) {
+                drawExtEdge(offset, i, j, pos(i).x, (offset + i < j) ? TP : BT);
             }
-            
-            
-            let it=0;
-            if (i<4) {
-                for (let j of connected.up){
-                    drawExtEdge(offset, i, j, ltpos[it].x, pos(i).y+ltpos[it].y);
+
+
+            let it = 0;
+            if (i < 4) {
+                for (let j of connected.up) {
+                    drawExtEdge(offset, i, j, ltpos[it].x, pos(i).y + ltpos[it].y);
                     it++;
                 }
-                for (let j of connected.down){
-                    drawExtEdge(offset, i, j, ltpos[it].x, pos(i).y+ltpos[it].y);
+                for (let j of connected.down) {
+                    drawExtEdge(offset, i, j, ltpos[it].x, pos(i).y + ltpos[it].y);
                     it++;
                 }
-            }            
-            else {
-                for (let j of connected.up){
-                    drawExtEdge(offset, i, j, rtpos[it].x, pos(i).y+rtpos[it].y);
+            } else {
+                for (let j of connected.up) {
+                    drawExtEdge(offset, i, j, rtpos[it].x, pos(i).y + rtpos[it].y);
                     it++;
                 }
-                for (let j of connected.down){
-                    drawExtEdge(offset, i, j, rtpos[it].x, pos(i).y+rtpos[it].y);
+                for (let j of connected.down) {
+                    drawExtEdge(offset, i, j, rtpos[it].x, pos(i).y + rtpos[it].y);
                     it++;
                 }
-            }            
+            }
 
             drawNode(offset, i);
         }
-    };
-    
-    
+    }
+    ;
+
+
     function showDialogX() {
-        UI.clearSelect(selectGraphCols,true);
-        for (let i=0;i<sgv.graf.cols;i++)
-            selectGraphCols.appendChild(UI.option(i,i));
+        UI.clearSelect(selectGraphCols, true);
+        for (let i = 0; i < sgv.graf.cols; i++)
+            selectGraphCols.appendChild(UI.option(i, i));
         selectGraphCols.selectedIndex = c;
 
-        UI.clearSelect(selectGraphRows,true);
-        for (let i=0;i<sgv.graf.rows;i++)
-            selectGraphRows.appendChild(UI.option(i,i));
+        UI.clearSelect(selectGraphRows, true);
+        for (let i = 0; i < sgv.graf.rows; i++)
+            selectGraphRows.appendChild(UI.option(i, i));
         selectGraphRows.selectedIndex = r;
 
-        UI.clearSelect(selectGraphLays,true);
-        for (let i=0;i<sgv.graf.layers;i++)
-            selectGraphLays.appendChild(UI.option(i,i));
+        UI.clearSelect(selectGraphLays, true);
+        for (let i = 0; i < sgv.graf.layers; i++)
+            selectGraphLays.appendChild(UI.option(i, i));
         selectGraphLays.selectedIndex = l;
 
-        if (sgv.graf.layers===1) {
+        if (sgv.graf.layers === 1) {
             selectGraphLays.disabled = 'disabled';
-        }
-        else {
+        } else {
             selectGraphLays.disabled = '';
         }
 
-        UI.clearSelect(selectScope,true);
+        UI.clearSelect(selectScope, true);
         for (let s in sgv.graf.scopeOfValues)
-            selectScope.appendChild(UI.option(sgv.graf.scopeOfValues[s],sgv.graf.scopeOfValues[s]));
-        UI.selectByKey(selectScope,sgv.graf.currentScope);
-        
+            selectScope.appendChild(UI.option(sgv.graf.scopeOfValues[s], sgv.graf.scopeOfValues[s]));
+        UI.selectByKey(selectScope, sgv.graf.currentScope);
+
         drawModule();
-        
-        window.document.addEventListener('keydown', sgv.dlgModuleView.onKeyDown );
+
         ui.style.display = "block";
-    };
-    
-    
+        prevFocused = window.document.activeElement;
+        ui.focus({focusVisible: false});
+    }
+    ;
+
+
     function hideDialogX() {
-        window.document.removeEventListener('keydown', sgv.dlgModuleView.onKeyDown );
+        if (prevFocused !== null)
+            prevFocused.focus({focusVisible: false});
         ui.style.display = "none";
-    };    
+    }
+    ;
 
     function switchDialogX() {
         if (ui.style.display === "none") {
             showDialogX();
-        }
-        else {
+        } else {
             hideDialogX();
         }
-    };    
-    
-    
+    }
+    ;
+
+
     return {
-        onKeyDown: onKeyDownX,
         refresh: drawModule,
         switchDialog: switchDialogX,
         show: showDialogX,
         hide: hideDialogX
-    };    
+    };
 };
 /* global sgv, UI */
 
@@ -4620,7 +4675,7 @@ sgv.dlgCreateGraph = new function() {
 
 
 
-/* global sgv, UI */
+/* global sgv, UI, Dispatcher */
 
 sgv.dlgEdgeProperties = new function() {
     var precontent, content, zeroInfo;
@@ -4628,8 +4683,11 @@ sgv.dlgEdgeProperties = new function() {
     var selectEdgeId, selectScope;
     var checkValueE, editWagaE;
     var btnSetE, btnDeleteE;
+    var prevFocused=null;
 
     var ui = createUI();
+    
+    ui.addEventListener('keydown', onKeyDownX );
     
     window.addEventListener('load',()=>{
         window.document.body.appendChild(ui);
@@ -4678,6 +4736,9 @@ sgv.dlgEdgeProperties = new function() {
         content.appendChild(checkValueE);
 
         editWagaE = UI.newInput("number", "0", "", "wagaE");
+        editWagaE.addEventListener('change', function () {
+            edycjaE();
+        });
         content.appendChild(editWagaE);
 
         btnSetE = UI.newInput("button", "set", "setvaluebutton", "setE");
@@ -4701,6 +4762,7 @@ sgv.dlgEdgeProperties = new function() {
         zeroInfo.style['min-width'] = '240px'; 
         zeroInfo.style['min-height'] = '105px'; 
         ui.appendChild(zeroInfo);
+        
         
         return ui;
     };
@@ -4738,7 +4800,7 @@ sgv.dlgEdgeProperties = new function() {
         }
 
         let currentValue = sgv.graf.edgeValue(edgeId);
-        if (currentValue===null) {
+        if ((currentValue===null)||isNaN(currentValue)) {
             checkValueE.checked = "";
             editWagaE.value = null;
             editWagaE.disabled = "disabled";
@@ -4757,10 +4819,22 @@ sgv.dlgEdgeProperties = new function() {
         }
 
         ui.style.display = "block";
+        prevFocused = window.document.activeElement;
+        ui.focus({focusVisible: false});
     };
 
+    function onKeyDownX(event) {
+//        if (!ui.contains(document.activeElement)) return;
+
+        let key = event.key;
+        
+        if (key==='Escape') {
+           hideDialog();
+        }
+    }
 
     function hideDialog() {
+        if (prevFocused!==null) prevFocused.focus({focusVisible: false});
         if (ui!==null) ui.style.display = "none";
     };
 
@@ -4803,9 +4877,8 @@ sgv.dlgEdgeProperties = new function() {
         let scope = sgv.graf.scopeOfValues[selectScope.value];
         
         sgv.graf.setEdgeValue(id, val, scope);
-        ui.style.display = "none";
-        sgv.SPS.refresh();
-        sgv.dlgModuleView.refresh();
+        //ui.style.display = "none";
+        Dispatcher.graphChanged();
     };
 
     function activateE() {
@@ -4825,8 +4898,7 @@ sgv.dlgEdgeProperties = new function() {
             btnSetE.disabled = "disabled";
             sgv.graf.delEdgeValue(ui.querySelector("#edgeId").value, scope);
         }
-        sgv.SPS.refresh();
-        sgv.dlgModuleView.refresh();
+        Dispatcher.graphChanged();
     };
 
     return {
@@ -4847,9 +4919,11 @@ sgv.dlgNodeProperties = new function() {
     var btnSetN, btnConnectN, selectDestN, btnConnectSelectN;
     var checkLabelN, editLabelN;
     var content, zeroInfo;
-    
+    var prevFocused=null;
     var ui = createUI();
 
+    ui.addEventListener('keydown', onKeyDownX );
+    
     window.addEventListener('load',()=>{
         window.document.body.appendChild(ui);
     });
@@ -4860,7 +4934,6 @@ sgv.dlgNodeProperties = new function() {
         ui.querySelector(".hidebutton").addEventListener('click', function () {
             hideDialog();
         });
-        
         
         hidNodeId = UI.newInput('hidden', '0', '', 'nodeId');
         ui.appendChild(hidNodeId);
@@ -4916,6 +4989,9 @@ sgv.dlgNodeProperties = new function() {
         content.appendChild(checkValueN);
         
         editWagaN = UI.newInput("number", "0", "", "wagaN");
+        editWagaN.addEventListener('change', function () {
+            edycjaN();
+        });
         content.appendChild(editWagaN);
         
         btnSetN = UI.newInput("button", "set", "setvaluebutton", "setN");
@@ -5039,12 +5115,24 @@ sgv.dlgNodeProperties = new function() {
         }
 
         ui.style.display = "block";
+        prevFocused = window.document.activeElement;
+        ui.focus({focusVisible: false});
     };
     
     
+    function onKeyDownX(event) {
+//        if (!ui.contains(document.activeElement)) return;
+
+        let key = event.key;
+        
+        if (key==='Escape') {
+           hideDialog();
+        }
+    }
     
     
     function hideDialog() {
+        if (prevFocused!==null) prevFocused.focus({focusVisible: false});
         if (ui!==null) ui.style.display = "none";
     }
     
@@ -5087,7 +5175,7 @@ sgv.dlgNodeProperties = new function() {
         let val = parseFloat(ui.querySelector("#wagaN").value.replace(/,/g, '.'));
         let scope = sgv.graf.scopeOfValues[ui.querySelector("#nsSelectN").value];
         sgv.graf.setNodeValue(id, val, scope);
-        ui.style.display = "none";
+        //ui.style.display = "none";
         Dispatcher.graphChanged();
     };
 
@@ -5401,7 +5489,7 @@ sgv.dlgLoaderSplash = new function() {
         if (typeof action==='function'){
             setTimeout( ()=>{
                 action();
-            }, 200);
+            }, 100);
         }
     };
     

@@ -7,9 +7,11 @@ sgv.dlgNodeProperties = new function() {
     var btnSetN, btnConnectN, selectDestN, btnConnectSelectN;
     var checkLabelN, editLabelN;
     var content, zeroInfo;
-    
+    var prevFocused=null;
     var ui = createUI();
 
+    ui.addEventListener('keydown', onKeyDownX );
+    
     window.addEventListener('load',()=>{
         window.document.body.appendChild(ui);
     });
@@ -20,7 +22,6 @@ sgv.dlgNodeProperties = new function() {
         ui.querySelector(".hidebutton").addEventListener('click', function () {
             hideDialog();
         });
-        
         
         hidNodeId = UI.newInput('hidden', '0', '', 'nodeId');
         ui.appendChild(hidNodeId);
@@ -76,6 +77,9 @@ sgv.dlgNodeProperties = new function() {
         content.appendChild(checkValueN);
         
         editWagaN = UI.newInput("number", "0", "", "wagaN");
+        editWagaN.addEventListener('change', function () {
+            edycjaN();
+        });
         content.appendChild(editWagaN);
         
         btnSetN = UI.newInput("button", "set", "setvaluebutton", "setN");
@@ -199,12 +203,24 @@ sgv.dlgNodeProperties = new function() {
         }
 
         ui.style.display = "block";
+        prevFocused = window.document.activeElement;
+        ui.focus({focusVisible: false});
     };
     
     
+    function onKeyDownX(event) {
+//        if (!ui.contains(document.activeElement)) return;
+
+        let key = event.key;
+        
+        if (key==='Escape') {
+           hideDialog();
+        }
+    }
     
     
     function hideDialog() {
+        if (prevFocused!==null) prevFocused.focus({focusVisible: false});
         if (ui!==null) ui.style.display = "none";
     }
     
@@ -247,7 +263,7 @@ sgv.dlgNodeProperties = new function() {
         let val = parseFloat(ui.querySelector("#wagaN").value.replace(/,/g, '.'));
         let scope = sgv.graf.scopeOfValues[ui.querySelector("#nsSelectN").value];
         sgv.graf.setNodeValue(id, val, scope);
-        ui.style.display = "none";
+        //ui.style.display = "none";
         Dispatcher.graphChanged();
     };
 
