@@ -1,17 +1,17 @@
 
-/* global sgv, Chimera, Pegasus */
+/* global sgv, Chimera, Pegasus, Graph */
 
 "use strict";
 
 var ParserGEXF = {};
 
 ParserGEXF.importGraph = (string) => {
-    var graphType = "unknown";
-    var graphSize = { cols:0, rows:0, KL:0, KR:0 };
+    //var graphType = "unknown";
+    //var graphSize = { cols:0, rows:0, lays:0, KL:0, KR:0 };
+    var graphDescr = new GraphDescr();
     var nodeAttrs = {};
     var edgeAttrs = {};
-    var newGraph = null;
-    var def2 = [];
+    var struct = new TempGraphStructure();
     
     function parseNodes(parentNode) {
         let nodes = parentNode.getElementsByTagName("nodes");
@@ -38,7 +38,7 @@ ParserGEXF.importGraph = (string) => {
                 }    
             }
             
-            def2.push(def);
+            struct.addNode2(def.n1, def.values);
         }
     };
     
@@ -69,8 +69,7 @@ ParserGEXF.importGraph = (string) => {
                 }    
             }
             
-            //def.values.default = 0.0;
-            def2.push(def);
+            struct.addEdge2(def.n1, def.n2, def.values);
         }
     };
 
@@ -115,17 +114,18 @@ ParserGEXF.importGraph = (string) => {
 
 
                     if ('type' in result){ //default with graph type and size
-                        graphType = result.type;
+                        graphDescr.setType(result.type);
                     }
 
                     if ('size' in result){
                         let ss = result.size.split(",");
                         //if (ss.lenght>3){
-                            graphSize.cols = parseInt(ss[0]);
-                            graphSize.rows = parseInt(ss[1]);
-                            graphSize.lays = parseInt(ss[2]);
-                            graphSize.KL = parseInt(ss[3]);
-                            graphSize.KR = parseInt(ss[4]);
+                            graphDescr.setSize(
+                                parseInt(ss[0]),
+                                parseInt(ss[1]),
+                                parseInt(ss[2]),
+                                parseInt(ss[3]),
+                                parseInt(ss[4]));
                         //}
                     }  
                 } else if (attrsClass === "edge" ) {
@@ -153,24 +153,12 @@ ParserGEXF.importGraph = (string) => {
     parseNodes(xmlDoc);
     parseEdges(xmlDoc);
    
-    //console.log(def2);
-
-    if (graphType === "chimera"){
-        sgv.graf = Chimera.createNewGraph(graphSize);
-    } else if (graphType === "pegasus"){
-        sgv.graf = Pegasus.createNewGraph(graphSize);
-    } else {
-        return false;
-    }
+    Graph.create(graphDescr, struct);
     
     for (const i in nodeAttrs) {
         if (!sgv.graf.scopeOfValues.includes(nodeAttrs[i]))
             sgv.graf.scopeOfValues.push(nodeAttrs[i]);
     }
-
-    sgv.graf.createStructureFromDef2(def2);
-    
-    sgv.graf.displayValues();
 
     return true;
 };
@@ -181,7 +169,7 @@ ParserGEXF.exportGraph = function(graph) {
     function exportNode(node) {
         let xml = "      <node id=\""+node.id+"\">\n";
         xml += "        <attvalues>\n";
-        for (const key in this.values) {
+        for (const key in node.values) {
             xml += "          <attvalue for=\""+node.parentGraph.getScopeIndex(key)+"\" value=\""+node.values[key]+"\"/>\n";
         }
         xml += "        </attvalues>\n";

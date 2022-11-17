@@ -1,6 +1,6 @@
 
 "use strict";
-/* global sgv, Chimera, Pegasus, UI, parserGEXF, dialog, FileIO */
+/* global sgv, Chimera, Pegasus, UI, parserGEXF, dialog, FileIO, Graph */
 
 
 sgv.dlgCPL = new function () {
@@ -149,7 +149,7 @@ sgv.dlgCPL = new function () {
 
             btnPanel.appendChild(
                     btnDispMode = UI.createTransparentBtn1('display mode', "cplDispModeButton", () => {
-                        sgv.switchDisplayMode();
+                        Graph.switchDisplayMode();
                     }));
 
             btnPanel.appendChild(
@@ -171,7 +171,7 @@ sgv.dlgCPL = new function () {
 
             btnPanel.appendChild(
                     btnClear = UI.createTransparentBtn1('delete graph', "cplClearButton", () => {
-                        sgv.removeGraph();
+                        Graph.remove();
                     }));
 
             divDesc.appendChild(btnPanel);
@@ -418,43 +418,3 @@ sgv.dlgCPL = new function () {
 sgv.setModeSelection = sgv.dlgCPL.setModeSelection;
 sgv.setModeDescription = sgv.dlgCPL.setModeDescription;
 
-sgv.removeGraph = function () {
-    if (sgv.graf !== null) {
-        sgv.graf.dispose();
-        //delete graf;
-        sgv.graf = null;
-    }
-
-    sgv.dlgMissingNodes.delAll();
-    sgv.setModeSelection();
-};
-
-sgv.createGraph = function (gDesc, res) {
-    if (sgv.graf !== null) {
-        sgv.removeGraph();
-    }
-
-    switch (gDesc.type) {
-        case "chimera" :
-            sgv.graf = Chimera.createNewGraph(gDesc.size);
-            break;
-        case "pegasus" :
-            sgv.graf = Pegasus.createNewGraph(gDesc.size);
-            break;
-        default:
-            return;
-    }
-
-    if (typeof res === 'undefined')
-        sgv.graf.createDefaultStructure(() => {
-            sgv.setModeDescription();
-            sgv.graf.displayValues();
-            hideSplash();
-        });
-    else {
-        sgv.graf.createStructureFromDef(res);
-        sgv.setModeDescription();
-        sgv.graf.displayValues();
-        hideSplash();
-    }
-};

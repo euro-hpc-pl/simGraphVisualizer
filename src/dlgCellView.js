@@ -377,7 +377,7 @@ sgv.dlgCellView = new function () {
         let e = offset + iE;
 
         let eid = Edge.calcId(b, e);
-        console.log('eid2: ', eid);
+        //console.log('eid2: ', eid);
 
         if (eid in sgv.graf.edges) {
             let val = sgv.graf.edgeValue(eid);

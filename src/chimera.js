@@ -19,7 +19,7 @@
 /* global Graph, BABYLON, sgv, QbDescr */
 "use strict";
 
-var Chimera = /** @class */ (function () {
+const Chimera = /** @class */ (function () {
     Graph.call(this);
 
     this.type = 'chimera';
@@ -47,22 +47,45 @@ var Chimera = /** @class */ (function () {
         }
     };
 
-    this.connectRowModules2 = function (x, y, z) {
-        for (let j = 0; j < 2; j++) {
-            for (let k = 0; k < 2; k++) {
+    this.connectVertical = function (x, y, z) {
+        for (let j of [0,1]) {
+            for (let k of [0,1]) {
+                // eq3
                 this.connect(new QbDescr(x, y, z, 0, j, k), new QbDescr(x, y + 1, z, 0, j, k));
             }
         }
     };
 
-    this.connectColModules2 = function (x, y, z) {
-        for (let j = 0; j < 2; j++) {
-            for (let k = 0; k < 2; k++) {
+    this.connectHorizontal = function (x, y, z) {
+        for (let j of [0,1]) {
+            for (let k of [0,1]) {
+                // eq2
                 this.connect(new QbDescr(x, y, z, 1, j, k), new QbDescr(x + 1, y, z, 1, j, k));
             }
         }
     };
 
+    this.connectInternalChimeraEdges = function (x, y, z) {
+        let v;
+
+//        if (DEMO_MODE) {
+//            v = -0.5;
+//        } else {
+            v = Number.NaN;
+//        }
+
+        for (let jA of [0, 1]) {
+            for (let kA of [0, 1]) {
+                for (let jB of [0, 1]) {
+                    for (let kB of [0, 1]) {
+                        // eq1
+                        this.connect(new QbDescr(x, y, z, 0, jA, kA), new QbDescr(x, y, z, 1, jB, kB), v);
+                    }
+                }
+            }
+        }
+
+    };
 
     this.modulePosition = function( x, y, z ) {
         let d = 50.0;
@@ -83,24 +106,19 @@ var Chimera = /** @class */ (function () {
         return this.calcPosition2(qd.x, qd.y, qd.z, qd.n0());
     };
 
-    this.createModule2 = function (x, y, z) {
+
+    this.createModuleNodes = function (x, y, z) {
         let moduleId = x + (y + z * this.rows) * this.cols;
 
         let offset = 8 * moduleId;
 
         // MODULE NODES
         for (let n = 0; n < this.KL; n++) {
-            this.addNode(offset + n + 1, this.calcPosition2(x, y, z, n), Number.NaN);
+            this.addNode(offset + n + 1);
         }
         for (let n = 4; n < this.KR + 4; n++) {
-            this.addNode(offset + n + 1, this.calcPosition2(x, y, z, n), Number.NaN);
+            this.addNode(offset + n + 1);
         }
-
-        // INTERNAL MODULE EDGES
-        for (let x = 0; x < this.KL; x++)
-            for (let y = 0; y < this.KR; y++) {
-                this.addEdge(offset + x + 1, offset + 4 + y + 1);
-            }
     };
 
 
@@ -139,24 +157,24 @@ var Chimera = /** @class */ (function () {
         };
 
 
-        return nodeOffset[sgv.displayMode][idx];
+        return nodeOffset[Graph.currentDisplayMode][idx];
     };
 
-    this.rowConnections = ()=>{
+    this.verticalConnections = ()=>{
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < (this.rows - 1); y++) {
                 for (let x = 0; x < this.cols; x++) {
-                    this.connectRowModules2(x, y, z);
+                    this.connectVertical(x, y, z);
                 }
             }
         }
     };
 
-    this.colConnections = ()=>{
+    this.horizontalConnections = ()=>{
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < this.rows; y++) {
                 for (let x = 0; x < (this.cols - 1); x++) {
-                    this.connectColModules2(x, y, z);
+                    this.connectHorizontal(x, y, z);
                 }
             }
         }
@@ -166,7 +184,8 @@ var Chimera = /** @class */ (function () {
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < this.rows; y++) {
                 for (let x = 0; x < this.cols; x++) {
-                    this.createModule2(x, y, z);
+                    this.createModuleNodes(x, y, z);
+                    this.connectInternalChimeraEdges(x, y, z);
                 }
             }
         }
@@ -176,13 +195,13 @@ var Chimera = /** @class */ (function () {
         sgv.dlgLoaderSplash.setInfo('creating modules', ()=>{
             this.createModules();
 
-            this.showLabels(true);
+            //this.showLabels(true);
                         
-            sgv.dlgLoaderSplash.setInfo('creating row connections',()=>{
-                this.rowConnections();
+            sgv.dlgLoaderSplash.setInfo('creating vertical connections',()=>{
+                this.verticalConnections();
 
-                sgv.dlgLoaderSplash.setInfo('creating col connections',()=>{
-                    this.colConnections();
+                sgv.dlgLoaderSplash.setInfo('creating horizontal connections',()=>{
+                    this.horizontalConnections();
 
                     if (typeof then==='function') {
                         then();
@@ -215,3 +234,4 @@ Chimera.createNewGraph = function (size) {
     return g;
 };
 
+Graph.registerType('chimera', Chimera);

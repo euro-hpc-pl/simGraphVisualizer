@@ -5,6 +5,7 @@ var Dispatcher = {};
 Dispatcher.graphDeleted = ()=>{
     sgv.SPS.reset();
     sgv.SPS.refresh();
+    sgv.dlgMissingNodes.delAll();
     sgv.dlgCPL.setModeSelection();
     sgv.dlgCellView.hide();
 };

@@ -5,6 +5,7 @@ var Dispatcher = {};
 Dispatcher.graphDeleted = ()=>{
     sgv.SPS.reset();
     sgv.SPS.refresh();
+    sgv.dlgMissingNodes.delAll();
     sgv.dlgCPL.setModeSelection();
     sgv.dlgCellView.hide();
 };
@@ -245,9 +246,104 @@ var SPS = (function(scene) {
     };
 });
 
+var GraphDescr = (function() {
+    //this.type = '';
+    this.size = {
+        cols: 0,
+        rows: 0,
+        lays: 0,
+        KL: 0,
+        KR: 0
+    };
+
+    this.set = function(_t, _c, _r, _l, _kl, _kr) {
+        this.setType(_t);
+        this.setSize(_c, _r, _l, _kl, _kr);
+    };
+    
+    this.setType = function(_t) {
+        this.type = _t;
+    };
+
+    this.setSize = function(_c, _r, _l, _kl, _kr) {
+        this.size = {
+            cols: _c,
+            rows: _r,
+            lays: _l,
+            KL: _kl,
+            KR: _kr
+        };
+    };
+});
+
+
+var TempGraphStructure = (function() {
+    this.nodes = [];
+    this.edges = [];
+    
+    this.addEdge1 = function(_n1, _n2, _value) {
+        this.edges.push({
+            n1: _n1,
+            n2: _n2,
+            values: {
+                'default': _value
+            }
+        });
+    };
+
+    this.addEdge2 = function(_n1, _n2, _values) {
+        this.edges.push({
+            n1: _n1,
+            n2: _n2,
+            values: _values
+        });
+    };
+    
+    this.addNode1 = function(_id, _value, _label) {
+        let node = {
+            id: _id,
+            values: {
+                'default': _value
+            },
+            label: null
+        };
+        
+        if (typeof _label !== 'undefined') {
+            node.label = {
+                text: _label,
+                enabled: true
+            };
+        }
+        
+        this.nodes.push( node );
+    };
+
+    this.addNode2 = function(_id, _values, _label) {
+        let node = {
+            id: _id,
+            values: _values,
+            label: null
+        };
+        
+        if (typeof _label !== 'undefined') {
+            node.label = {
+                text: _label,
+                enabled: true
+            };
+        }
+        
+        this.nodes.push( node );
+    };
+
+});
+
 /* global BABYLON, sgv */
 
 const DEMO_MODE = false;
+
+function getRandom(min, max) {
+    return (min + (Math.random() * (max - min)));
+};
 
 
 function valueToColor(val) {
@@ -335,53 +431,7 @@ function valueToEdgeWidth(val) {
     return 0.2 + ( val / max );
 }
 
-var Def2 = /*class*/( (_n1, _n2) => {
-    this.n1 = _n1;
-    this.n2 = _n2;
-    this.values = {
-            'default': Number.NaN
-        };
-    this.label = {
-            text: null,
-            enabled: false
-        };    
-});
 
-var TempGraphStructure = (function() {
-    this.nodes = [];
-    this.edges = [];
-    
-    this.addEdge1 = function(_n1, _n2, _value) {
-        this.edges.push({
-            n1: _n1,
-            n2: _n2,
-            values: {
-                'default': _value
-            }
-        });
-    };
-    
-    this.addNode1 = function(_id, _value, _label) {
-        let node = {
-            id: _id,
-            values: {
-                'default': _value
-            },
-            label: {
-                text: _id,
-                enabled: false
-            }
-        };
-        
-        if (typeof _label !== 'undefined') {
-            node.label.text = _label;
-            node.label.enabled = true;
-        }
-        
-        this.nodes.push( node );
-    };
-
-});
 
 
 function PitchYawRollToMoveBetweenPointsToRef(start, target, ref) {
@@ -926,11 +976,9 @@ QbDescr.fromNodeId = function (nodeIdA, rows, cols) {
  */
 
 "use strict";
-/* global BABYLON, labelsVisible, sgv, Edge, Dispatcher, QbDescr */
+/* global BABYLON, labelsVisible, sgv, Edge, Dispatcher, QbDescr, TempGraphStructure, GraphDescr */
 
-//const txtFile = require("io_TXT.js");
-
-var Graph = /** @class */ (function () {
+const Graph = /** @class */ (function () {
     this.nodes = {};
     this.edges = {};
     this.missing = {};
@@ -954,10 +1002,6 @@ var Graph = /** @class */ (function () {
         }
         
         Dispatcher.graphDeleted();
-
-//        for (const key in this.missing) {
-//
-//        }
     };
 
     this.clear = function () {
@@ -968,14 +1012,17 @@ var Graph = /** @class */ (function () {
         return Object.keys(this.nodes).length;
     };
 
-    this.addNode = function(nodeId, pos, val) {
+    this.addNode = function(nodeId, val) {
         values = {};
         
         if (typeof val==='number') {
             values['default'] = val;
         }
         
+        let pos = this.calcPosition(nodeId);
+        
         let n = new Node(this, nodeId, pos.x, pos.y, pos.z, values);
+        n.showLabel(false);
         this.nodes[n.id] = n;
         return n;
     };
@@ -1430,16 +1477,15 @@ var Graph = /** @class */ (function () {
     this.calcPosition = /*virtual*/ (nodeId) => new BABYLON.Vector3();
 
 
-    this.changeDisplayMode = function () {
+    this.setDisplayMode = function () {
         for (const key in this.nodes) {
-            let pos = this.calcPosition(key);
-            this.nodes[key].position = pos;
+            this.nodes[key].position = this.calcPosition(key);
         }
 
         for (const key in this.edges) {
             this.edges[key].update();
         }
-        
+
         Dispatcher.viewModeChanged();
     };
     
@@ -1451,67 +1497,94 @@ var Graph = /** @class */ (function () {
     };
 
     
-//    this.createStructureFromTempStruct = function (struct) {
-//        console.log(def);
-//        for (let i = 0; i < def.length; i++) {
-//            if (def[i].n1 === def[i].n2) {
-//                let nodeId = def[i].n1;
-//
-//                this.addNode(nodeId, this.calcPosition(nodeId), def[i].val);
-//                this.nodes[nodeId].showLabel(false);
-//            } else {
-//                let n1 = def[i].n1;
-//                let n2 = def[i].n2;
-//                this.addEdge(n1, n2).setValue(def[i].val, 'default');
-//            }
-//        }
-//    };
-    
-    this.createStructureFromDef = function (def) {
-        console.log(def);
-        for (let i = 0; i < def.length; i++) {
-            if (def[i].n1 === def[i].n2) {
-                let nodeId = def[i].n1;
-
-                this.addNode(nodeId, this.calcPosition(nodeId), def[i].val);
-                this.nodes[nodeId].showLabel(false);
+    this.createStructureFromTempStruct = function (struct) {
+        //console.log(struct);
+        for (let tmpNode of struct.nodes){
+            let n = this.addNode(tmpNode.id);
+            n.values = tmpNode.values;
+            if (tmpNode.label !== null) {
+                n.setLabel(tmpNode.label.text, tmpNode.label.enabled);
             } else {
-                let n1 = def[i].n1;
-                let n2 = def[i].n2;
-                this.addEdge(n1, n2).setValue(def[i].val, 'default');
-            }
-        }
-    };
-
-
-    
-    this.createStructureFromDef2 = function (def) {
-        for (let i = 0; i < def.length; i++) {
-            if (def[i].n1 === def[i].n2) {
-                let nodeId = def[i].n1;
-
-                let n = this.addNode(nodeId, this.calcPosition(nodeId), 0.0);
-
-                for (const key in def[i].values) {
-                    n.setValue(def[i].values[key], key);
-                }
-            }
-            else {
-                let n1 = def[i].n1;
-                let n2 = def[i].n2;
-                
-                let e = this.addEdge(n1, n2);
-         
-                for (const key in def[i].values) {
-                    e.setValue(def[i].values[key], key);
-                }
+                n.showLabel(false);
             }
         }
 
-        this.showLabels(true);
-        this.displayValues('default');
+        for (let tmpEdge of struct.edges){
+            let e = this.addEdge(tmpEdge.n1, tmpEdge.n2);
+            e.values = tmpEdge.values;
+        }
+        
+        struct = null;
+        //console.log(struct);
     };
+
 });
+
+Graph.displayModes = [ 'classic', 'triangle', 'diamond' ];
+Graph.currentDisplayMode = 'classic';
+
+Graph.switchDisplayMode = ()=>{
+    if (sgv.graf === null) {
+        console.warning('graf not defined');
+        return;
+    }
+
+    let idx = Graph.displayModes.indexOf(Graph.currentDisplayMode) + 1;
+    if (idx===Graph.displayModes.length) idx=0;
+    Graph.currentDisplayMode = Graph.displayModes[idx];
+
+    sgv.graf.setDisplayMode();
+};
+
+Graph.knownGraphTypes = {};
+Graph.registerType = (txt,Type)=>{Graph.knownGraphTypes[txt] = Type;};
+Graph.knowType = (txt)=>(txt in Graph.knownGraphTypes);
+
+
+/**
+ * @param {GraphDescr} gDesc - Graph structure description
+ * @param {TempGraphStructure} struct - optional Graph data
+ */
+Graph.create = (gDesc, struct)=>{
+    Graph.remove();
+
+    if (gDesc instanceof GraphDescr){
+        if (gDesc.type in Graph.knownGraphTypes) {
+            sgv.graf = Graph.knownGraphTypes[gDesc.type].createNewGraph(gDesc.size);
+        } else {
+            console.error('unknown graph type');
+            return;
+        }
+    } else {
+        console.error('unknown graph type');
+        return;
+    }
+    
+    //console.log(typeof struct, struct.constructor.name, TempGraphStructure.name, struct);
+    if (struct instanceof TempGraphStructure){
+        sgv.graf.createStructureFromTempStruct(struct);
+        sgv.setModeDescription();
+        sgv.graf.displayValues();
+        hideSplash();
+    }
+    else {
+        sgv.graf.createDefaultStructure(() => {
+            sgv.setModeDescription();
+            sgv.graf.displayValues();
+            hideSplash();
+        });
+    }
+    
+};
+
+Graph.remove = ()=>{
+    if (sgv.graf !== null) {
+        sgv.graf.dispose();
+        sgv.graf = null;
+        
+        Dispatcher.graphDeleted();
+    }
+};
 
 
 
@@ -1534,7 +1607,7 @@ var Graph = /** @class */ (function () {
 /* global Graph, BABYLON, sgv, QbDescr */
 "use strict";
 
-var Chimera = /** @class */ (function () {
+const Chimera = /** @class */ (function () {
     Graph.call(this);
 
     this.type = 'chimera';
@@ -1562,22 +1635,45 @@ var Chimera = /** @class */ (function () {
         }
     };
 
-    this.connectRowModules2 = function (x, y, z) {
-        for (let j = 0; j < 2; j++) {
-            for (let k = 0; k < 2; k++) {
+    this.connectVertical = function (x, y, z) {
+        for (let j of [0,1]) {
+            for (let k of [0,1]) {
+                // eq3
                 this.connect(new QbDescr(x, y, z, 0, j, k), new QbDescr(x, y + 1, z, 0, j, k));
             }
         }
     };
 
-    this.connectColModules2 = function (x, y, z) {
-        for (let j = 0; j < 2; j++) {
-            for (let k = 0; k < 2; k++) {
+    this.connectHorizontal = function (x, y, z) {
+        for (let j of [0,1]) {
+            for (let k of [0,1]) {
+                // eq2
                 this.connect(new QbDescr(x, y, z, 1, j, k), new QbDescr(x + 1, y, z, 1, j, k));
             }
         }
     };
 
+    this.connectInternalChimeraEdges = function (x, y, z) {
+        let v;
+
+//        if (DEMO_MODE) {
+//            v = -0.5;
+//        } else {
+            v = Number.NaN;
+//        }
+
+        for (let jA of [0, 1]) {
+            for (let kA of [0, 1]) {
+                for (let jB of [0, 1]) {
+                    for (let kB of [0, 1]) {
+                        // eq1
+                        this.connect(new QbDescr(x, y, z, 0, jA, kA), new QbDescr(x, y, z, 1, jB, kB), v);
+                    }
+                }
+            }
+        }
+
+    };
 
     this.modulePosition = function( x, y, z ) {
         let d = 50.0;
@@ -1598,24 +1694,19 @@ var Chimera = /** @class */ (function () {
         return this.calcPosition2(qd.x, qd.y, qd.z, qd.n0());
     };
 
-    this.createModule2 = function (x, y, z) {
+
+    this.createModuleNodes = function (x, y, z) {
         let moduleId = x + (y + z * this.rows) * this.cols;
 
         let offset = 8 * moduleId;
 
         // MODULE NODES
         for (let n = 0; n < this.KL; n++) {
-            this.addNode(offset + n + 1, this.calcPosition2(x, y, z, n), Number.NaN);
+            this.addNode(offset + n + 1);
         }
         for (let n = 4; n < this.KR + 4; n++) {
-            this.addNode(offset + n + 1, this.calcPosition2(x, y, z, n), Number.NaN);
+            this.addNode(offset + n + 1);
         }
-
-        // INTERNAL MODULE EDGES
-        for (let x = 0; x < this.KL; x++)
-            for (let y = 0; y < this.KR; y++) {
-                this.addEdge(offset + x + 1, offset + 4 + y + 1);
-            }
     };
 
 
@@ -1654,24 +1745,24 @@ var Chimera = /** @class */ (function () {
         };
 
 
-        return nodeOffset[sgv.displayMode][idx];
+        return nodeOffset[Graph.currentDisplayMode][idx];
     };
 
-    this.rowConnections = ()=>{
+    this.verticalConnections = ()=>{
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < (this.rows - 1); y++) {
                 for (let x = 0; x < this.cols; x++) {
-                    this.connectRowModules2(x, y, z);
+                    this.connectVertical(x, y, z);
                 }
             }
         }
     };
 
-    this.colConnections = ()=>{
+    this.horizontalConnections = ()=>{
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < this.rows; y++) {
                 for (let x = 0; x < (this.cols - 1); x++) {
-                    this.connectColModules2(x, y, z);
+                    this.connectHorizontal(x, y, z);
                 }
             }
         }
@@ -1681,7 +1772,8 @@ var Chimera = /** @class */ (function () {
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < this.rows; y++) {
                 for (let x = 0; x < this.cols; x++) {
-                    this.createModule2(x, y, z);
+                    this.createModuleNodes(x, y, z);
+                    this.connectInternalChimeraEdges(x, y, z);
                 }
             }
         }
@@ -1691,13 +1783,13 @@ var Chimera = /** @class */ (function () {
         sgv.dlgLoaderSplash.setInfo('creating modules', ()=>{
             this.createModules();
 
-            this.showLabels(true);
+            //this.showLabels(true);
                         
-            sgv.dlgLoaderSplash.setInfo('creating row connections',()=>{
-                this.rowConnections();
+            sgv.dlgLoaderSplash.setInfo('creating vertical connections',()=>{
+                this.verticalConnections();
 
-                sgv.dlgLoaderSplash.setInfo('creating col connections',()=>{
-                    this.colConnections();
+                sgv.dlgLoaderSplash.setInfo('creating horizontal connections',()=>{
+                    this.horizontalConnections();
 
                     if (typeof then==='function') {
                         then();
@@ -1730,6 +1822,7 @@ Chimera.createNewGraph = function (size) {
     return g;
 };
 
+Graph.registerType('chimera', Chimera);
 
 
 /* 
@@ -1756,7 +1849,7 @@ var Pegasus = /** @class */ (function () {
 
     this.type = 'pegasus';
 
-    this.pegasusConnections = ()=>{
+    this.pegasusConnections = () => {
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < this.rows; y++) {
                 for (let x = 0; x < this.cols; x++) {
@@ -1766,23 +1859,21 @@ var Pegasus = /** @class */ (function () {
             }
         }
     };
-    
+
     this.createDefaultStructure = function (then) {
-        sgv.dlgLoaderSplash.setInfo('creating modules', ()=>{
+        sgv.dlgLoaderSplash.setInfo('creating modules', () => {
             this.createModules(); // derrived from Chimera
 
-            this.showLabels(true);
-                        
-            sgv.dlgLoaderSplash.setInfo('creating row connections',()=>{
-                this.rowConnections();  // derrived from Chimera
+            sgv.dlgLoaderSplash.setInfo('creating vertical connections', () => {
+                this.verticalConnections();  // derrived from Chimera
 
-                sgv.dlgLoaderSplash.setInfo('creating col connections',()=>{
-                    this.colConnections();  // derrived from Chimera
+                sgv.dlgLoaderSplash.setInfo('creating horizontal connections', () => {
+                    this.horizontalConnections();  // derrived from Chimera
 
-                    sgv.dlgLoaderSplash.setInfo('creating specific pegasus connections',()=>{
+                    sgv.dlgLoaderSplash.setInfo('creating specific pegasus connections', () => {
                         this.pegasusConnections();
 
-                        if (typeof then==='function') {
+                        if (typeof then === 'function') {
                             then();
                         }
                     });
@@ -1792,44 +1883,41 @@ var Pegasus = /** @class */ (function () {
     };
 
     this.connectExternalPegasusEdges = function (x, y, z) {
-        let v12,v13,v14,v15,v16,v17,v18,v19;
-        
+        let v12, v13, v14, v15, v16, v17, v18, v19;
+
         if (DEMO_MODE) {
             v12 = v16 = 0;
             v13 = v17 = -1;
             v14 = v18 = 1;
             v15 = v19 = 0.5;
-        }
-        else {
+        } else {
             v12 = v13 = v14 = v15 = v16 = v17 = v18 = v19 = Number.NaN;
         }
 
-        let firstColumn = (x===0);
-        let lastColumn = (x===(this.cols-1));
-        let firstRow = (y===0);
-        let lastRow = (y===(this.rows-1));
-        let lastLayer = (z===(this.layers-1));
+        let firstColumn = (x === 0);
+        let lastColumn = (x === (this.cols - 1));
+        let firstRow = (y === 0);
+        let lastRow = (y === (this.rows - 1));
+        let lastLayer = (z === (this.layers - 1));
 
-        for (let kA = 0; kA < 2; kA++) {
-            for (let jB = 0; jB < 2; jB++) {
-                for (let kB = 0; kB < 2; kB++) {
-                    if (! lastLayer) {
+        for (let kA of [0, 1]) {
+            for (let jB of [0, 1]) {
+                for (let kB of [0, 1]) {
+                    if (!lastLayer) {
                         // eq12
                         this.connect(new QbDescr(x, y, z, 0, 0, kA), new QbDescr(x, y, z + 1, 1, jB, kB), v12);
-                        
                         //eq13
                         this.connect(new QbDescr(x, y, z, 1, 0, kA), new QbDescr(x, y, z + 1, 0, jB, kB), v13);
-                        
+
                         //eq14
-                        if (! firstColumn)
+                        if (!firstColumn)
                             this.connect(new QbDescr(x, y, z, 0, 1, kA), new QbDescr(x - 1, y, z + 1, 1, jB, kB), v14);
-                        
+
                         //eq15
-                        if (! firstRow)
+                        if (!firstRow)
                             this.connect(new QbDescr(x, y, z, 1, 1, kA), new QbDescr(x, y - 1, z + 1, 0, jB, kB), v15);
-                    }
-                    else { // for last layer (z===2 if 3-layers pegasus)
-                        if (! (lastColumn || lastRow) ) {
+                    } else { // for last layer (z===2 if 3-layers pegasus)
+                        if (!(lastColumn || lastRow)) {
                             //eq16
                             this.connect(new QbDescr(x, y, z, 0, 0, kA), new QbDescr(x + 1, y + 1, 0, 1, jB, kB), v16);
                             //eq17
@@ -1837,12 +1925,12 @@ var Pegasus = /** @class */ (function () {
                         }
 
                         //eq18
-                        if (! lastRow) {
+                        if (!lastRow) {
                             this.connect(new QbDescr(x, y, z, 0, 1, kA), new QbDescr(x, y + 1, 0, 1, jB, kB), v18);
                         }
 
                         //eq19
-                        if (! lastColumn) {
+                        if (!lastColumn) {
                             this.connect(new QbDescr(x, y, z, 1, 1, kA), new QbDescr(x + 1, y, 0, 0, jB, kB), v19);
                         }
                     }
@@ -1853,21 +1941,20 @@ var Pegasus = /** @class */ (function () {
 
     this.connectInternalPegasusEdges = function (x, y, z) {
         let v;
-        
+
         if (DEMO_MODE) {
             v = -0.5;
-        }
-        else {
+        } else {
             v = Number.NaN;
         }
 
         // eq4
-        for (let i of [0,1]) {
-            for (let j of [0,1]) {
+        for (let i of [0, 1]) {
+            for (let j of [0, 1]) {
                 this.connect(new QbDescr(x, y, z, i, j, 0), new QbDescr(x, y, z, i, j, 1), v);
             }
         }
-        
+
     };
 });
 
@@ -1876,13 +1963,15 @@ Pegasus.prototype.constructor = Pegasus;
 
 Pegasus.createNewGraph = function (size) {
     var g = new Pegasus();
-    if (typeof size.lays!=='undefined') {
+    if (typeof size.lays !== 'undefined') {
         g.setSize(size.cols, size.rows, size.KL, size.KR, size.lays);
     } else {
         g.setSize(size.cols, size.rows, size.KL, size.KR);
     }
     return g;
 };
+
+Graph.registerType('pegasus', Pegasus);
 
 
 /* global sgv */
@@ -1908,7 +1997,7 @@ var UI = (function () {
 //    });
 //    this.dispModeSwitch = UI.createDispModeSwitch();
 //    this.dispModeSwitch.addEventListener('click', function () {
-//        sgv.switchDisplayMode();
+//        Graph.switchDisplayMode();
 //    });
 });
 
@@ -2157,10 +2246,6 @@ UI.createTransparentBtn1 = function (txt, id, onclick) {
 
 const DEFAULT_SCOPE = 'default';
 
-var getRandom = function(min, max) {
-    return (min + (Math.random() * (max - min)));
-};
-
 var sgv = (typeof exports === "undefined") ? (function sgv() {}) : (exports);
 if (typeof global !== "undefined") {
     global.sgv = sgv;
@@ -2171,7 +2256,6 @@ sgv.engine = null;
 sgv.scene = null;
 sgv.camera = null;
 sgv.graf = null;
-sgv.displayMode = 'classic';
 
 sgv.createScene = function () {
     sgv.scene = new BABYLON.Scene(sgv.engine);
@@ -2222,21 +2306,6 @@ sgv.createScene = function () {
         light.position = new BABYLON.Vector3(0, 0, 0);
         //light.radius = Math.PI;// / 2);
     };
-};
-
-
-sgv.switchDisplayMode = function () {
-    if (sgv.displayMode === 'classic') {
-        sgv.displayMode = 'triangle';
-    } else if (sgv.displayMode === 'triangle') {
-        sgv.displayMode = 'diamond';
-    } else {
-        sgv.displayMode = 'classic';
-    }
-
-    if (sgv.graf !== null) {
-        sgv.graf.changeDisplayMode();
-    }
 };
 
 
@@ -2497,7 +2566,7 @@ enableMenu = (id, enabled)=>{};
 //=========================================
 
 
-/* global sgv, NaN */
+/* global sgv, NaN, Graph */
 
 "use strict";
 
@@ -2506,34 +2575,31 @@ var ParserTXT = {};
 ParserTXT.importGraph = (string) => {
     var struct = new TempGraphStructure();
 
-    
     var res = [];
     var lines = string.split("\n");
 
-    var gDesc = {};
+    let gDesc = new GraphDescr();
     
     var parseComment = function (string) {
         var command = string.split("=");
         if (command[0] === 'type') {
-            gDesc.type = command[1];
+            gDesc.setType(command[1]);
         } else if (command[0] === 'size') {
             var size = command[1].split(",");
             if (size.length >= 5) {
-                gDesc.size = {
-                    cols: parseInt(size[0], 10),
-                    rows: parseInt(size[1], 10),
-                    lays: parseInt(size[2], 10),
-                    KL: parseInt(size[3], 10),
-                    KR: parseInt(size[4], 10)
-                };
+                gDesc.setSize(
+                    parseInt(size[0], 10),
+                    parseInt(size[1], 10),
+                    parseInt(size[2], 10),
+                    parseInt(size[3], 10),
+                    parseInt(size[4], 10));
             } else if (size.length === 4) {
-                gDesc.size = {
-                    cols: parseInt(size[0], 10),
-                    rows: parseInt(size[1], 10),
-                    lays: 1,
-                    KL: parseInt(size[2], 10),
-                    KR: parseInt(size[3], 10)
-                };
+                gDesc.setSize(
+                    parseInt(size[0], 10),
+                    parseInt(size[1], 10),
+                    1,
+                    parseInt(size[2], 10),
+                    parseInt(size[3], 10));
             }
         }
     };
@@ -2570,75 +2636,11 @@ ParserTXT.importGraph = (string) => {
     }
 
     if (typeof gDesc.type==='undefined') {
-        sgv.dlgCreateGraph.show('load', res);
+        sgv.dlgCreateGraph.show('load', struct);
     } else {
-        sgv.createGraph( gDesc, res );
+        Graph.create( gDesc, struct );
     }
 };
-
-ParserTXT.importGraphBAK = (string) => {
-    var res = [];
-    var lines = string.split("\n");
-
-    var gDesc = {};
-    
-    var parseComment = function (string) {
-        var command = string.split("=");
-        if (command[0] === 'type') {
-            gDesc.type = command[1];
-        } else if (command[0] === 'size') {
-            var size = command[1].split(",");
-            if (size.length >= 5) {
-                gDesc.size = {
-                    cols: parseInt(size[0], 10),
-                    rows: parseInt(size[1], 10),
-                    lays: parseInt(size[2], 10),
-                    KL: parseInt(size[3], 10),
-                    KR: parseInt(size[4], 10)
-                };
-            } else if (size.length === 4) {
-                gDesc.size = {
-                    cols: parseInt(size[0], 10),
-                    rows: parseInt(size[1], 10),
-                    lays: 1,
-                    KL: parseInt(size[2], 10),
-                    KR: parseInt(size[3], 10)
-                };
-            }
-        }
-    };
-
-    var parseData = function (string) {
-        var line = string.trim().split(/\s+/);
-        if (line.length < 3) return null;
-        
-        let _n1 = parseInt(line[0], 10);
-        let _n2 = parseInt(line[1], 10);
-        let _val = parseFloat(line[2], 10);
-
-        if (isNaN(_n1)||isNaN(_n2)) return null;    
-        else return { n1: _n1, n2: _n2, val: _val };
-    };
-
-    while (lines.length > 0) {
-        if (lines[0][0] !== '#')
-        {
-            let d = parseData(lines[0]);
-            if (d !== null) res.push(d);
-        } else {
-            let line = lines[0].trim().split(/\s+/);
-            if (line.length > 1) parseComment(line[1]);
-        }
-        lines.shift();
-    }
-
-    if (typeof gDesc.type==='undefined') {
-        sgv.dlgCreateGraph.show('load', res);
-    } else {
-        sgv.createGraph( gDesc, res );
-    }
-};
-
 
 ParserTXT.exportGraph = (graph) => {
     if ((typeof graph==='undefined')||(graph === null)) return null;
@@ -2660,19 +2662,19 @@ ParserTXT.exportGraph = (graph) => {
 };
 
 
-/* global sgv, Chimera, Pegasus */
+/* global sgv, Chimera, Pegasus, Graph */
 
 "use strict";
 
 var ParserGEXF = {};
 
 ParserGEXF.importGraph = (string) => {
-    var graphType = "unknown";
-    var graphSize = { cols:0, rows:0, KL:0, KR:0 };
+    //var graphType = "unknown";
+    //var graphSize = { cols:0, rows:0, lays:0, KL:0, KR:0 };
+    var graphDescr = new GraphDescr();
     var nodeAttrs = {};
     var edgeAttrs = {};
-    var newGraph = null;
-    var def2 = [];
+    var struct = new TempGraphStructure();
     
     function parseNodes(parentNode) {
         let nodes = parentNode.getElementsByTagName("nodes");
@@ -2699,7 +2701,7 @@ ParserGEXF.importGraph = (string) => {
                 }    
             }
             
-            def2.push(def);
+            struct.addNode2(def.n1, def.values);
         }
     };
     
@@ -2730,8 +2732,7 @@ ParserGEXF.importGraph = (string) => {
                 }    
             }
             
-            //def.values.default = 0.0;
-            def2.push(def);
+            struct.addEdge2(def.n1, def.n2, def.values);
         }
     };
 
@@ -2776,17 +2777,18 @@ ParserGEXF.importGraph = (string) => {
 
 
                     if ('type' in result){ //default with graph type and size
-                        graphType = result.type;
+                        graphDescr.setType(result.type);
                     }
 
                     if ('size' in result){
                         let ss = result.size.split(",");
                         //if (ss.lenght>3){
-                            graphSize.cols = parseInt(ss[0]);
-                            graphSize.rows = parseInt(ss[1]);
-                            graphSize.lays = parseInt(ss[2]);
-                            graphSize.KL = parseInt(ss[3]);
-                            graphSize.KR = parseInt(ss[4]);
+                            graphDescr.setSize(
+                                parseInt(ss[0]),
+                                parseInt(ss[1]),
+                                parseInt(ss[2]),
+                                parseInt(ss[3]),
+                                parseInt(ss[4]));
                         //}
                     }  
                 } else if (attrsClass === "edge" ) {
@@ -2814,24 +2816,12 @@ ParserGEXF.importGraph = (string) => {
     parseNodes(xmlDoc);
     parseEdges(xmlDoc);
    
-    //console.log(def2);
-
-    if (graphType === "chimera"){
-        sgv.graf = Chimera.createNewGraph(graphSize);
-    } else if (graphType === "pegasus"){
-        sgv.graf = Pegasus.createNewGraph(graphSize);
-    } else {
-        return false;
-    }
+    Graph.create(graphDescr, struct);
     
     for (const i in nodeAttrs) {
         if (!sgv.graf.scopeOfValues.includes(nodeAttrs[i]))
             sgv.graf.scopeOfValues.push(nodeAttrs[i]);
     }
-
-    sgv.graf.createStructureFromDef2(def2);
-    
-    sgv.graf.displayValues();
 
     return true;
 };
@@ -2842,7 +2832,7 @@ ParserGEXF.exportGraph = function(graph) {
     function exportNode(node) {
         let xml = "      <node id=\""+node.id+"\">\n";
         xml += "        <attvalues>\n";
-        for (const key in this.values) {
+        for (const key in node.values) {
             xml += "          <attvalue for=\""+node.parentGraph.getScopeIndex(key)+"\" value=\""+node.values[key]+"\"/>\n";
         }
         xml += "        </attvalues>\n";
@@ -3030,14 +3020,10 @@ FileIO.loadGraph = function(selectedFile) {
         
 FileIO.loadGraph2 = function(name,data) {
     if (name.endsWith("txt")) {
-        if (sgv.graf!==null) {
-            sgv.removeGraph();
-        }
+        Graph.remove();
         ParserTXT.importGraph(data);
     } else if(name.endsWith("gexf")) {
-        if (sgv.graf!==null) {
-            sgv.removeGraph();
-        }
+        Graph.remove();
         if (ParserGEXF.importGraph(data)){
             sgv.setModeDescription();
         }
@@ -3046,7 +3032,7 @@ FileIO.loadGraph2 = function(name,data) {
 
 
 "use strict";
-/* global sgv, Chimera, Pegasus, UI, parserGEXF, dialog, FileIO */
+/* global sgv, Chimera, Pegasus, UI, parserGEXF, dialog, FileIO, Graph */
 
 
 sgv.dlgCPL = new function () {
@@ -3195,7 +3181,7 @@ sgv.dlgCPL = new function () {
 
             btnPanel.appendChild(
                     btnDispMode = UI.createTransparentBtn1('display mode', "cplDispModeButton", () => {
-                        sgv.switchDisplayMode();
+                        Graph.switchDisplayMode();
                     }));
 
             btnPanel.appendChild(
@@ -3217,7 +3203,7 @@ sgv.dlgCPL = new function () {
 
             btnPanel.appendChild(
                     btnClear = UI.createTransparentBtn1('delete graph', "cplClearButton", () => {
-                        sgv.removeGraph();
+                        Graph.remove();
                     }));
 
             divDesc.appendChild(btnPanel);
@@ -3464,46 +3450,6 @@ sgv.dlgCPL = new function () {
 sgv.setModeSelection = sgv.dlgCPL.setModeSelection;
 sgv.setModeDescription = sgv.dlgCPL.setModeDescription;
 
-sgv.removeGraph = function () {
-    if (sgv.graf !== null) {
-        sgv.graf.dispose();
-        //delete graf;
-        sgv.graf = null;
-    }
-
-    sgv.dlgMissingNodes.delAll();
-    sgv.setModeSelection();
-};
-
-sgv.createGraph = function (gDesc, res) {
-    if (sgv.graf !== null) {
-        sgv.removeGraph();
-    }
-
-    switch (gDesc.type) {
-        case "chimera" :
-            sgv.graf = Chimera.createNewGraph(gDesc.size);
-            break;
-        case "pegasus" :
-            sgv.graf = Pegasus.createNewGraph(gDesc.size);
-            break;
-        default:
-            return;
-    }
-
-    if (typeof res === 'undefined')
-        sgv.graf.createDefaultStructure(() => {
-            sgv.setModeDescription();
-            sgv.graf.displayValues();
-            hideSplash();
-        });
-    else {
-        sgv.graf.createStructureFromDef(res);
-        sgv.setModeDescription();
-        sgv.graf.displayValues();
-        hideSplash();
-    }
-};
 
 
 /* 
@@ -3523,7 +3469,7 @@ sgv.createGraph = function (gDesc, res) {
  */
 
 "use strict";
-/* global scene, sgv, Chimera, Pegasus, UI */
+/* global scene, sgv, Chimera, Pegasus, UI, Graph */
 
 sgv.dlgConsole = new function () {
     var isDown;
@@ -3638,7 +3584,7 @@ sgv.dlgConsole = new function () {
                             return "restored node q" + id + " = " + val;
                     }
                     else {
-                        //sgv.graf.addNode(id, sgv.graf.calcPosition(id), val);
+                        //sgv.graf.addNode(id, val);
                         //return "added node q" + id + " = " + val;
                         return "not implemented yet";
                     }
@@ -3710,30 +3656,34 @@ sgv.dlgConsole = new function () {
         }
 
         function create(type, sizeTXT) {
+            if ((type!=='chimera')&&(type!=='pegasus')){
+                return "unknown graph type, use: chimera or pegasus";
+            }
             if (sgv.graf === null) {
+                let gD = new GraphDescr();
+                gD.setType(type);
+                
                 const sizesTXT = sizeTXT.split(",");
 
-                size = {
-                    cols:   parseInt(sizesTXT[0], 10),
-                    rows:   parseInt(sizesTXT[1], 10),
-                    KL:     parseInt(sizesTXT[2], 10),
-                    KR:     parseInt(sizesTXT[3], 10)
-                };
-                
-                switch (type) {
-                    case "chimera" :
-                        sgv.graf = Chimera.createNewGraph(size);
-                        sgv.graf.createDefaultStructure();
-                        break;
-                    case "pegasus" :
-                        sgv.graf = Pegasus.createNewGraph(size);
-                        sgv.graf.createDefaultStructure();
-                        break;
-                    default:
-                        return "unknown graph type";
+                if (sizesTXT.length>=5) {
+                    gD.setSize(
+                        parseInt(sizesTXT[0], 10),
+                        parseInt(sizesTXT[1], 10),
+                        parseInt(sizesTXT[2], 10),
+                        parseInt(sizesTXT[3], 10),
+                        parseInt(sizesTXT[4], 10));
+                } else if ((sizesTXT.length===4)&&(type==='chimera')) {
+                    gD.setSize(
+                        parseInt(sizesTXT[0], 10),
+                        parseInt(sizesTXT[1], 10),
+                        1,
+                        parseInt(sizesTXT[2], 10),
+                        parseInt(sizesTXT[3], 10));
+                } else {
+                    return "bad arguments";
                 }
-
-                sgv.setModeDescription();
+                
+                Graph.create(gD);
 
                 return "graph created";
             } else {
@@ -3743,7 +3693,7 @@ sgv.dlgConsole = new function () {
         }
 
         function clear() {
-            sgv.removeGraph();
+            Graph.remove();
             return "graph removed";
         }
 
@@ -3800,7 +3750,7 @@ sgv.dlgConsole = new function () {
                             sgv.graf.setNodeValue(id, val);
                             return "restored and modified node q" + id + " = " + val;
                         } else {
-                            sgv.graf.addNode(id, sgv.graf.calcPosition(id), val);
+                            sgv.graf.addNode(id, val);
                             return "added node q" + id + " = " + val;
                         }
                     }
@@ -4004,9 +3954,13 @@ sgv.dlgConsole = new function () {
                 result = display(command[1]);
                 break;
             case "displaymode":
-                if ((command[1]==='classic')||(command[1]==='diamond')||(command[1]==='triangle')) {
-                    sgv.displayMode = command[1];
-                    sgv.graf.changeDisplayMode();
+                //if ((command[1]==='classic')||(command[1]==='diamond')||(command[1]==='triangle')) {
+                if (sgv.graf===null) {
+                    result = "graph is not defined";
+                }
+                else if (Graph.displayModes.includes(command[1])) {
+                    Graph.currentDisplayMode = command[1];
+                    sgv.graf.setDisplayMode();
                     result = "current displayMode = " + command[1];
                 } else {
                     result = "unknown mode\n\n" + getHelp('displaymode');
@@ -4418,7 +4372,7 @@ sgv.dlgCellView = new function () {
         let e = offset + iE;
 
         let eid = Edge.calcId(b, e);
-        console.log('eid2: ', eid);
+        //console.log('eid2: ', eid);
 
         if (eid in sgv.graf.edges) {
             let val = sgv.graf.edgeValue(eid);
@@ -4647,7 +4601,7 @@ sgv.dlgCellView = new function () {
         hide: hideDialogX
     };
 };
-/* global sgv, UI */
+/* global sgv, UI, Graph */
 
 sgv.dlgCreateGraph = new function() {
     var selectGraphType;
@@ -4694,40 +4648,25 @@ sgv.dlgCreateGraph = new function() {
         for (let i=1; i<17; i++ ) {
             selectGraphCols.appendChild(UI.option(i,i));
         }
-//        selectGraphCols.appendChild(UI.option('4','4',true));
-//        selectGraphCols.appendChild(UI.option('8','8'));
-//        selectGraphCols.appendChild(UI.option('12','12'));
-//        selectGraphCols.appendChild(UI.option('16','16'));
+        UI.selectByKey(selectGraphCols, 4);
 
         g.appendChild(UI.tag('label',{'for':'graphCols'},{'innerHTML':' columns: '}));
         g.appendChild(selectGraphCols);
 
         selectGraphRows = UI.tag('select',{'id':'graphRows'});
-//        selectGraphRows.appendChild(UI.option('4','4',true));
-//        selectGraphRows.appendChild(UI.option('8','8'));
-//        selectGraphRows.appendChild(UI.option('12','12'));
-//        selectGraphRows.appendChild(UI.option('16','16'));
         for (let i=1; i<17; i++ ) {
             selectGraphRows.appendChild(UI.option(i,i));
         }
+        UI.selectByKey(selectGraphRows, 4);
  
         g.appendChild(UI.tag('label',{'for':'graphRows'},{'innerHTML':' rows: '}));
         g.appendChild(selectGraphRows);
 
-//        editGraphLays = UI.tag('input', {
-//            'type':'number',
-//            'id':'graphLays',
-//            'value':1,
-//            'min':'1',
-//            'max':'9'
-//        });
-//        editGraphLays.style.width = '3em';
-
         selectGraphLays = UI.tag('select',{'id':'graphLays'});
-        selectGraphLays.appendChild(UI.option('1','1',true));
-        for (let i=2; i<10; i++ ) {
+        for (let i=1; i<6; i++ ) {
             selectGraphLays.appendChild(UI.option(i,i));
         }
+        UI.selectByKey(selectGraphLays, 1);
         selectGraphLays.disabled = 'disabled';
         g.appendChild(UI.tag('label',{'for':'graphLays'},{'innerHTML':' layers: '}));
         g.appendChild(selectGraphLays);
@@ -4763,7 +4702,7 @@ sgv.dlgCreateGraph = new function() {
         return ui;
     };
     
-    function showDialog( type, res ) {
+    function showDialog( type, graphData ) {
         if (type==='load') {
             ui.querySelector("#buttons").innerHTML = 
                 '<input class="actionbutton" id="cplCancelButton" name="cancelButton" type="button" value="Cancel"> \
@@ -4784,7 +4723,7 @@ sgv.dlgCreateGraph = new function() {
             showSplashAndRun(()=>{
                 hideDialog();
                 setTimeout(()=>{
-                    sgv.createGraph( getGraphTypeAndSize(), res );
+                    Graph.create( getGraphDescr(), graphData );
                 }, 100);
             },true);
         } );
@@ -4801,17 +4740,17 @@ sgv.dlgCreateGraph = new function() {
         ui.style.display = "none";
     };
     
-    function getGraphTypeAndSize() {
-        return {
-            type: ui.querySelector("#graphType").value,
-            size: {
-                cols: parseInt(ui.querySelector("#graphCols").value, 10),
-                rows: parseInt(ui.querySelector("#graphRows").value, 10),
-                lays: parseInt(ui.querySelector("#graphLays").value, 10),
-                KL: parseInt(ui.querySelector("#graphKL").value, 10),
-                KR: parseInt(ui.querySelector("#graphKR").value, 10)
-            }
-        };
+    function getGraphDescr() {
+        let gD = new GraphDescr();
+        gD.setType(ui.querySelector("#graphType").value);
+        gD.setSize(
+            parseInt(ui.querySelector("#graphCols").value, 10),
+            parseInt(ui.querySelector("#graphRows").value, 10),
+            parseInt(ui.querySelector("#graphLays").value, 10),
+            parseInt(ui.querySelector("#graphKL").value, 10),
+            parseInt(ui.querySelector("#graphKR").value, 10));
+        
+        return gD;
     };
         
     return {

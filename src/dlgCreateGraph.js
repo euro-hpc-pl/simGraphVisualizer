@@ -1,4 +1,4 @@
-/* global sgv, UI */
+/* global sgv, UI, Graph */
 
 sgv.dlgCreateGraph = new function() {
     var selectGraphType;
@@ -45,40 +45,25 @@ sgv.dlgCreateGraph = new function() {
         for (let i=1; i<17; i++ ) {
             selectGraphCols.appendChild(UI.option(i,i));
         }
-//        selectGraphCols.appendChild(UI.option('4','4',true));
-//        selectGraphCols.appendChild(UI.option('8','8'));
-//        selectGraphCols.appendChild(UI.option('12','12'));
-//        selectGraphCols.appendChild(UI.option('16','16'));
+        UI.selectByKey(selectGraphCols, 4);
 
         g.appendChild(UI.tag('label',{'for':'graphCols'},{'innerHTML':' columns: '}));
         g.appendChild(selectGraphCols);
 
         selectGraphRows = UI.tag('select',{'id':'graphRows'});
-//        selectGraphRows.appendChild(UI.option('4','4',true));
-//        selectGraphRows.appendChild(UI.option('8','8'));
-//        selectGraphRows.appendChild(UI.option('12','12'));
-//        selectGraphRows.appendChild(UI.option('16','16'));
         for (let i=1; i<17; i++ ) {
             selectGraphRows.appendChild(UI.option(i,i));
         }
+        UI.selectByKey(selectGraphRows, 4);
  
         g.appendChild(UI.tag('label',{'for':'graphRows'},{'innerHTML':' rows: '}));
         g.appendChild(selectGraphRows);
 
-//        editGraphLays = UI.tag('input', {
-//            'type':'number',
-//            'id':'graphLays',
-//            'value':1,
-//            'min':'1',
-//            'max':'9'
-//        });
-//        editGraphLays.style.width = '3em';
-
         selectGraphLays = UI.tag('select',{'id':'graphLays'});
-        selectGraphLays.appendChild(UI.option('1','1',true));
-        for (let i=2; i<10; i++ ) {
+        for (let i=1; i<6; i++ ) {
             selectGraphLays.appendChild(UI.option(i,i));
         }
+        UI.selectByKey(selectGraphLays, 1);
         selectGraphLays.disabled = 'disabled';
         g.appendChild(UI.tag('label',{'for':'graphLays'},{'innerHTML':' layers: '}));
         g.appendChild(selectGraphLays);
@@ -114,7 +99,7 @@ sgv.dlgCreateGraph = new function() {
         return ui;
     };
     
-    function showDialog( type, res ) {
+    function showDialog( type, graphData ) {
         if (type==='load') {
             ui.querySelector("#buttons").innerHTML = 
                 '<input class="actionbutton" id="cplCancelButton" name="cancelButton" type="button" value="Cancel"> \
@@ -135,7 +120,7 @@ sgv.dlgCreateGraph = new function() {
             showSplashAndRun(()=>{
                 hideDialog();
                 setTimeout(()=>{
-                    sgv.createGraph( getGraphTypeAndSize(), res );
+                    Graph.create( getGraphDescr(), graphData );
                 }, 100);
             },true);
         } );
@@ -152,17 +137,17 @@ sgv.dlgCreateGraph = new function() {
         ui.style.display = "none";
     };
     
-    function getGraphTypeAndSize() {
-        return {
-            type: ui.querySelector("#graphType").value,
-            size: {
-                cols: parseInt(ui.querySelector("#graphCols").value, 10),
-                rows: parseInt(ui.querySelector("#graphRows").value, 10),
-                lays: parseInt(ui.querySelector("#graphLays").value, 10),
-                KL: parseInt(ui.querySelector("#graphKL").value, 10),
-                KR: parseInt(ui.querySelector("#graphKR").value, 10)
-            }
-        };
+    function getGraphDescr() {
+        let gD = new GraphDescr();
+        gD.setType(ui.querySelector("#graphType").value);
+        gD.setSize(
+            parseInt(ui.querySelector("#graphCols").value, 10),
+            parseInt(ui.querySelector("#graphRows").value, 10),
+            parseInt(ui.querySelector("#graphLays").value, 10),
+            parseInt(ui.querySelector("#graphKL").value, 10),
+            parseInt(ui.querySelector("#graphKR").value, 10));
+        
+        return gD;
     };
         
     return {

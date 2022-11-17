@@ -2,6 +2,10 @@
 
 const DEMO_MODE = false;
 
+function getRandom(min, max) {
+    return (min + (Math.random() * (max - min)));
+};
+
 
 function valueToColor(val) {
     if ((typeof val ==='undefined')||(val === null)|| isNaN(val)) {
@@ -37,7 +41,6 @@ function valueToColor(val) {
 
     return new BABYLON.Color3(r, g, b);
 }
-
 
 function valueToColorBAK(val) {
     if ((typeof val ==='undefined')||(val === null)|| isNaN(val)) {
@@ -88,53 +91,7 @@ function valueToEdgeWidth(val) {
     return 0.2 + ( val / max );
 }
 
-var Def2 = /*class*/( (_n1, _n2) => {
-    this.n1 = _n1;
-    this.n2 = _n2;
-    this.values = {
-            'default': Number.NaN
-        };
-    this.label = {
-            text: null,
-            enabled: false
-        };    
-});
 
-var TempGraphStructure = (function() {
-    this.nodes = [];
-    this.edges = [];
-    
-    this.addEdge1 = function(_n1, _n2, _value) {
-        this.edges.push({
-            n1: _n1,
-            n2: _n2,
-            values: {
-                'default': _value
-            }
-        });
-    };
-    
-    this.addNode1 = function(_id, _value, _label) {
-        let node = {
-            id: _id,
-            values: {
-                'default': _value
-            },
-            label: {
-                text: _id,
-                enabled: false
-            }
-        };
-        
-        if (typeof _label !== 'undefined') {
-            node.label.text = _label;
-            node.label.enabled = true;
-        }
-        
-        this.nodes.push( node );
-    };
-
-});
 
 
 function PitchYawRollToMoveBetweenPointsToRef(start, target, ref) {

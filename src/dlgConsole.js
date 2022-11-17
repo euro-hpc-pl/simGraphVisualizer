@@ -16,7 +16,7 @@
  */
 
 "use strict";
-/* global scene, sgv, Chimera, Pegasus, UI */
+/* global scene, sgv, Chimera, Pegasus, UI, Graph */
 
 sgv.dlgConsole = new function () {
     var isDown;
@@ -131,7 +131,7 @@ sgv.dlgConsole = new function () {
                             return "restored node q" + id + " = " + val;
                     }
                     else {
-                        //sgv.graf.addNode(id, sgv.graf.calcPosition(id), val);
+                        //sgv.graf.addNode(id, val);
                         //return "added node q" + id + " = " + val;
                         return "not implemented yet";
                     }
@@ -203,30 +203,34 @@ sgv.dlgConsole = new function () {
         }
 
         function create(type, sizeTXT) {
+            if ((type!=='chimera')&&(type!=='pegasus')){
+                return "unknown graph type, use: chimera or pegasus";
+            }
             if (sgv.graf === null) {
+                let gD = new GraphDescr();
+                gD.setType(type);
+                
                 const sizesTXT = sizeTXT.split(",");
 
-                size = {
-                    cols:   parseInt(sizesTXT[0], 10),
-                    rows:   parseInt(sizesTXT[1], 10),
-                    KL:     parseInt(sizesTXT[2], 10),
-                    KR:     parseInt(sizesTXT[3], 10)
-                };
-                
-                switch (type) {
-                    case "chimera" :
-                        sgv.graf = Chimera.createNewGraph(size);
-                        sgv.graf.createDefaultStructure();
-                        break;
-                    case "pegasus" :
-                        sgv.graf = Pegasus.createNewGraph(size);
-                        sgv.graf.createDefaultStructure();
-                        break;
-                    default:
-                        return "unknown graph type";
+                if (sizesTXT.length>=5) {
+                    gD.setSize(
+                        parseInt(sizesTXT[0], 10),
+                        parseInt(sizesTXT[1], 10),
+                        parseInt(sizesTXT[2], 10),
+                        parseInt(sizesTXT[3], 10),
+                        parseInt(sizesTXT[4], 10));
+                } else if ((sizesTXT.length===4)&&(type==='chimera')) {
+                    gD.setSize(
+                        parseInt(sizesTXT[0], 10),
+                        parseInt(sizesTXT[1], 10),
+                        1,
+                        parseInt(sizesTXT[2], 10),
+                        parseInt(sizesTXT[3], 10));
+                } else {
+                    return "bad arguments";
                 }
-
-                sgv.setModeDescription();
+                
+                Graph.create(gD);
 
                 return "graph created";
             } else {
@@ -236,7 +240,7 @@ sgv.dlgConsole = new function () {
         }
 
         function clear() {
-            sgv.removeGraph();
+            Graph.remove();
             return "graph removed";
         }
 
@@ -293,7 +297,7 @@ sgv.dlgConsole = new function () {
                             sgv.graf.setNodeValue(id, val);
                             return "restored and modified node q" + id + " = " + val;
                         } else {
-                            sgv.graf.addNode(id, sgv.graf.calcPosition(id), val);
+                            sgv.graf.addNode(id, val);
                             return "added node q" + id + " = " + val;
                         }
                     }
@@ -497,9 +501,13 @@ sgv.dlgConsole = new function () {
                 result = display(command[1]);
                 break;
             case "displaymode":
-                if ((command[1]==='classic')||(command[1]==='diamond')||(command[1]==='triangle')) {
-                    sgv.displayMode = command[1];
-                    sgv.graf.changeDisplayMode();
+                //if ((command[1]==='classic')||(command[1]==='diamond')||(command[1]==='triangle')) {
+                if (sgv.graf===null) {
+                    result = "graph is not defined";
+                }
+                else if (Graph.displayModes.includes(command[1])) {
+                    Graph.currentDisplayMode = command[1];
+                    sgv.graf.setDisplayMode();
                     result = "current displayMode = " + command[1];
                 } else {
                     result = "unknown mode\n\n" + getHelp('displaymode');

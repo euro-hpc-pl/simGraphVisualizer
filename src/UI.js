@@ -22,7 +22,7 @@ var UI = (function () {
 //    });
 //    this.dispModeSwitch = UI.createDispModeSwitch();
 //    this.dispModeSwitch.addEventListener('click', function () {
-//        sgv.switchDisplayMode();
+//        Graph.switchDisplayMode();
 //    });
 });
 

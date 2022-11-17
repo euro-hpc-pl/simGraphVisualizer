@@ -21,8 +21,16 @@ const qD = function (x, y, z, i, j, k) {
     return new QbDescr(x, y, z, i, j, k);
 };
 
-
-const QbDescr = /** @class */ (function (x, y, z, i, j, k) {
+/*
+ * @class QbDescr
+ * @param {Int} x
+ * @param {Int} y
+ * @param {Int} z
+ * @param {[0,1]} i
+ * @param {[0,1]} j
+ * @param {[0,1]} k
+ */
+const QbDescr = (function (x, y, z, i, j, k) {
     this.x = x;
     this.y = y;
     this.z = z;

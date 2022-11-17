@@ -13,6 +13,7 @@
       <node id="1">
         <attvalues>
           <attvalue for="0" value="0.2"/>
+          <attvalue for="1" value="-1"/>
         </attvalues>
       </node>
       <node id="2">
@@ -48,6 +49,7 @@
       <node id="8">
         <attvalues>
           <attvalue for="0" value="0.12"/>
+          <attvalue for="1" value="1"/>
         </attvalues>
       </node>
       <node id="9">
@@ -382,7 +384,7 @@
       </node>
       <node id="75">
         <attvalues>
-          <attvalue for="0" value="0"/>
+          <attvalue for="0" value="-0.173333"/>
         </attvalues>
       </node>
       <node id="76">

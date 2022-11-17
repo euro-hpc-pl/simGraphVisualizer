@@ -15,6 +15,8 @@ var del = require('del');
 var srcfiles = [
     "./src/Dispatcher.js",
     "./src/SPS.js",
+    "./src/GraphDescr.js",
+    "./src/TempGraphStructure.js",
     "./src/helpers.js",
     "./src/label.js",
     "./src/node.js",

@@ -16,11 +16,9 @@
  */
 
 "use strict";
-/* global BABYLON, labelsVisible, sgv, Edge, Dispatcher, QbDescr */
+/* global BABYLON, labelsVisible, sgv, Edge, Dispatcher, QbDescr, TempGraphStructure, GraphDescr */
 
-//const txtFile = require("io_TXT.js");
-
-var Graph = /** @class */ (function () {
+const Graph = /** @class */ (function () {
     this.nodes = {};
     this.edges = {};
     this.missing = {};
@@ -44,10 +42,6 @@ var Graph = /** @class */ (function () {
         }
         
         Dispatcher.graphDeleted();
-
-//        for (const key in this.missing) {
-//
-//        }
     };
 
     this.clear = function () {
@@ -58,14 +52,17 @@ var Graph = /** @class */ (function () {
         return Object.keys(this.nodes).length;
     };
 
-    this.addNode = function(nodeId, pos, val) {
+    this.addNode = function(nodeId, val) {
         values = {};
         
         if (typeof val==='number') {
             values['default'] = val;
         }
         
+        let pos = this.calcPosition(nodeId);
+        
         let n = new Node(this, nodeId, pos.x, pos.y, pos.z, values);
+        n.showLabel(false);
         this.nodes[n.id] = n;
         return n;
     };
@@ -520,16 +517,15 @@ var Graph = /** @class */ (function () {
     this.calcPosition = /*virtual*/ (nodeId) => new BABYLON.Vector3();
 
 
-    this.changeDisplayMode = function () {
+    this.setDisplayMode = function () {
         for (const key in this.nodes) {
-            let pos = this.calcPosition(key);
-            this.nodes[key].position = pos;
+            this.nodes[key].position = this.calcPosition(key);
         }
 
         for (const key in this.edges) {
             this.edges[key].update();
         }
-        
+
         Dispatcher.viewModeChanged();
     };
     
@@ -541,64 +537,91 @@ var Graph = /** @class */ (function () {
     };
 
     
-//    this.createStructureFromTempStruct = function (struct) {
-//        console.log(def);
-//        for (let i = 0; i < def.length; i++) {
-//            if (def[i].n1 === def[i].n2) {
-//                let nodeId = def[i].n1;
-//
-//                this.addNode(nodeId, this.calcPosition(nodeId), def[i].val);
-//                this.nodes[nodeId].showLabel(false);
-//            } else {
-//                let n1 = def[i].n1;
-//                let n2 = def[i].n2;
-//                this.addEdge(n1, n2).setValue(def[i].val, 'default');
-//            }
-//        }
-//    };
-    
-    this.createStructureFromDef = function (def) {
-        console.log(def);
-        for (let i = 0; i < def.length; i++) {
-            if (def[i].n1 === def[i].n2) {
-                let nodeId = def[i].n1;
-
-                this.addNode(nodeId, this.calcPosition(nodeId), def[i].val);
-                this.nodes[nodeId].showLabel(false);
+    this.createStructureFromTempStruct = function (struct) {
+        //console.log(struct);
+        for (let tmpNode of struct.nodes){
+            let n = this.addNode(tmpNode.id);
+            n.values = tmpNode.values;
+            if (tmpNode.label !== null) {
+                n.setLabel(tmpNode.label.text, tmpNode.label.enabled);
             } else {
-                let n1 = def[i].n1;
-                let n2 = def[i].n2;
-                this.addEdge(n1, n2).setValue(def[i].val, 'default');
-            }
-        }
-    };
-
-
-    
-    this.createStructureFromDef2 = function (def) {
-        for (let i = 0; i < def.length; i++) {
-            if (def[i].n1 === def[i].n2) {
-                let nodeId = def[i].n1;
-
-                let n = this.addNode(nodeId, this.calcPosition(nodeId), 0.0);
-
-                for (const key in def[i].values) {
-                    n.setValue(def[i].values[key], key);
-                }
-            }
-            else {
-                let n1 = def[i].n1;
-                let n2 = def[i].n2;
-                
-                let e = this.addEdge(n1, n2);
-         
-                for (const key in def[i].values) {
-                    e.setValue(def[i].values[key], key);
-                }
+                n.showLabel(false);
             }
         }
 
-        this.showLabels(true);
-        this.displayValues('default');
+        for (let tmpEdge of struct.edges){
+            let e = this.addEdge(tmpEdge.n1, tmpEdge.n2);
+            e.values = tmpEdge.values;
+        }
+        
+        struct = null;
+        //console.log(struct);
     };
+
 });
+
+Graph.displayModes = [ 'classic', 'triangle', 'diamond' ];
+Graph.currentDisplayMode = 'classic';
+
+Graph.switchDisplayMode = ()=>{
+    if (sgv.graf === null) {
+        console.warning('graf not defined');
+        return;
+    }
+
+    let idx = Graph.displayModes.indexOf(Graph.currentDisplayMode) + 1;
+    if (idx===Graph.displayModes.length) idx=0;
+    Graph.currentDisplayMode = Graph.displayModes[idx];
+
+    sgv.graf.setDisplayMode();
+};
+
+Graph.knownGraphTypes = {};
+Graph.registerType = (txt,Type)=>{Graph.knownGraphTypes[txt] = Type;};
+Graph.knowType = (txt)=>(txt in Graph.knownGraphTypes);
+
+
+/**
+ * @param {GraphDescr} gDesc - Graph structure description
+ * @param {TempGraphStructure} struct - optional Graph data
+ */
+Graph.create = (gDesc, struct)=>{
+    Graph.remove();
+
+    if (gDesc instanceof GraphDescr){
+        if (gDesc.type in Graph.knownGraphTypes) {
+            sgv.graf = Graph.knownGraphTypes[gDesc.type].createNewGraph(gDesc.size);
+        } else {
+            console.error('unknown graph type');
+            return;
+        }
+    } else {
+        console.error('unknown graph type');
+        return;
+    }
+    
+    //console.log(typeof struct, struct.constructor.name, TempGraphStructure.name, struct);
+    if (struct instanceof TempGraphStructure){
+        sgv.graf.createStructureFromTempStruct(struct);
+        sgv.setModeDescription();
+        sgv.graf.displayValues();
+        hideSplash();
+    }
+    else {
+        sgv.graf.createDefaultStructure(() => {
+            sgv.setModeDescription();
+            sgv.graf.displayValues();
+            hideSplash();
+        });
+    }
+    
+};
+
+Graph.remove = ()=>{
+    if (sgv.graf !== null) {
+        sgv.graf.dispose();
+        sgv.graf = null;
+        
+        Dispatcher.graphDeleted();
+    }
+};

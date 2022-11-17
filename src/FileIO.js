@@ -117,14 +117,10 @@ FileIO.loadGraph = function(selectedFile) {
         
 FileIO.loadGraph2 = function(name,data) {
     if (name.endsWith("txt")) {
-        if (sgv.graf!==null) {
-            sgv.removeGraph();
-        }
+        Graph.remove();
         ParserTXT.importGraph(data);
     } else if(name.endsWith("gexf")) {
-        if (sgv.graf!==null) {
-            sgv.removeGraph();
-        }
+        Graph.remove();
         if (ParserGEXF.importGraph(data)){
             sgv.setModeDescription();
         }

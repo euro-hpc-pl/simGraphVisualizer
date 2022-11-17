@@ -20,10 +20,6 @@
 
 const DEFAULT_SCOPE = 'default';
 
-var getRandom = function(min, max) {
-    return (min + (Math.random() * (max - min)));
-};
-
 var sgv = (typeof exports === "undefined") ? (function sgv() {}) : (exports);
 if (typeof global !== "undefined") {
     global.sgv = sgv;
@@ -34,7 +30,6 @@ sgv.engine = null;
 sgv.scene = null;
 sgv.camera = null;
 sgv.graf = null;
-sgv.displayMode = 'classic';
 
 sgv.createScene = function () {
     sgv.scene = new BABYLON.Scene(sgv.engine);
@@ -85,21 +80,6 @@ sgv.createScene = function () {
         light.position = new BABYLON.Vector3(0, 0, 0);
         //light.radius = Math.PI;// / 2);
     };
-};
-
-
-sgv.switchDisplayMode = function () {
-    if (sgv.displayMode === 'classic') {
-        sgv.displayMode = 'triangle';
-    } else if (sgv.displayMode === 'triangle') {
-        sgv.displayMode = 'diamond';
-    } else {
-        sgv.displayMode = 'classic';
-    }
-
-    if (sgv.graf !== null) {
-        sgv.graf.changeDisplayMode();
-    }
 };
 
 
