@@ -1,4 +1,4 @@
-/* global sgv, UI, Graph */
+/* global sgv, UI, Graph, TempGraphStructure */
 
 sgv.dlgCreateGraph = new function() {
     var selectGraphType;
@@ -7,6 +7,8 @@ sgv.dlgCreateGraph = new function() {
     
     var ui = createUI();
 
+    var graphData;
+    
     window.addEventListener('load',()=>{
         window.document.body.appendChild(ui);
     });
@@ -90,7 +92,17 @@ sgv.dlgCreateGraph = new function() {
 
         divSel.appendChild(g);
 
-        divSel.appendChild(UI.tag('div',{'id':'buttons'}));
+        let btns = UI.tag('div',{'id':'buttons'});
+
+        let cancelButton = UI.tag('input',{'type':'button', 'class':'actionbutton', 'id':'cplCancelButton', 'name':'cancelButton', 'value':'Cancel'});
+        cancelButton.addEventListener('click', ()=>{hideDialog();});
+        btns.appendChild(cancelButton);
+        
+        let createButton = UI.tag('input',{'type':'button', 'class':'actionbutton', 'id':'cplCreateButton', 'name':'createButton', 'value':'Create'});
+        createButton.addEventListener('click', ()=>{onCreateButton();});
+        btns.appendChild(createButton);
+
+        divSel.appendChild(btns);
 
         ui.appendChild(divSel);
 
@@ -99,35 +111,84 @@ sgv.dlgCreateGraph = new function() {
         return ui;
     };
     
-    function showDialog( type, graphData ) {
+    function getGraphDescr() {
+        let gD = new GraphDescr();
+        gD.setType(selectGraphType.value);
+        gD.setSize(
+            parseInt(selectGraphCols.value, 10),
+            parseInt(selectGraphRows.value, 10),
+            parseInt(selectGraphLays.value, 10),
+            parseInt(selectGraphKL.value, 10),
+            parseInt(selectGraphKR.value, 10));
+        
+        return gD;
+    };
+
+    function sugestSize() {
+        let maxNode = 0;
+        graphData.nodes.forEach((n)=>{if (maxNode<n.id) maxNode=n.id;});
+        maxNode--;
+        
+        let maxModule = maxNode>>3;
+        if (maxNode%8) maxModule++;
+        
+        let gDesc = new GraphDescr();
+        switch (maxModule) {
+            case 4: gDesc.set('chimera',2,2,1,4,4); break;
+            case 9: gDesc.set('chimera',3,3,1,4,4); break;
+            case 16: gDesc.set('chimera',4,4,1,4,4); break;
+            case 64: gDesc.set('chimera',8,8,1,4,4); break;
+            case 144: gDesc.set('chimera',12,12,1,4,4); break;
+            case 256: gDesc.set('chimera',16,16,1,4,4); break;
+            
+            case 12: gDesc.set('pegasus',2,2,3,4,4); break;
+            case 27: gDesc.set('pegasus',3,3,3,4,4); break;
+            case 48: gDesc.set('pegasus',4,4,3,4,4); break;
+            case 192: gDesc.set('pegasus',8,8,3,4,4); break;
+            case 432: gDesc.set('pegasus',12,12,3,4,4); break;
+            case 768: gDesc.set('pegasus',16,16,3,4,4); break;
+            
+            default: gDesc.set('chimera',4,4,1,4,4); break;
+        }
+        
+        UI.selectByKey(selectGraphType,gDesc.type);
+        UI.selectByKey(selectGraphCols,gDesc.size.cols);
+        UI.selectByKey(selectGraphRows,gDesc.size.rows);
+        UI.selectByKey(selectGraphLays,gDesc.size.lays);
+        UI.selectByKey(selectGraphKL,gDesc.size.KL);
+        UI.selectByKey(selectGraphKR,gDesc.size.KR);
+        if (gDesc.type==='chimera') selectGraphLays.disabled='disabled';
+        else selectGraphLays.disabled='';
+    }
+    
+    function onCreateButton() {
+        let gDesc = getGraphDescr();
+        
+        showSplashAndRun(()=>{
+                hideDialog();
+                setTimeout(()=>{
+                    Graph.create( gDesc, graphData );
+                }, 100);
+            },true);
+    }
+    
+    function showDialog( type, struct ) {
         if (type==='load') {
-            ui.querySelector("#buttons").innerHTML = 
-                '<input class="actionbutton" id="cplCancelButton" name="cancelButton" type="button" value="Cancel"> \
-                 <input class="actionbutton" id="cplCreateButton" name="createButton" type="button" value="Load">';
-
-            ui.querySelector(".titleText").textContent = "Load graph";
-
+            ui.querySelector('#cplCreateButton').value = 'Load';
+            ui.querySelector('.titleText').textContent = 'Load graph';
         } else {
-            ui.querySelector("#buttons").innerHTML = 
-                '<input class="actionbutton" id="cplCancelButton" name="cancelButton" type="button" value="Cancel"> \
-                 <input class="actionbutton" id="cplCreateButton" name="createButton" type="button" value="Create">';
-
-            ui.querySelector(".titleText").textContent = "New graph";
+            ui.querySelector('#cplCreateButton').value = 'Create';
+            ui.querySelector('.titleText').textContent = 'New graph';
         }
 
         ui.style.display = "block";
-        ui.querySelector("#cplCreateButton").addEventListener('click', ()=>{
-            showSplashAndRun(()=>{
-                hideDialog();
-                setTimeout(()=>{
-                    Graph.create( getGraphDescr(), graphData );
-                }, 100);
-            },true);
-        } );
 
-        ui.querySelector("#cplCancelButton").addEventListener('click', ()=>{
-            hideDialog();
-        } );
+        if (struct instanceof TempGraphStructure){
+            graphData = struct;
+            sugestSize();
+        } else {
+            graphData = null;
+        }
 
         ui.showModal();
     };
@@ -137,20 +198,9 @@ sgv.dlgCreateGraph = new function() {
         ui.style.display = "none";
     };
     
-    function getGraphDescr() {
-        let gD = new GraphDescr();
-        gD.setType(ui.querySelector("#graphType").value);
-        gD.setSize(
-            parseInt(ui.querySelector("#graphCols").value, 10),
-            parseInt(ui.querySelector("#graphRows").value, 10),
-            parseInt(ui.querySelector("#graphLays").value, 10),
-            parseInt(ui.querySelector("#graphKL").value, 10),
-            parseInt(ui.querySelector("#graphKR").value, 10));
-        
-        return gD;
-    };
         
     return {
+        d: graphData,
         show: showDialog,
         hide: hideDialog
     };

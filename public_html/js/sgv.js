@@ -8,6 +8,25 @@ Dispatcher.graphDeleted = ()=>{
     sgv.dlgMissingNodes.delAll();
     sgv.dlgCPL.setModeSelection();
     sgv.dlgCellView.hide();
+
+    //interface to desktop application
+    enableMenu('menuGraphSave', false);
+    enableMenu('menuGraphClear', false);
+    enableMenu('menuViewDisplayMode', false);
+    enableMenu('menuViewCellView', false);
+};
+
+Dispatcher.graphCreated = ()=>{
+    sgv.dlgCellView.hide();
+    sgv.dlgCPL.setModeDescription();
+    sgv.graf.displayValues();
+    hideSplash();
+    
+    //interface to desktop application
+    enableMenu('menuGraphSave', true);
+    enableMenu('menuGraphClear', true);
+    enableMenu('menuViewDisplayMode', true);
+    enableMenu('menuViewCellView', true);
 };
 
 Dispatcher.graphChanged = ()=>{
@@ -246,15 +265,16 @@ var SPS = (function(scene) {
     };
 });
 
+var GraphSize = (function(c, r, l, kl, kr) {
+        this.cols = c;
+        this.rows = r;
+        this.lays = l;
+        this.KL = kl;
+        this.KR = kr;
+});
+
 var GraphDescr = (function() {
-    //this.type = '';
-    this.size = {
-        cols: 0,
-        rows: 0,
-        lays: 0,
-        KL: 0,
-        KR: 0
-    };
+    this.size = new GraphSize(0,0,0,0,0);
 
     this.set = function(_t, _c, _r, _l, _kl, _kr) {
         this.setType(_t);
@@ -266,13 +286,7 @@ var GraphDescr = (function() {
     };
 
     this.setSize = function(_c, _r, _l, _kl, _kr) {
-        this.size = {
-            cols: _c,
-            rows: _r,
-            lays: _l,
-            KL: _kl,
-            KR: _kr
-        };
+        this.size = new GraphSize( _c, _r, _l, _kl, _kr );
     };
 });
 
@@ -380,7 +394,6 @@ function valueToColor(val) {
 
     return new BABYLON.Color3(r, g, b);
 }
-
 
 function valueToColorBAK(val) {
     if ((typeof val ==='undefined')||(val === null)|| isNaN(val)) {
@@ -501,9 +514,9 @@ var Label = (function (labelId, txt, position, enabled) {
 
     this.createPlane = function() {
         let font_size = 64;
-        let font = "bold " + font_size + "px Arial";
+        let font = "normal " + font_size + "px Arial,Helvetica,sans-serif";
 
-        let ratio = 0.075;
+        let ratio = 0.05;
 
         let tmpTex = new BABYLON.DynamicTexture("DynamicTexture", 64, sgv.scene);
         let tmpCTX = tmpTex.getContext();
@@ -912,8 +925,16 @@ const qD = function (x, y, z, i, j, k) {
     return new QbDescr(x, y, z, i, j, k);
 };
 
-
-const QbDescr = /** @class */ (function (x, y, z, i, j, k) {
+/*
+ * @class QbDescr
+ * @param {Int} x
+ * @param {Int} y
+ * @param {Int} z
+ * @param {[0,1]} i
+ * @param {[0,1]} j
+ * @param {[0,1]} k
+ */
+const QbDescr = (function (x, y, z, i, j, k) {
     this.x = x;
     this.y = y;
     this.z = z;
@@ -1011,6 +1032,7 @@ const Graph = /** @class */ (function () {
     this.maxNodeId = function () {
         return Object.keys(this.nodes).length;
     };
+
 
     this.addNode = function(nodeId, val) {
         values = {};
@@ -1498,24 +1520,25 @@ const Graph = /** @class */ (function () {
 
     
     this.createStructureFromTempStruct = function (struct) {
-        //console.log(struct);
-        for (let tmpNode of struct.nodes){
-            let n = this.addNode(tmpNode.id);
-            n.values = tmpNode.values;
-            if (tmpNode.label !== null) {
-                n.setLabel(tmpNode.label.text, tmpNode.label.enabled);
-            } else {
-                n.showLabel(false);
+        return new Promise((resolve)=>{
+            for (let tmpNode of struct.nodes){
+                let n = this.addNode(tmpNode.id);
+                n.values = tmpNode.values;
+                if (tmpNode.label !== null) {
+                    n.setLabel(tmpNode.label.text, tmpNode.label.enabled);
+                } else {
+                    n.showLabel(false);
+                }
             }
-        }
 
-        for (let tmpEdge of struct.edges){
-            let e = this.addEdge(tmpEdge.n1, tmpEdge.n2);
-            e.values = tmpEdge.values;
-        }
-        
-        struct = null;
-        //console.log(struct);
+            for (let tmpEdge of struct.edges){
+                let e = this.addEdge(tmpEdge.n1, tmpEdge.n2);
+                e.values = tmpEdge.values;
+            }
+
+            this.showLabels(true);
+            resolve('ok');
+        });
     };
 
 });
@@ -1547,10 +1570,9 @@ Graph.knowType = (txt)=>(txt in Graph.knownGraphTypes);
  */
 Graph.create = (gDesc, struct)=>{
     Graph.remove();
-
     if (gDesc instanceof GraphDescr){
         if (gDesc.type in Graph.knownGraphTypes) {
-            sgv.graf = Graph.knownGraphTypes[gDesc.type].createNewGraph(gDesc.size);
+            sgv.graf = new Graph.knownGraphTypes[gDesc.type](gDesc.size);
         } else {
             console.error('unknown graph type');
             return;
@@ -1560,19 +1582,12 @@ Graph.create = (gDesc, struct)=>{
         return;
     }
     
-    //console.log(typeof struct, struct.constructor.name, TempGraphStructure.name, struct);
     if (struct instanceof TempGraphStructure){
-        sgv.graf.createStructureFromTempStruct(struct);
-        sgv.setModeDescription();
-        sgv.graf.displayValues();
-        hideSplash();
+        sgv.graf.createStructureFromTempStruct(struct)
+                .then(()=>Dispatcher.graphCreated());
     }
     else {
-        sgv.graf.createDefaultStructure(() => {
-            sgv.setModeDescription();
-            sgv.graf.displayValues();
-            hideSplash();
-        });
+        sgv.graf.createDefaultStructure(()=>Dispatcher.graphCreated());
     }
     
 };
@@ -1604,25 +1619,43 @@ Graph.remove = ()=>{
  * limitations under the License.
  */
 
-/* global Graph, BABYLON, sgv, QbDescr */
+/* global Graph, BABYLON, sgv, QbDescr, qD, GraphSize */
 "use strict";
 
-const Chimera = /** @class */ (function () {
+const Chimera = /** @class */ (function (gSize) {
     Graph.call(this);
 
     this.type = 'chimera';
 
-    this.cols;
-    this.rows;
-    this.KL;
-    this.KR;
-    this.layers = 1;
-    
+    this.setSize = function(gSize) {
+        if (gSize instanceof GraphSize) {
+            this.cols = gSize.cols;
+            this.rows = gSize.rows;
+            this.layers = gSize.lays;
+            this.KL = gSize.KL;
+            this.KR = gSize.KR;
+        }
+        else {
+            this.cols = 2;
+            this.rows = 2;
+            this.layers = 1;
+            this.KL = 4;
+            this.KR = 4;
+        }
+    };
+
+    this.setSize(gSize);
+
     this.maxNodeId = function () {
         return this.cols * this.rows * 8;
     };
 
 
+    /*
+     * @param {QbDescr} qdA
+     * @param {QbDescr} qdB
+     * @param {Number} value
+     */
     this.connect = function (qdA, qdB, value) {
         let idA = qdA.toNodeId(this.rows, this.cols);
         let idB = qdB.toNodeId(this.rows, this.cols);
@@ -1695,21 +1728,22 @@ const Chimera = /** @class */ (function () {
     };
 
 
-    this.createModuleNodes = function (x, y, z) {
-        let moduleId = x + (y + z * this.rows) * this.cols;
-
-        let offset = 8 * moduleId;
-
-        // MODULE NODES
-        for (let n = 0; n < this.KL; n++) {
-            this.addNode(offset + n + 1);
-        }
-        for (let n = 4; n < this.KR + 4; n++) {
-            this.addNode(offset + n + 1);
-        }
+    this.addNodeXYZIJK = function(x,y,z,i,j,k) {
+        return this.addNode(qD(x,y,z,i,j,k).toNodeId(this.rows, this.cols));
     };
 
+    this.addNodeXYZn = function(x,y,z,n) {
+        return this.addNode(qD(x,y,z,(n>>2)&1,(n>>1)&1,n&1).toNodeId(this.rows, this.cols));
+    };
 
+    this.createModuleNodes = function (x, y, z) {
+        for (let n = 0; n < this.KL; n++) {
+            this.addNodeXYZn(x,y,z,n);
+        }
+        for (let n = 0; n < this.KR; n++) {
+            this.addNodeXYZn(x,y,z,n+4);
+        }
+    };
 
     this.getNodeOffset2 = function (idx) {
         let nodeOffset = {
@@ -1780,6 +1814,8 @@ const Chimera = /** @class */ (function () {
     };
 
     this.createDefaultStructure = function (then) {
+        if (this.layers>1) this.layers=1; //for safety
+        
         sgv.dlgLoaderSplash.setInfo('creating modules', ()=>{
             this.createModules();
 
@@ -1799,28 +1835,10 @@ const Chimera = /** @class */ (function () {
         });
     };
 
-
-    this.setSize = function(c, r, kl, kr, lay) {
-        this.cols = c;
-        this.rows = r;
-        this.KL = kl;
-        this.KR = kr;
-        if (typeof lay!=='undefined') {
-            this.layers = lay;
-        } else {
-            this.layers = 1;
-        }
-    };
 });
 
 Chimera.prototype = Object.create(Chimera.prototype);
 Chimera.prototype.constructor = Chimera;
-
-Chimera.createNewGraph = function (size) {
-    var g = new Chimera();
-    g.setSize(size.cols, size.rows, size.KL, size.KR);
-    return g;
-};
 
 Graph.registerType('chimera', Chimera);
 
@@ -1844,8 +1862,8 @@ Graph.registerType('chimera', Chimera);
 "use strict";
 /* global BABYLON, sgv, Graph, QbDescr, Chimera, DEMO_MODE */
 
-var Pegasus = /** @class */ (function () {
-    Chimera.call(this);
+var Pegasus = /** @class */ (function (gSize) {
+    Chimera.call(this, gSize);
 
     this.type = 'pegasus';
 
@@ -1960,16 +1978,6 @@ var Pegasus = /** @class */ (function () {
 
 Pegasus.prototype = Object.create(Pegasus.prototype);
 Pegasus.prototype.constructor = Pegasus;
-
-Pegasus.createNewGraph = function (size) {
-    var g = new Pegasus();
-    if (typeof size.lays !== 'undefined') {
-        g.setSize(size.cols, size.rows, size.KL, size.KR, size.lays);
-    } else {
-        g.setSize(size.cols, size.rows, size.KL, size.KR);
-    }
-    return g;
-};
 
 Graph.registerType('pegasus', Pegasus);
 
@@ -2687,6 +2695,8 @@ ParserGEXF.importGraph = (string) => {
             
             def.n1 = def.n2 = parseInt(id);
             def.values = {};
+
+            let label = node[i].getAttribute("label");
             
             let attvals = node[i].getElementsByTagName("attvalues");
             
@@ -2701,7 +2711,10 @@ ParserGEXF.importGraph = (string) => {
                 }    
             }
             
-            struct.addNode2(def.n1, def.values);
+            if (label===null)
+                struct.addNode2(def.n1, def.values);
+            else
+                struct.addNode2(def.n1, def.values, label);
         }
     };
     
@@ -2830,7 +2843,11 @@ ParserGEXF.exportGraph = function(graph) {
     if ((typeof graph==='undefined')||(graph === null)) return null;
     
     function exportNode(node) {
-        let xml = "      <node id=\""+node.id+"\">\n";
+        let xml = '      <node id="' + node.id;
+        if (node.isLabelVisible()) {
+            xml += '" label="' + node.getLabel();
+        }
+        xml += '">\n';
         xml += "        <attvalues>\n";
         for (const key in node.values) {
             xml += "          <attvalue for=\""+node.parentGraph.getScopeIndex(key)+"\" value=\""+node.values[key]+"\"/>\n";
@@ -2902,7 +2919,7 @@ ParserGEXF.exportGraph = function(graph) {
 };
 
 
-/* global sgv, UI, URL, Chimera, Pegasus, ParserGEXF, ParserTXT */
+/* global sgv, UI, URL, Chimera, Pegasus, ParserGEXF, ParserTXT, Graph, Dispatcher */
 var FileIO = {};
 
 FileIO.onLoadButton = () => {
@@ -3025,7 +3042,7 @@ FileIO.loadGraph2 = function(name,data) {
     } else if(name.endsWith("gexf")) {
         Graph.remove();
         if (ParserGEXF.importGraph(data)){
-            sgv.setModeDescription();
+            Dispatcher.graphCreated();
         }
     };
 };
@@ -3036,7 +3053,8 @@ FileIO.loadGraph2 = function(name,data) {
 
 
 sgv.dlgCPL = new function () {
-    var com, sel, des;
+    var com; 
+    var selectionPanel, descriptionPanel;
     var selectScope;
     var sliderRedLimit, sliderGreenLimit;
     var spanRed, spanGreen;
@@ -3044,16 +3062,16 @@ sgv.dlgCPL = new function () {
 
     var btnShowConsole2, btnCreate, btnLoad;
 
-    var elm = createDialog();
+    var ui = createDialog();
 
     window.addEventListener('load', () => {
-        window.document.body.appendChild(elm);
+        window.document.body.appendChild(ui);
     });
 
     function createDialog() {
-        let elm = UI.tag("dialog", {"class": "sgvUIwindow disable-select", "id": "sgvDlgCPL"});
+        let ui = UI.tag("dialog", {"class": "sgvUIwindow disable-select", "id": "sgvDlgCPL"});
 
-        function divSel() {
+        function createSelectionPanel() {
             var divSel = UI.tag("div", {"class": "content", "id": "graphSelection"});
 
             divSel.appendChild(
@@ -3075,10 +3093,10 @@ sgv.dlgCPL = new function () {
 
             return divSel;
         }
-        ;
 
 
-        function divDesc() {
+
+        function createDescriptionPanel() {
             function createInfoBlock() {
                 var i = UI.tag("div", {});
 
@@ -3146,32 +3164,60 @@ sgv.dlgCPL = new function () {
                 return sldPanel;
             }
 
+            function createScopePanel() {
+                let divNS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivNS"}, {'textContent': "add new scope: "});
+                divNS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplSkipAddScope", 'value': "<"}));
+                divNS.appendChild(UI.tag("input", {'type': "text", 'id': "cplAddScopeInput", 'value': "newScope"}));
+                divNS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAcceptAddScope", 'value': "+"}));
+                divNS.style.display = "none";
+
+                let divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': "current scope: "});
+
+                selectScope = UI.tag("select", {'id': "cplDispValues"});
+                selectScope.addEventListener('change', () => {
+                    sgv.graf.displayValues(selectScope.value);
+                    updateSlidersX();
+                });
+                divDS.appendChild(selectScope);
+
+                divDS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAddScope", 'value': "+"}));
+                divDS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplDelScope", 'value': "-"}));
+
+
+                let scope = UI.tag("div", {'class': "sgvSelectBox", 'id': "cplScope"});
+                scope.appendChild(divNS);
+                scope.appendChild(divDS);
+                return scope;
+            }
+
             var divDesc = UI.tag("div", {"class": "content", "id": "graphDescription"});
 
             divDesc.appendChild(createInfoBlock());
 
-            let divNS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivNS"}, {'textContent': "add new scope: "});
-            divNS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplSkipAddScope", 'value': "<"}));
-            divNS.appendChild(UI.tag("input", {'type': "text", 'id': "cplAddScopeInput", 'value': "newScope"}));
-            divNS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAcceptAddScope", 'value': "+"}));
-            divNS.style.display = "none";
+//            let divNS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivNS"}, {'textContent': "add new scope: "});
+//            divNS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplSkipAddScope", 'value': "<"}));
+//            divNS.appendChild(UI.tag("input", {'type': "text", 'id': "cplAddScopeInput", 'value': "newScope"}));
+//            divNS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAcceptAddScope", 'value': "+"}));
+//            divNS.style.display = "none";
+//
+//            let divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': "current scope: "});
+//
+//            selectScope = UI.tag("select", {'id': "cplDispValues"});
+//            selectScope.addEventListener('change', () => {
+//                sgv.graf.displayValues(selectScope.value);
+//                updateSlidersX();
+//            });
+//            divDS.appendChild(selectScope);
+//
+//            divDS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAddScope", 'value': "+"}));
+//            divDS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplDelScope", 'value': "-"}));
+//
+//
+//            let scope = UI.tag("div", {'class': "sgvSelectBox", 'id': "cplScope"});
+//            scope.appendChild(divNS);
+//            scope.appendChild(divDS);
 
-            let divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': "current scope: "});
-
-            selectScope = UI.tag("select", {'id': "cplDispValues"});
-            selectScope.addEventListener('change', () => {
-                sgv.graf.displayValues(selectScope.value);
-                updateSlidersX();
-            });
-            divDS.appendChild(selectScope);
-
-            divDS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAddScope", 'value': "+"}));
-            divDS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplDelScope", 'value': "-"}));
-
-
-            let scope = UI.tag("div", {'class': "sgvSelectBox", 'id': "cplScope"});
-            scope.appendChild(divNS);
-            scope.appendChild(divDS);
+            let scope = createScopePanel();
             divDesc.appendChild(scope);
 
             let sldPanel = createLimitSlidersPanel();
@@ -3211,51 +3257,50 @@ sgv.dlgCPL = new function () {
             divDesc.style.display = "none";
             return divDesc;
         }
-        ;
-
-        sel = divSel();
-        des = divDesc();
+        
+        selectionPanel = createSelectionPanel();
+        descriptionPanel = createDescriptionPanel();
 
         com = UI.tag('div', {});
         com.style.display = 'block';
 
-        com.appendChild(sel);
-        com.appendChild(des);
+        com.appendChild(selectionPanel);
+        com.appendChild(descriptionPanel);
 
-        elm.appendChild(com);
+        ui.appendChild(com);
 
 
 
-        elm.querySelector("#cplSkipAddScope").addEventListener('click',
+        ui.querySelector("#cplSkipAddScope").addEventListener('click',
                 function () {
-                    elm.querySelector("#cplDivNS").style.display = "none";
-                    elm.querySelector("#cplDivDS").style.display = "block";
+                    ui.querySelector("#cplDivNS").style.display = "none";
+                    ui.querySelector("#cplDivDS").style.display = "block";
                 });
 
-        elm.querySelector("#cplAcceptAddScope").addEventListener('click',
+        ui.querySelector("#cplAcceptAddScope").addEventListener('click',
                 function () {
-                    let scope = elm.querySelector("#cplAddScopeInput").value;
+                    let scope = ui.querySelector("#cplAddScopeInput").value;
                     let idx = sgv.graf.addScopeOfValues(scope);
 
                     if (idx >= 0) {
-                        elm.querySelector("#cplDispValues").add(UI.option(scope, scope));
-                        elm.querySelector("#cplDispValues").selectedIndex = idx;
+                        ui.querySelector("#cplDispValues").add(UI.option(scope, scope));
+                        ui.querySelector("#cplDispValues").selectedIndex = idx;
                         sgv.graf.displayValues(scope);
                     }
 
-                    elm.querySelector("#cplDivNS").style.display = "none";
-                    elm.querySelector("#cplDivDS").style.display = "inline";
+                    ui.querySelector("#cplDivNS").style.display = "none";
+                    ui.querySelector("#cplDivDS").style.display = "inline";
                 });
 
-        elm.querySelector("#cplAddScope").addEventListener('click',
+        ui.querySelector("#cplAddScope").addEventListener('click',
                 function () {
-                    elm.querySelector("#cplDivNS").style.display = "inline";
-                    elm.querySelector("#cplDivDS").style.display = "none";
+                    ui.querySelector("#cplDivNS").style.display = "inline";
+                    ui.querySelector("#cplDivDS").style.display = "none";
                 });
 
-        elm.querySelector("#cplDelScope").addEventListener('click',
+        ui.querySelector("#cplDelScope").addEventListener('click',
                 function () {
-                    const select = elm.querySelector("#cplDispValues");
+                    const select = ui.querySelector("#cplDispValues");
 
                     let idx = sgv.graf.delScopeOfValues(select.value);
 
@@ -3274,30 +3319,30 @@ sgv.dlgCPL = new function () {
         });
 
         swt.innerHTML = '. . .';
-        elm.appendChild(swt);
+        ui.appendChild(swt);
 
-        elm.style.display = 'block';
+        ui.style.display = 'block';
 
-        return elm;
+        return ui;
     }
-    ;
+
 
     function showDialog() {
         updateSlidersX();
         com.style.display = "block";
     }
-    ;
+
 
     function hideDialog() {
         com.style.display = "none";
     }
-    ;
+
 
     function switchDialog() {
         //updateSlidersX();
         com.style.display = (com.style.display === "none") ? "block" : "none";
     }
-    ;
+
 
     function addScopeX(scope, idx) {
         selectScope.add(UI.option(scope, scope));
@@ -3320,15 +3365,10 @@ sgv.dlgCPL = new function () {
     }
 
     function setModeSelectionX() {
-        sel.style.display = "block";
-        des.style.display = "none";
-
-        enableMenu('menuGraphSave', false);
-        enableMenu('menuGraphClear', false);
-        enableMenu('menuViewDisplayMode', false);
-
+        selectionPanel.style.display = "block";
+        descriptionPanel.style.display = "none";
     }
-    ;
+
 
     function updateSlidersX() {
         if (sgv.graf === null)
@@ -3366,7 +3406,7 @@ sgv.dlgCPL = new function () {
                 sliderRedLimit.disabled = '';
             }
         }
-        ;
+
         function updateGreen(max) {
             if (isNaN(max)) {
                 sliderGreenLimit.disabled = 'disabled';
@@ -3385,9 +3425,9 @@ sgv.dlgCPL = new function () {
                 sliderGreenLimit.disabled = '';
             }
         }
-        ;
+
     }
-    ;
+
 
 
     function setModeDescriptionX() {
@@ -3407,34 +3447,27 @@ sgv.dlgCPL = new function () {
 
 
         function updateInfoBlock() {
-            elm.querySelector("#dscr_type").textContent = sgv.graf.type;
-            elm.querySelector("#dscr_cols").textContent = sgv.graf.cols;
-            elm.querySelector("#dscr_rows").textContent = sgv.graf.rows;
-            elm.querySelector("#dscr_KL").textContent = sgv.graf.KL;
-            elm.querySelector("#dscr_KR").textContent = sgv.graf.KR;
-            elm.querySelector("#dscr_nbNodes").textContent = Object.keys(sgv.graf.nodes).length;
-            elm.querySelector("#dscr_nbEdges").textContent = Object.keys(sgv.graf.edges).length;
-
-
+            ui.querySelector("#dscr_type").textContent = sgv.graf.type;
+            ui.querySelector("#dscr_cols").textContent = sgv.graf.cols;
+            ui.querySelector("#dscr_rows").textContent = sgv.graf.rows;
+            ui.querySelector("#dscr_KL").textContent = sgv.graf.KL;
+            ui.querySelector("#dscr_KR").textContent = sgv.graf.KR;
+            ui.querySelector("#dscr_nbNodes").textContent = Object.keys(sgv.graf.nodes).length;
+            ui.querySelector("#dscr_nbEdges").textContent = Object.keys(sgv.graf.edges).length;
         }
-        ;
+
 
         updateSlidersX();
         updateInfoBlock();
         refreshScopes();
 
-        enableMenu('menuGraphSave', true);
-        enableMenu('menuGraphClear', true);
-        enableMenu('menuViewDisplayMode', true);
-
-        sel.style.display = "none";
-        des.style.display = "block";
+        selectionPanel.style.display = "none";
+        descriptionPanel.style.display = "block";
     }
-    ;
+
 
 
     return {
-        desc: des,
         show: showDialog,
         hide: hideDialog,
         switchPanel: switchDialog,
@@ -3446,9 +3479,6 @@ sgv.dlgCPL = new function () {
         selScope: selScopeX
     };
 };
-
-sgv.setModeSelection = sgv.dlgCPL.setModeSelection;
-sgv.setModeDescription = sgv.dlgCPL.setModeDescription;
 
 
 
@@ -4601,7 +4631,7 @@ sgv.dlgCellView = new function () {
         hide: hideDialogX
     };
 };
-/* global sgv, UI, Graph */
+/* global sgv, UI, Graph, TempGraphStructure */
 
 sgv.dlgCreateGraph = new function() {
     var selectGraphType;
@@ -4610,6 +4640,8 @@ sgv.dlgCreateGraph = new function() {
     
     var ui = createUI();
 
+    var graphData;
+    
     window.addEventListener('load',()=>{
         window.document.body.appendChild(ui);
     });
@@ -4693,7 +4725,17 @@ sgv.dlgCreateGraph = new function() {
 
         divSel.appendChild(g);
 
-        divSel.appendChild(UI.tag('div',{'id':'buttons'}));
+        let btns = UI.tag('div',{'id':'buttons'});
+
+        let cancelButton = UI.tag('input',{'type':'button', 'class':'actionbutton', 'id':'cplCancelButton', 'name':'cancelButton', 'value':'Cancel'});
+        cancelButton.addEventListener('click', ()=>{hideDialog();});
+        btns.appendChild(cancelButton);
+        
+        let createButton = UI.tag('input',{'type':'button', 'class':'actionbutton', 'id':'cplCreateButton', 'name':'createButton', 'value':'Create'});
+        createButton.addEventListener('click', ()=>{onCreateButton();});
+        btns.appendChild(createButton);
+
+        divSel.appendChild(btns);
 
         ui.appendChild(divSel);
 
@@ -4702,35 +4744,84 @@ sgv.dlgCreateGraph = new function() {
         return ui;
     };
     
-    function showDialog( type, graphData ) {
+    function getGraphDescr() {
+        let gD = new GraphDescr();
+        gD.setType(selectGraphType.value);
+        gD.setSize(
+            parseInt(selectGraphCols.value, 10),
+            parseInt(selectGraphRows.value, 10),
+            parseInt(selectGraphLays.value, 10),
+            parseInt(selectGraphKL.value, 10),
+            parseInt(selectGraphKR.value, 10));
+        
+        return gD;
+    };
+
+    function sugestSize() {
+        let maxNode = 0;
+        graphData.nodes.forEach((n)=>{if (maxNode<n.id) maxNode=n.id;});
+        maxNode--;
+        
+        let maxModule = maxNode>>3;
+        if (maxNode%8) maxModule++;
+        
+        let gDesc = new GraphDescr();
+        switch (maxModule) {
+            case 4: gDesc.set('chimera',2,2,1,4,4); break;
+            case 9: gDesc.set('chimera',3,3,1,4,4); break;
+            case 16: gDesc.set('chimera',4,4,1,4,4); break;
+            case 64: gDesc.set('chimera',8,8,1,4,4); break;
+            case 144: gDesc.set('chimera',12,12,1,4,4); break;
+            case 256: gDesc.set('chimera',16,16,1,4,4); break;
+            
+            case 12: gDesc.set('pegasus',2,2,3,4,4); break;
+            case 27: gDesc.set('pegasus',3,3,3,4,4); break;
+            case 48: gDesc.set('pegasus',4,4,3,4,4); break;
+            case 192: gDesc.set('pegasus',8,8,3,4,4); break;
+            case 432: gDesc.set('pegasus',12,12,3,4,4); break;
+            case 768: gDesc.set('pegasus',16,16,3,4,4); break;
+            
+            default: gDesc.set('chimera',4,4,1,4,4); break;
+        }
+        
+        UI.selectByKey(selectGraphType,gDesc.type);
+        UI.selectByKey(selectGraphCols,gDesc.size.cols);
+        UI.selectByKey(selectGraphRows,gDesc.size.rows);
+        UI.selectByKey(selectGraphLays,gDesc.size.lays);
+        UI.selectByKey(selectGraphKL,gDesc.size.KL);
+        UI.selectByKey(selectGraphKR,gDesc.size.KR);
+        if (gDesc.type==='chimera') selectGraphLays.disabled='disabled';
+        else selectGraphLays.disabled='';
+    }
+    
+    function onCreateButton() {
+        let gDesc = getGraphDescr();
+        
+        showSplashAndRun(()=>{
+                hideDialog();
+                setTimeout(()=>{
+                    Graph.create( gDesc, graphData );
+                }, 100);
+            },true);
+    }
+    
+    function showDialog( type, struct ) {
         if (type==='load') {
-            ui.querySelector("#buttons").innerHTML = 
-                '<input class="actionbutton" id="cplCancelButton" name="cancelButton" type="button" value="Cancel"> \
-                 <input class="actionbutton" id="cplCreateButton" name="createButton" type="button" value="Load">';
-
-            ui.querySelector(".titleText").textContent = "Load graph";
-
+            ui.querySelector('#cplCreateButton').value = 'Load';
+            ui.querySelector('.titleText').textContent = 'Load graph';
         } else {
-            ui.querySelector("#buttons").innerHTML = 
-                '<input class="actionbutton" id="cplCancelButton" name="cancelButton" type="button" value="Cancel"> \
-                 <input class="actionbutton" id="cplCreateButton" name="createButton" type="button" value="Create">';
-
-            ui.querySelector(".titleText").textContent = "New graph";
+            ui.querySelector('#cplCreateButton').value = 'Create';
+            ui.querySelector('.titleText').textContent = 'New graph';
         }
 
         ui.style.display = "block";
-        ui.querySelector("#cplCreateButton").addEventListener('click', ()=>{
-            showSplashAndRun(()=>{
-                hideDialog();
-                setTimeout(()=>{
-                    Graph.create( getGraphDescr(), graphData );
-                }, 100);
-            },true);
-        } );
 
-        ui.querySelector("#cplCancelButton").addEventListener('click', ()=>{
-            hideDialog();
-        } );
+        if (struct instanceof TempGraphStructure){
+            graphData = struct;
+            sugestSize();
+        } else {
+            graphData = null;
+        }
 
         ui.showModal();
     };
@@ -4740,20 +4831,9 @@ sgv.dlgCreateGraph = new function() {
         ui.style.display = "none";
     };
     
-    function getGraphDescr() {
-        let gD = new GraphDescr();
-        gD.setType(ui.querySelector("#graphType").value);
-        gD.setSize(
-            parseInt(ui.querySelector("#graphCols").value, 10),
-            parseInt(ui.querySelector("#graphRows").value, 10),
-            parseInt(ui.querySelector("#graphLays").value, 10),
-            parseInt(ui.querySelector("#graphKL").value, 10),
-            parseInt(ui.querySelector("#graphKR").value, 10));
-        
-        return gD;
-    };
         
     return {
+        d: graphData,
         show: showDialog,
         hide: hideDialog
     };

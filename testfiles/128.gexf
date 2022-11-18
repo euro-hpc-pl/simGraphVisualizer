@@ -10,7 +10,7 @@
       <attribute id="1" title="test" type="float"/>
     </attributes>
     <nodes>
-      <node id="1">
+      <node id="1" label="jakiś tekst">
         <attvalues>
           <attvalue for="0" value="0.2"/>
           <attvalue for="1" value="-1"/>
@@ -46,7 +46,7 @@
           <attvalue for="0" value="0.013333"/>
         </attvalues>
       </node>
-      <node id="8">
+      <node id="8" label="opis 2">
         <attvalues>
           <attvalue for="0" value="0.12"/>
           <attvalue for="1" value="1"/>

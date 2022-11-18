@@ -24,6 +24,8 @@ ParserGEXF.importGraph = (string) => {
             
             def.n1 = def.n2 = parseInt(id);
             def.values = {};
+
+            let label = node[i].getAttribute("label");
             
             let attvals = node[i].getElementsByTagName("attvalues");
             
@@ -38,7 +40,10 @@ ParserGEXF.importGraph = (string) => {
                 }    
             }
             
-            struct.addNode2(def.n1, def.values);
+            if (label===null)
+                struct.addNode2(def.n1, def.values);
+            else
+                struct.addNode2(def.n1, def.values, label);
         }
     };
     
@@ -167,7 +172,11 @@ ParserGEXF.exportGraph = function(graph) {
     if ((typeof graph==='undefined')||(graph === null)) return null;
     
     function exportNode(node) {
-        let xml = "      <node id=\""+node.id+"\">\n";
+        let xml = '      <node id="' + node.id;
+        if (node.isLabelVisible()) {
+            xml += '" label="' + node.getLabel();
+        }
+        xml += '">\n';
         xml += "        <attvalues>\n";
         for (const key in node.values) {
             xml += "          <attvalue for=\""+node.parentGraph.getScopeIndex(key)+"\" value=\""+node.values[key]+"\"/>\n";

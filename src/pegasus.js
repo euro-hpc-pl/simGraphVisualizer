@@ -18,8 +18,8 @@
 "use strict";
 /* global BABYLON, sgv, Graph, QbDescr, Chimera, DEMO_MODE */
 
-var Pegasus = /** @class */ (function () {
-    Chimera.call(this);
+var Pegasus = /** @class */ (function (gSize) {
+    Chimera.call(this, gSize);
 
     this.type = 'pegasus';
 
@@ -134,15 +134,5 @@ var Pegasus = /** @class */ (function () {
 
 Pegasus.prototype = Object.create(Pegasus.prototype);
 Pegasus.prototype.constructor = Pegasus;
-
-Pegasus.createNewGraph = function (size) {
-    var g = new Pegasus();
-    if (typeof size.lays !== 'undefined') {
-        g.setSize(size.cols, size.rows, size.KL, size.KR, size.lays);
-    } else {
-        g.setSize(size.cols, size.rows, size.KL, size.KR);
-    }
-    return g;
-};
 
 Graph.registerType('pegasus', Pegasus);

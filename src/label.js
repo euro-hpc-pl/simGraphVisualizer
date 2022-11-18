@@ -50,9 +50,9 @@ var Label = (function (labelId, txt, position, enabled) {
 
     this.createPlane = function() {
         let font_size = 64;
-        let font = "bold " + font_size + "px Arial";
+        let font = "normal " + font_size + "px Arial,Helvetica,sans-serif";
 
-        let ratio = 0.075;
+        let ratio = 0.05;
 
         let tmpTex = new BABYLON.DynamicTexture("DynamicTexture", 64, sgv.scene);
         let tmpCTX = tmpTex.getContext();

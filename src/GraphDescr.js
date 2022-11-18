@@ -1,12 +1,13 @@
+var GraphSize = (function(c, r, l, kl, kr) {
+        this.cols = c;
+        this.rows = r;
+        this.lays = l;
+        this.KL = kl;
+        this.KR = kr;
+});
+
 var GraphDescr = (function() {
-    //this.type = '';
-    this.size = {
-        cols: 0,
-        rows: 0,
-        lays: 0,
-        KL: 0,
-        KR: 0
-    };
+    this.size = new GraphSize(0,0,0,0,0);
 
     this.set = function(_t, _c, _r, _l, _kl, _kr) {
         this.setType(_t);
@@ -18,13 +19,7 @@ var GraphDescr = (function() {
     };
 
     this.setSize = function(_c, _r, _l, _kl, _kr) {
-        this.size = {
-            cols: _c,
-            rows: _r,
-            lays: _l,
-            KL: _kl,
-            KR: _kr
-        };
+        this.size = new GraphSize( _c, _r, _l, _kl, _kr );
     };
 });
 

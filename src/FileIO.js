@@ -1,5 +1,5 @@
 
-/* global sgv, UI, URL, Chimera, Pegasus, ParserGEXF, ParserTXT */
+/* global sgv, UI, URL, Chimera, Pegasus, ParserGEXF, ParserTXT, Graph, Dispatcher */
 var FileIO = {};
 
 FileIO.onLoadButton = () => {
@@ -122,7 +122,7 @@ FileIO.loadGraph2 = function(name,data) {
     } else if(name.endsWith("gexf")) {
         Graph.remove();
         if (ParserGEXF.importGraph(data)){
-            sgv.setModeDescription();
+            Dispatcher.graphCreated();
         }
     };
 };

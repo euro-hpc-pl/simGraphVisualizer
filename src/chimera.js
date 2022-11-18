@@ -16,25 +16,43 @@
  * limitations under the License.
  */
 
-/* global Graph, BABYLON, sgv, QbDescr */
+/* global Graph, BABYLON, sgv, QbDescr, qD, GraphSize */
 "use strict";
 
-const Chimera = /** @class */ (function () {
+const Chimera = /** @class */ (function (gSize) {
     Graph.call(this);
 
     this.type = 'chimera';
 
-    this.cols;
-    this.rows;
-    this.KL;
-    this.KR;
-    this.layers = 1;
-    
+    this.setSize = function(gSize) {
+        if (gSize instanceof GraphSize) {
+            this.cols = gSize.cols;
+            this.rows = gSize.rows;
+            this.layers = gSize.lays;
+            this.KL = gSize.KL;
+            this.KR = gSize.KR;
+        }
+        else {
+            this.cols = 2;
+            this.rows = 2;
+            this.layers = 1;
+            this.KL = 4;
+            this.KR = 4;
+        }
+    };
+
+    this.setSize(gSize);
+
     this.maxNodeId = function () {
         return this.cols * this.rows * 8;
     };
 
 
+    /*
+     * @param {QbDescr} qdA
+     * @param {QbDescr} qdB
+     * @param {Number} value
+     */
     this.connect = function (qdA, qdB, value) {
         let idA = qdA.toNodeId(this.rows, this.cols);
         let idB = qdB.toNodeId(this.rows, this.cols);
@@ -107,21 +125,22 @@ const Chimera = /** @class */ (function () {
     };
 
 
-    this.createModuleNodes = function (x, y, z) {
-        let moduleId = x + (y + z * this.rows) * this.cols;
-
-        let offset = 8 * moduleId;
-
-        // MODULE NODES
-        for (let n = 0; n < this.KL; n++) {
-            this.addNode(offset + n + 1);
-        }
-        for (let n = 4; n < this.KR + 4; n++) {
-            this.addNode(offset + n + 1);
-        }
+    this.addNodeXYZIJK = function(x,y,z,i,j,k) {
+        return this.addNode(qD(x,y,z,i,j,k).toNodeId(this.rows, this.cols));
     };
 
+    this.addNodeXYZn = function(x,y,z,n) {
+        return this.addNode(qD(x,y,z,(n>>2)&1,(n>>1)&1,n&1).toNodeId(this.rows, this.cols));
+    };
 
+    this.createModuleNodes = function (x, y, z) {
+        for (let n = 0; n < this.KL; n++) {
+            this.addNodeXYZn(x,y,z,n);
+        }
+        for (let n = 0; n < this.KR; n++) {
+            this.addNodeXYZn(x,y,z,n+4);
+        }
+    };
 
     this.getNodeOffset2 = function (idx) {
         let nodeOffset = {
@@ -192,6 +211,8 @@ const Chimera = /** @class */ (function () {
     };
 
     this.createDefaultStructure = function (then) {
+        if (this.layers>1) this.layers=1; //for safety
+        
         sgv.dlgLoaderSplash.setInfo('creating modules', ()=>{
             this.createModules();
 
@@ -211,27 +232,9 @@ const Chimera = /** @class */ (function () {
         });
     };
 
-
-    this.setSize = function(c, r, kl, kr, lay) {
-        this.cols = c;
-        this.rows = r;
-        this.KL = kl;
-        this.KR = kr;
-        if (typeof lay!=='undefined') {
-            this.layers = lay;
-        } else {
-            this.layers = 1;
-        }
-    };
 });
 
 Chimera.prototype = Object.create(Chimera.prototype);
 Chimera.prototype.constructor = Chimera;
-
-Chimera.createNewGraph = function (size) {
-    var g = new Chimera();
-    g.setSize(size.cols, size.rows, size.KL, size.KR);
-    return g;
-};
 
 Graph.registerType('chimera', Chimera);

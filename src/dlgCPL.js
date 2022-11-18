@@ -4,24 +4,25 @@
 
 
 sgv.dlgCPL = new function () {
-    var com, sel, des;
+    var com; 
+    var selectionPanel, descriptionPanel;
     var selectScope;
     var sliderRedLimit, sliderGreenLimit;
     var spanRed, spanGreen;
     var btnDispMode, btnCellView, btnShowConsole, btnSaveTXT, btnClear;
-
+    var scopePanel;
     var btnShowConsole2, btnCreate, btnLoad;
 
-    var elm = createDialog();
+    var ui = createDialog();
 
     window.addEventListener('load', () => {
-        window.document.body.appendChild(elm);
+        window.document.body.appendChild(ui);
     });
 
     function createDialog() {
-        let elm = UI.tag("dialog", {"class": "sgvUIwindow disable-select", "id": "sgvDlgCPL"});
+        let ui = UI.tag("dialog", {"class": "sgvUIwindow disable-select", "id": "sgvDlgCPL"});
 
-        function divSel() {
+        function createSelectionPanel() {
             var divSel = UI.tag("div", {"class": "content", "id": "graphSelection"});
 
             divSel.appendChild(
@@ -43,10 +44,10 @@ sgv.dlgCPL = new function () {
 
             return divSel;
         }
-        ;
 
 
-        function divDesc() {
+
+        function createDescriptionPanel() {
             function createInfoBlock() {
                 var i = UI.tag("div", {});
 
@@ -114,36 +115,36 @@ sgv.dlgCPL = new function () {
                 return sldPanel;
             }
 
+            function createScopePanel() {
+                let divNS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivNS"}, {'textContent': "add new scope: "});
+                divNS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplSkipAddScope", 'value': "<"}));
+                divNS.appendChild(UI.tag("input", {'type': "text", 'id': "cplAddScopeInput", 'value': "newScope"}));
+                divNS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAcceptAddScope", 'value': "+"}));
+                divNS.style.display = "none";
+
+                let divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': "current scope: "});
+
+                selectScope = UI.tag("select", {'id': "cplDispValues"});
+                selectScope.addEventListener('change', () => {
+                    sgv.graf.displayValues(selectScope.value);
+                    updateSlidersX();
+                });
+                divDS.appendChild(selectScope);
+
+                divDS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAddScope", 'value': "+"}));
+                divDS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplDelScope", 'value': "-"}));
+
+
+                let scope = UI.tag("div", {'class': "sgvSelectBox", 'id': "cplScope"});
+                scope.appendChild(divNS);
+                scope.appendChild(divDS);
+                return scope;
+            }
+
             var divDesc = UI.tag("div", {"class": "content", "id": "graphDescription"});
-
             divDesc.appendChild(createInfoBlock());
-
-            let divNS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivNS"}, {'textContent': "add new scope: "});
-            divNS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplSkipAddScope", 'value': "<"}));
-            divNS.appendChild(UI.tag("input", {'type': "text", 'id': "cplAddScopeInput", 'value': "newScope"}));
-            divNS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAcceptAddScope", 'value': "+"}));
-            divNS.style.display = "none";
-
-            let divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': "current scope: "});
-
-            selectScope = UI.tag("select", {'id': "cplDispValues"});
-            selectScope.addEventListener('change', () => {
-                sgv.graf.displayValues(selectScope.value);
-                updateSlidersX();
-            });
-            divDS.appendChild(selectScope);
-
-            divDS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAddScope", 'value': "+"}));
-            divDS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplDelScope", 'value': "-"}));
-
-
-            let scope = UI.tag("div", {'class': "sgvSelectBox", 'id': "cplScope"});
-            scope.appendChild(divNS);
-            scope.appendChild(divDS);
-            divDesc.appendChild(scope);
-
-            let sldPanel = createLimitSlidersPanel();
-            divDesc.appendChild(sldPanel);
+            divDesc.appendChild(scopePanel = createScopePanel());
+            divDesc.appendChild(createLimitSlidersPanel());
 
             let btnPanel = UI.tag('div', {'id': 'panelBtns'});
 
@@ -179,51 +180,50 @@ sgv.dlgCPL = new function () {
             divDesc.style.display = "none";
             return divDesc;
         }
-        ;
-
-        sel = divSel();
-        des = divDesc();
+        
+        selectionPanel = createSelectionPanel();
+        descriptionPanel = createDescriptionPanel();
 
         com = UI.tag('div', {});
         com.style.display = 'block';
 
-        com.appendChild(sel);
-        com.appendChild(des);
+        com.appendChild(selectionPanel);
+        com.appendChild(descriptionPanel);
 
-        elm.appendChild(com);
+        ui.appendChild(com);
 
 
 
-        elm.querySelector("#cplSkipAddScope").addEventListener('click',
+        ui.querySelector("#cplSkipAddScope").addEventListener('click',
                 function () {
-                    elm.querySelector("#cplDivNS").style.display = "none";
-                    elm.querySelector("#cplDivDS").style.display = "block";
+                    ui.querySelector("#cplDivNS").style.display = "none";
+                    ui.querySelector("#cplDivDS").style.display = "block";
                 });
 
-        elm.querySelector("#cplAcceptAddScope").addEventListener('click',
+        ui.querySelector("#cplAcceptAddScope").addEventListener('click',
                 function () {
-                    let scope = elm.querySelector("#cplAddScopeInput").value;
+                    let scope = ui.querySelector("#cplAddScopeInput").value;
                     let idx = sgv.graf.addScopeOfValues(scope);
 
                     if (idx >= 0) {
-                        elm.querySelector("#cplDispValues").add(UI.option(scope, scope));
-                        elm.querySelector("#cplDispValues").selectedIndex = idx;
+                        ui.querySelector("#cplDispValues").add(UI.option(scope, scope));
+                        ui.querySelector("#cplDispValues").selectedIndex = idx;
                         sgv.graf.displayValues(scope);
                     }
 
-                    elm.querySelector("#cplDivNS").style.display = "none";
-                    elm.querySelector("#cplDivDS").style.display = "inline";
+                    ui.querySelector("#cplDivNS").style.display = "none";
+                    ui.querySelector("#cplDivDS").style.display = "inline";
                 });
 
-        elm.querySelector("#cplAddScope").addEventListener('click',
+        ui.querySelector("#cplAddScope").addEventListener('click',
                 function () {
-                    elm.querySelector("#cplDivNS").style.display = "inline";
-                    elm.querySelector("#cplDivDS").style.display = "none";
+                    ui.querySelector("#cplDivNS").style.display = "inline";
+                    ui.querySelector("#cplDivDS").style.display = "none";
                 });
 
-        elm.querySelector("#cplDelScope").addEventListener('click',
+        ui.querySelector("#cplDelScope").addEventListener('click',
                 function () {
-                    const select = elm.querySelector("#cplDispValues");
+                    const select = ui.querySelector("#cplDispValues");
 
                     let idx = sgv.graf.delScopeOfValues(select.value);
 
@@ -242,30 +242,30 @@ sgv.dlgCPL = new function () {
         });
 
         swt.innerHTML = '. . .';
-        elm.appendChild(swt);
+        ui.appendChild(swt);
 
-        elm.style.display = 'block';
+        ui.style.display = 'block';
 
-        return elm;
+        return ui;
     }
-    ;
+
 
     function showDialog() {
         updateSlidersX();
         com.style.display = "block";
     }
-    ;
+
 
     function hideDialog() {
         com.style.display = "none";
     }
-    ;
+
 
     function switchDialog() {
         //updateSlidersX();
         com.style.display = (com.style.display === "none") ? "block" : "none";
     }
-    ;
+
 
     function addScopeX(scope, idx) {
         selectScope.add(UI.option(scope, scope));
@@ -288,15 +288,10 @@ sgv.dlgCPL = new function () {
     }
 
     function setModeSelectionX() {
-        sel.style.display = "block";
-        des.style.display = "none";
-
-        enableMenu('menuGraphSave', false);
-        enableMenu('menuGraphClear', false);
-        enableMenu('menuViewDisplayMode', false);
-
+        selectionPanel.style.display = "block";
+        descriptionPanel.style.display = "none";
     }
-    ;
+
 
     function updateSlidersX() {
         if (sgv.graf === null)
@@ -334,7 +329,7 @@ sgv.dlgCPL = new function () {
                 sliderRedLimit.disabled = '';
             }
         }
-        ;
+
         function updateGreen(max) {
             if (isNaN(max)) {
                 sliderGreenLimit.disabled = 'disabled';
@@ -353,9 +348,9 @@ sgv.dlgCPL = new function () {
                 sliderGreenLimit.disabled = '';
             }
         }
-        ;
+
     }
-    ;
+
 
 
     function setModeDescriptionX() {
@@ -375,35 +370,28 @@ sgv.dlgCPL = new function () {
 
 
         function updateInfoBlock() {
-            elm.querySelector("#dscr_type").textContent = sgv.graf.type;
-            elm.querySelector("#dscr_cols").textContent = sgv.graf.cols;
-            elm.querySelector("#dscr_rows").textContent = sgv.graf.rows;
-            elm.querySelector("#dscr_KL").textContent = sgv.graf.KL;
-            elm.querySelector("#dscr_KR").textContent = sgv.graf.KR;
-            elm.querySelector("#dscr_nbNodes").textContent = Object.keys(sgv.graf.nodes).length;
-            elm.querySelector("#dscr_nbEdges").textContent = Object.keys(sgv.graf.edges).length;
-
-
+            ui.querySelector("#dscr_type").textContent = sgv.graf.type;
+            ui.querySelector("#dscr_cols").textContent = sgv.graf.cols;
+            ui.querySelector("#dscr_rows").textContent = sgv.graf.rows;
+            ui.querySelector("#dscr_KL").textContent = sgv.graf.KL;
+            ui.querySelector("#dscr_KR").textContent = sgv.graf.KR;
+            ui.querySelector("#dscr_nbNodes").textContent = Object.keys(sgv.graf.nodes).length;
+            ui.querySelector("#dscr_nbEdges").textContent = Object.keys(sgv.graf.edges).length;
         }
-        ;
+
 
         updateSlidersX();
         updateInfoBlock();
         refreshScopes();
 
-        enableMenu('menuGraphSave', true);
-        enableMenu('menuGraphClear', true);
-        enableMenu('menuViewDisplayMode', true);
-
-        sel.style.display = "none";
-        des.style.display = "block";
+        selectionPanel.style.display = "none";
+        descriptionPanel.style.display = "block";
     }
-    ;
+
 
 
     return {
-        desc: des,
-        show: showDialog,
+        //show: showDialog,
         hide: hideDialog,
         switchPanel: switchDialog,
         setModeDescription: setModeDescriptionX,
@@ -414,7 +402,4 @@ sgv.dlgCPL = new function () {
         selScope: selScopeX
     };
 };
-
-sgv.setModeSelection = sgv.dlgCPL.setModeSelection;
-sgv.setModeDescription = sgv.dlgCPL.setModeDescription;
 

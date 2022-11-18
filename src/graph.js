@@ -52,6 +52,7 @@ const Graph = /** @class */ (function () {
         return Object.keys(this.nodes).length;
     };
 
+
     this.addNode = function(nodeId, val) {
         values = {};
         
@@ -538,24 +539,25 @@ const Graph = /** @class */ (function () {
 
     
     this.createStructureFromTempStruct = function (struct) {
-        //console.log(struct);
-        for (let tmpNode of struct.nodes){
-            let n = this.addNode(tmpNode.id);
-            n.values = tmpNode.values;
-            if (tmpNode.label !== null) {
-                n.setLabel(tmpNode.label.text, tmpNode.label.enabled);
-            } else {
-                n.showLabel(false);
+        return new Promise((resolve)=>{
+            for (let tmpNode of struct.nodes){
+                let n = this.addNode(tmpNode.id);
+                n.values = tmpNode.values;
+                if (tmpNode.label !== null) {
+                    n.setLabel(tmpNode.label.text, tmpNode.label.enabled);
+                } else {
+                    n.showLabel(false);
+                }
             }
-        }
 
-        for (let tmpEdge of struct.edges){
-            let e = this.addEdge(tmpEdge.n1, tmpEdge.n2);
-            e.values = tmpEdge.values;
-        }
-        
-        struct = null;
-        //console.log(struct);
+            for (let tmpEdge of struct.edges){
+                let e = this.addEdge(tmpEdge.n1, tmpEdge.n2);
+                e.values = tmpEdge.values;
+            }
+
+            this.showLabels(true);
+            resolve('ok');
+        });
     };
 
 });
@@ -587,10 +589,9 @@ Graph.knowType = (txt)=>(txt in Graph.knownGraphTypes);
  */
 Graph.create = (gDesc, struct)=>{
     Graph.remove();
-
     if (gDesc instanceof GraphDescr){
         if (gDesc.type in Graph.knownGraphTypes) {
-            sgv.graf = Graph.knownGraphTypes[gDesc.type].createNewGraph(gDesc.size);
+            sgv.graf = new Graph.knownGraphTypes[gDesc.type](gDesc.size);
         } else {
             console.error('unknown graph type');
             return;
@@ -600,19 +601,12 @@ Graph.create = (gDesc, struct)=>{
         return;
     }
     
-    //console.log(typeof struct, struct.constructor.name, TempGraphStructure.name, struct);
     if (struct instanceof TempGraphStructure){
-        sgv.graf.createStructureFromTempStruct(struct);
-        sgv.setModeDescription();
-        sgv.graf.displayValues();
-        hideSplash();
+        sgv.graf.createStructureFromTempStruct(struct)
+                .then(()=>Dispatcher.graphCreated());
     }
     else {
-        sgv.graf.createDefaultStructure(() => {
-            sgv.setModeDescription();
-            sgv.graf.displayValues();
-            hideSplash();
-        });
+        sgv.graf.createDefaultStructure(()=>Dispatcher.graphCreated());
     }
     
 };
