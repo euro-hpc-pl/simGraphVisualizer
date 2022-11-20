@@ -183,11 +183,7 @@ sgv.dlgCellView = new function () {
         div.style['margin'] = '0';
         div.style['padding'] = '0';
 
-        svgView = document.createElementNS(svgns, "svg");
-        svgView.setAttributeNS(null, "id", 'svgView');
-        svgView.setAttributeNS(null, "height", _height);
-        svgView.setAttributeNS(null, "width", _width);
-        svgView.addEventListener('click', (event) => {
+        svgView = SVG.createSVG('svgView', _width, _height, (event) => {
             if (event.target.id === 'svgView') {
                 sgv.dlgNodeProperties.hide();
                 sgv.dlgEdgeProperties.hide();
@@ -230,7 +226,7 @@ sgv.dlgCellView = new function () {
         ui.style['left'] = '10vh';
         return ui;
     }
-    ;
+    
 
     function onClick(e) {
         var element = e.target;
@@ -281,7 +277,7 @@ sgv.dlgCellView = new function () {
         let q = QbDescr.fromNodeId(id, sgv.graf.rows, sgv.graf.cols);
         drawModule(q.x, q.y, q.z);
     }
-    ;
+    
 
     function onNodeClick(event) {
         event.preventDefault();
@@ -292,7 +288,7 @@ sgv.dlgCellView = new function () {
         else
             sgv.dlgNodeProperties.show(event.target.id, rect.x, rect.y);
     }
-    ;
+    
 
     function onEdgeClick(event) {
         event.preventDefault();
@@ -303,57 +299,7 @@ sgv.dlgCellView = new function () {
         else
             sgv.dlgEdgeProperties.show(event.target.id, rect.x, rect.y);
     }
-    ;
-
-    function drawSvgText(id, x, y, txt, txtColor, bgColor, onClick) {
-
-        var text = document.createElementNS(svgns, 'text');
-        text.setAttributeNS(null, 'id', 'text_' + id);
-        text.setAttributeNS(null, 'x', x);
-        text.setAttributeNS(null, 'y', y);
-        text.setAttributeNS(null, 'text-anchor', 'middle');
-        text.setAttributeNS(null, 'alignment-baseline', 'middle');
-        //text.setAttributeNS(null, 'stroke', txtColor);
-        //text.setAttributeNS(null, 'stroke-width', '0');
-        text.setAttributeNS(null, 'font-size', '12px');
-        text.setAttributeNS(null, 'font-family', 'Arial, Helvetica, sans-serif');
-        text.setAttributeNS(null, 'fill', txtColor);
-        //text.setAttributeNS(null, 'fill-opacity', '1');
-        text.textContent = txt;
-        svgView.appendChild(text);
-
-        text.addEventListener('click', onClick);
-
-        if (bgColor !== '') {
-            var rect = document.createElementNS(svgns, 'rect');
-            rect.setAttributeNS(null, 'id', 'textBG_' + id);
-            rect.setAttributeNS(null, "x", x - 12);
-            rect.setAttributeNS(null, "y", y - 8);
-            rect.setAttributeNS(null, "width", 24);
-            rect.setAttributeNS(null, "height", 14);
-            rect.setAttributeNS(null, "fill", bgColor);
-            svgView.insertBefore(rect, text);
-
-            rect.addEventListener('click', onClick);
-        }
-    }
-    ;
-
-    function drawSvgEdge(eid, bX, bY, eX, eY, color, wth, onClick) {
-        var newLine = document.createElementNS(svgns, 'line');
-        newLine.setAttributeNS(null, 'id', 'edge_' + eid);
-        newLine.setAttributeNS(null, 'x1', bX);
-        newLine.setAttributeNS(null, 'y1', bY);
-        newLine.setAttributeNS(null, 'x2', eX);
-        newLine.setAttributeNS(null, 'y2', eY);
-        //newLine.setAttributeNS(null, 'style', 'stroke: ' + color + '; stroke-width: ' + wth + 'px;');
-        newLine.setAttributeNS(null, 'stroke', color);
-        newLine.setAttributeNS(null, 'stroke-width', wth);
-        svgView.appendChild(newLine);
-
-        newLine.addEventListener('click', onClick);
-    }
-    ;
+    
 
     function drawExtEdge(offset, ijk, e, endX, endY) {
 
@@ -367,8 +313,8 @@ sgv.dlgCellView = new function () {
             let eVal = sgv.graf.nodeValue(e);
             let eColor = valueToColor(eVal);
 
-            drawSvgEdge(eid, pos(ijk).x, pos(ijk).y, endX, endY, color.toHexString(), wth, onEdgeClick);
-            drawSvgText(e, endX, endY, e, 'yellow', eColor.toHexString(), onExternalNodeClick);
+            SVG.drawSvgEdge(svgView, eid, pos(ijk).x, pos(ijk).y, endX, endY, color.toHexString(), wth, onEdgeClick);
+            SVG.drawSvgText(svgView, e, endX, endY, e, 'yellow', eColor.toHexString(), onExternalNodeClick);
         }
     }
 
@@ -384,25 +330,10 @@ sgv.dlgCellView = new function () {
             let color = valueToColor(val);
             let wth = 2 + 5 * valueToEdgeWidth(val);
 
-            drawSvgEdge(eid, pos(iB).x, pos(iB).y, pos(iE).x, pos(iE).y, color.toHexString(), wth, onEdgeClick);
+            SVG.drawSvgEdge(svgView, eid, pos(iB).x, pos(iB).y, pos(iE).x, pos(iE).y, color.toHexString(), wth, onEdgeClick);
         }
     }
 
-
-    function drawSvgNode(nodeId, x, y, r, color, onClick) {
-        var circle = document.createElementNS(svgns, 'circle');
-        circle.setAttributeNS(null, 'id', 'node_' + nodeId);
-        circle.setAttributeNS(null, 'cx', x);
-        circle.setAttributeNS(null, 'cy', y);
-        circle.setAttributeNS(null, 'r', r);
-        //circle.setAttributeNS(null, 'style', 'fill: ' + color + '; stroke: black; stroke-width: 1px;');
-        circle.setAttributeNS(null, 'fill', color);
-        circle.setAttributeNS(null, 'stroke', 'black');
-        circle.setAttributeNS(null, 'stroke-width', '1');
-        svgView.appendChild(circle);
-
-        circle.addEventListener('click', onClick);
-    }
 
     function drawNode(offset, id) {
         let nodeId = offset + id;
@@ -410,8 +341,8 @@ sgv.dlgCellView = new function () {
             let val = sgv.graf.nodeValue(nodeId);
             let color = valueToColor(val);
 
-            drawSvgNode(nodeId, pos(id).x, pos(id).y, 20, color.toHexString(), onNodeClick);
-            drawSvgText(nodeId, pos(id).x, pos(id).y, nodeId.toString(), 'yellow', '', onNodeClick);
+            SVG.drawSvgNode(svgView, nodeId, pos(id).x, pos(id).y, 20, color.toHexString(), onNodeClick);
+            SVG.drawSvgText(svgView, nodeId, pos(id).x, pos(id).y, nodeId.toString(), 'yellow', '', onNodeClick);
         }
     }
 
@@ -543,7 +474,7 @@ sgv.dlgCellView = new function () {
             drawNode(offset, i);
         }
     }
-    ;
+    
 
 
     function showDialogX() {
@@ -579,7 +510,7 @@ sgv.dlgCellView = new function () {
         prevFocused = window.document.activeElement;
         ui.focus({focusVisible: false});
     }
-    ;
+    
 
 
     function hideDialogX() {
@@ -587,7 +518,7 @@ sgv.dlgCellView = new function () {
             prevFocused.focus({focusVisible: false});
         ui.style.display = "none";
     }
-    ;
+    
 
     function switchDialogX() {
         if (ui.style.display === "none") {
@@ -596,7 +527,7 @@ sgv.dlgCellView = new function () {
             hideDialogX();
         }
     }
-    ;
+    
 
 
     return {

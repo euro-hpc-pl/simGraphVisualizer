@@ -32,6 +32,7 @@ var srcfiles = [
     "./src/FileIO.js",
     "./src/dlgCPL.js",
     "./src/dlgConsole.js",
+    "./src/SVG.js",
     "./src/dlgCellView.js",
     "./src/dlgCreateGraph.js",
     "./src/dlgEdgeProperties.js",

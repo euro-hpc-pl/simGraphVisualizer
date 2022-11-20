@@ -32,16 +32,19 @@ Dispatcher.graphCreated = ()=>{
 Dispatcher.graphChanged = ()=>{
     sgv.dlgCPL.updateSliders();
     sgv.dlgCellView.refresh();
+    sgv.dlgNodeProperties.refresh();
     sgv.SPS.refresh();
 };
 
 Dispatcher.currentScopeChanged = ()=>{
     sgv.dlgCPL.updateSliders();
     sgv.dlgCellView.refresh();
+    sgv.dlgNodeProperties.refresh();
     sgv.SPS.refresh();
 };
 
 Dispatcher.viewModeChanged = ()=>{
     sgv.dlgCellView.refresh();
+    sgv.dlgNodeProperties.refresh();
     sgv.SPS.refresh();
 };

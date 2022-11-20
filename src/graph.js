@@ -133,9 +133,9 @@ const Graph = /** @class */ (function () {
 
         //console.log("graf.findEdges", nodeId);
         for (const key in this.edges) {
-            if (this.edges[key].begin === nodeId) {
+            if (this.edges[key].begin == nodeId) {
                 add( this.edges[key].end );
-            } else if (this.edges[key].end === nodeId) {
+            } else if (this.edges[key].end == nodeId) {
                 add( this.edges[key].begin );
             }
         }

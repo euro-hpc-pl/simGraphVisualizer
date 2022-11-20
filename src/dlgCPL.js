@@ -4,13 +4,13 @@
 
 
 sgv.dlgCPL = new function () {
-    var com; 
+    var switchableContent; 
     var selectionPanel, descriptionPanel;
     var selectScope;
     var sliderRedLimit, sliderGreenLimit;
     var spanRed, spanGreen;
     var btnDispMode, btnCellView, btnShowConsole, btnSaveTXT, btnClear;
-    var scopePanel;
+    var scopePanel, btnPanel;
     var btnShowConsole2, btnCreate, btnLoad;
 
     var ui = createDialog();
@@ -49,7 +49,7 @@ sgv.dlgCPL = new function () {
 
         function createDescriptionPanel() {
             function createInfoBlock() {
-                var i = UI.tag("div", {});
+                let i = UI.tag("div", {});
 
                 i.innerHTML = "Current graph type: ";
                 i.appendChild(UI.span("unknown", {'id': "dscr_type"}));
@@ -117,12 +117,38 @@ sgv.dlgCPL = new function () {
 
             function createScopePanel() {
                 let divNS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivNS"}, {'textContent': "add new scope: "});
-                divNS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplSkipAddScope", 'value': "<"}));
-                divNS.appendChild(UI.tag("input", {'type': "text", 'id': "cplAddScopeInput", 'value': "newScope"}));
-                divNS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAcceptAddScope", 'value': "+"}));
+                let divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': "current scope: "});
+                
+                let btnSkipAddScope = UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplSkipAddScope", 'value': "<"});
+                btnSkipAddScope.addEventListener('click',
+                        function () {
+                            divNS.style.display = "none";
+                            divDS.style.display = "block";
+                        });
+                divNS.appendChild(btnSkipAddScope);
+
+                let editAddScope = UI.tag("input", {'type': "text", 'id': "cplAddScopeInput", 'value': "newScope"});
+                divNS.appendChild(editAddScope);
+                
+                let btnAcceptAddScope = UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAcceptAddScope", 'value': "+"});
+                btnAcceptAddScope.addEventListener('click',
+                        function () {
+                            let scope = editAddScope.value;
+                            let idx = sgv.graf.addScopeOfValues(scope);
+
+                            if (idx >= 0) {
+                                selectScope.add(UI.option(scope, scope));
+                                selectScope.selectedIndex = idx;
+                                sgv.graf.displayValues(scope);
+                            }
+
+                            divNS.style.display = "none";
+                            divDS.style.display = "inline";
+                        });
+                divNS.appendChild(btnAcceptAddScope);
+
                 divNS.style.display = "none";
 
-                let divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': "current scope: "});
 
                 selectScope = UI.tag("select", {'id': "cplDispValues"});
                 selectScope.addEventListener('change', () => {
@@ -131,9 +157,26 @@ sgv.dlgCPL = new function () {
                 });
                 divDS.appendChild(selectScope);
 
-                divDS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAddScope", 'value': "+"}));
-                divDS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplDelScope", 'value': "-"}));
+                let btnAddScope = UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAddScope", 'value': "+"});
+                btnAddScope.addEventListener('click',
+                        function () {
+                            divNS.style.display = "inline";
+                            divDS.style.display = "none";
+                        });
+                divDS.appendChild(btnAddScope);
 
+
+                let btnDelScope = UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplDelScope", 'value': "-"});
+                btnDelScope.addEventListener('click',
+                        function () {
+                            let idx = sgv.graf.delScopeOfValues(selectScope.value);
+
+                            if (idx >= 0) {
+                                selectScope.remove(selectScope.selectedIndex);
+                                selectScope.selectedIndex = idx;
+                            }
+                        });
+                divDS.appendChild(btnDelScope);
 
                 let scope = UI.tag("div", {'class': "sgvSelectBox", 'id': "cplScope"});
                 scope.appendChild(divNS);
@@ -146,7 +189,7 @@ sgv.dlgCPL = new function () {
             divDesc.appendChild(scopePanel = createScopePanel());
             divDesc.appendChild(createLimitSlidersPanel());
 
-            let btnPanel = UI.tag('div', {'id': 'panelBtns'});
+            btnPanel = UI.tag('div', {'id': 'panelBtns'});
 
             btnPanel.appendChild(
                     btnDispMode = UI.createTransparentBtn1('display mode', "cplDispModeButton", () => {
@@ -184,56 +227,13 @@ sgv.dlgCPL = new function () {
         selectionPanel = createSelectionPanel();
         descriptionPanel = createDescriptionPanel();
 
-        com = UI.tag('div', {});
-        com.style.display = 'block';
+        switchableContent = UI.tag('div', {});
+        switchableContent.style.display = 'block';
 
-        com.appendChild(selectionPanel);
-        com.appendChild(descriptionPanel);
+        switchableContent.appendChild(selectionPanel);
+        switchableContent.appendChild(descriptionPanel);
 
-        ui.appendChild(com);
-
-
-
-        ui.querySelector("#cplSkipAddScope").addEventListener('click',
-                function () {
-                    ui.querySelector("#cplDivNS").style.display = "none";
-                    ui.querySelector("#cplDivDS").style.display = "block";
-                });
-
-        ui.querySelector("#cplAcceptAddScope").addEventListener('click',
-                function () {
-                    let scope = ui.querySelector("#cplAddScopeInput").value;
-                    let idx = sgv.graf.addScopeOfValues(scope);
-
-                    if (idx >= 0) {
-                        ui.querySelector("#cplDispValues").add(UI.option(scope, scope));
-                        ui.querySelector("#cplDispValues").selectedIndex = idx;
-                        sgv.graf.displayValues(scope);
-                    }
-
-                    ui.querySelector("#cplDivNS").style.display = "none";
-                    ui.querySelector("#cplDivDS").style.display = "inline";
-                });
-
-        ui.querySelector("#cplAddScope").addEventListener('click',
-                function () {
-                    ui.querySelector("#cplDivNS").style.display = "inline";
-                    ui.querySelector("#cplDivDS").style.display = "none";
-                });
-
-        ui.querySelector("#cplDelScope").addEventListener('click',
-                function () {
-                    const select = ui.querySelector("#cplDispValues");
-
-                    let idx = sgv.graf.delScopeOfValues(select.value);
-
-                    if (idx >= 0) {
-                        select.remove(select.selectedIndex);
-                        select.selectedIndex = idx;
-                    }
-                });
-
-
+        ui.appendChild(switchableContent);
 
         var swt = UI.tag('div', {'id': 'switch'});
 
@@ -251,19 +251,17 @@ sgv.dlgCPL = new function () {
 
 
     function showDialog() {
-        updateSlidersX();
-        com.style.display = "block";
+        switchableContent.style.display = "block";
     }
 
 
     function hideDialog() {
-        com.style.display = "none";
+        switchableContent.style.display = "none";
     }
 
 
     function switchDialog() {
-        //updateSlidersX();
-        com.style.display = (com.style.display === "none") ? "block" : "none";
+        (switchableContent.style.display === "none") ? showDialog() : hideDialog();
     }
 
 
@@ -351,7 +349,9 @@ sgv.dlgCPL = new function () {
 
     }
 
-
+    function addButtonX(txt, id, onClick) {
+        descriptionPanel.appendChild(UI.createTransparentBtn1(txt, id, onClick));
+    }
 
     function setModeDescriptionX() {
         function refreshScopes() {
@@ -391,12 +391,13 @@ sgv.dlgCPL = new function () {
 
 
     return {
-        //show: showDialog,
-        hide: hideDialog,
+        showPanel: showDialog,
+        hidePanel: hideDialog,
         switchPanel: switchDialog,
         setModeDescription: setModeDescriptionX,
         setModeSelection: setModeSelectionX,
         updateSliders: updateSlidersX,
+        addButton: addButtonX,
         addScope: addScopeX,
         delScope: delScopeX,
         selScope: selScopeX

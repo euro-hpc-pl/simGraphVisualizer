@@ -228,6 +228,7 @@ sgv.dlgEdgeProperties = new function() {
     return {
         show: showDialog,
         hide: hideDialog,
+        ui: ui,
         isVisible: () => {
             return (ui!==null)&&(ui.style.display === "block");
         }

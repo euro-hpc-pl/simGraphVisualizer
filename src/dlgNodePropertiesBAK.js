@@ -6,12 +6,8 @@ sgv.dlgNodeProperties = new function() {
     var selectNodeId, selectScope, checkValueN, editWagaN;
     var btnSetN, btnConnectN, selectDestN, btnConnectSelectN;
     var checkLabelN, editLabelN;
-    var content, zeroInfo, svgView;
+    var content, zeroInfo;
     var prevFocused=null;
-    
-    const _width = 250;
-    const _height = 250;
-
     var ui = createUI();
 
     ui.addEventListener('keydown', onKeyDownX );
@@ -43,25 +39,6 @@ sgv.dlgNodeProperties = new function() {
         ui.appendChild(precontent);
 
 
-
-        let div = UI.tag('div');
-        div.style.width = 'fit-content';
-        div.style.height = 'fit-content';
-        div.style.background = '#fff';
-        div.style['border'] = '0';
-        div.style['margin'] = '0';
-        div.style['padding'] = '0';
-
-        svgView = SVG.createSVG('svgView', _width, _height, (event) => {
-            if (event.target.id === 'svgView') {
-                sgv.dlgEdgeProperties.hide();
-            }
-        });
-        div.appendChild(svgView);
-        ui.appendChild(div);
-
-
-
         content = UI.tag("div", {'class':'content'});
 
         var labelBlock = UI.tag("div");
@@ -86,9 +63,6 @@ sgv.dlgNodeProperties = new function() {
 
         selectScope = UI.tag('select',{'id':'nsSelectN'});
         selectScope.addEventListener('change', function () {
-            sgv.graf.displayValues(selectScope.value);
-            sgv.dlgCPL.selScope(selectScope.value);
-            sgv.dlgCPL.updateSliders();
             changeScopeN();
         });
         content.appendChild(UI.tag('label',{'for':'nsSelectN'},{'innerHTML':'Scope: '}));
@@ -154,64 +128,6 @@ sgv.dlgNodeProperties = new function() {
         return ui;
     }
 
-    function drawConnectedEdges(n1) {
-        let connected = sgv.graf.findAllConnected(n1);
-        
-        let set = new Set();
-        for (let j of connected.internal) set.add(j);
-        for (let j of connected.horizontal) set.add(j);
-        for (let j of connected.vertical) set.add(j);
-        for (let j of connected.up) set.add(j);
-        for (let j of connected.down) set.add(j);
-        
-        //let angle = 360.0/set.size;
-        let angle = (2.0*Math.PI)/set.size;
-        let currentAngle = angle;
-
-        set.forEach((n2)=>{
-            let x2 = 100.0*Math.sin(currentAngle);
-            let y2 = 100.0*Math.cos(currentAngle);
-
-            let eid = Edge.calcId(n1, n2);
-            if (eid in sgv.graf.edges) {
-                let val = sgv.graf.edgeValue(eid);
-                let color = valueToColor(val);
-                let wth = 2 + 5 * valueToEdgeWidth(val);
-
-                let eVal = sgv.graf.nodeValue(n2);
-                let eColor = valueToColor(eVal);
-
-                SVG.drawSvgEdge(svgView, eid, 125, 125, 125+x2, 125+y2, color.toHexString(), wth, (event)=>{
-                    let rect = event.target.getBoundingClientRect();
-                    sgv.dlgEdgeProperties.show(eid, rect.x, rect.y);
-                    sgv.dlgEdgeProperties.ui.style['z-index']=101;
-                });
-                SVG.drawSvgText(svgView, n2, 125+x2, 125+y2, n2, 'yellow', eColor.toHexString(), ()=>{
-                    showDialog(n2);
-                });
-            }
-            currentAngle += angle;
-        });
-    }
-
-    function drawNode(nodeId) {
-        if (typeof nodeId === 'undefined') {
-            nodeId = hidNodeId.value;
-        }
- 
-        UI.selectByKey(selectScope, sgv.graf.currentScope);
-        
-        svgView.innerHTML = '';
-        if ((nodeId) in sgv.graf.nodes) {
-            let val = sgv.graf.nodeValue(nodeId);
-            let color = valueToColor(val);
-
-            drawConnectedEdges(nodeId);
-            
-            SVG.drawSvgNode(svgView, nodeId, 125, 125, 25, color.toHexString(), ()=>{});
-            SVG.drawSvgText(svgView, nodeId, 125, 125, nodeId.toString(), 'yellow', '', ()=>{});
-        }
-    }
 
     function showDialog(nodeId, x, y) {
         if (typeof nodeId !== 'undefined') {
@@ -232,8 +148,6 @@ sgv.dlgNodeProperties = new function() {
 
         hidNodeId.value = nodeId;
 
-        drawNode(nodeId);
-
         editLabelN.value = sgv.graf.nodes[nodeId].getLabel();
         if ( sgv.graf.nodes[nodeId].isLabelVisible() ) {
             checkLabelN.checked = "checked";
@@ -245,12 +159,11 @@ sgv.dlgNodeProperties = new function() {
 
         UI.clearSelect(selectScope, true);
         for (const key in sgv.graf.scopeOfValues) {
-            selectScope.appendChild(UI.option(sgv.graf.scopeOfValues[key], sgv.graf.scopeOfValues[key]),( sgv.graf.currentScope === sgv.graf.scopeOfValues[key]));
-            //var opt = UI.tag('option',{'value':key},{'innerHTML':sgv.graf.scopeOfValues[key]});
-            //if ( sgv.graf.currentScope === sgv.graf.scopeOfValues[key]) {
-            //    opt.selected = "selected";
-            //}
-            //selectScope.appendChild(opt);
+            var opt = UI.tag('option',{'value':key},{'innerHTML':sgv.graf.scopeOfValues[key]});
+            if ( sgv.graf.currentScope === sgv.graf.scopeOfValues[key]) {
+                opt.selected = "selected";
+            }
+            selectScope.appendChild(opt);
         }
 
 
@@ -328,8 +241,7 @@ sgv.dlgNodeProperties = new function() {
 
         let nodeId = ui.querySelector("#nodeId").value;
 
-        //let currentValue = sgv.graf.nodeValue(nodeId,sgv.graf.scopeOfValues[event.target.value]);
-        let currentValue = sgv.graf.nodeValue(nodeId, event.target.value);
+        let currentValue = sgv.graf.nodeValue(nodeId,sgv.graf.scopeOfValues[event.target.value]);
         if ((currentValue===null)||isNaN(currentValue)) {
             console.log('NULL');
             ui.querySelector("#valueCheckN").checked = "";
@@ -393,7 +305,6 @@ sgv.dlgNodeProperties = new function() {
     return {
         show: showDialog,
         hide: hideDialog,
-        refresh: drawNode,
         isVisible: () => {
             return (ui!==null)&&(ui.style.display === "block");
         }

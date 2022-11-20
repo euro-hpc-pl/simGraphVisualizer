@@ -32,17 +32,20 @@ Dispatcher.graphCreated = ()=>{
 Dispatcher.graphChanged = ()=>{
     sgv.dlgCPL.updateSliders();
     sgv.dlgCellView.refresh();
+    sgv.dlgNodeProperties.refresh();
     sgv.SPS.refresh();
 };
 
 Dispatcher.currentScopeChanged = ()=>{
     sgv.dlgCPL.updateSliders();
     sgv.dlgCellView.refresh();
+    sgv.dlgNodeProperties.refresh();
     sgv.SPS.refresh();
 };
 
 Dispatcher.viewModeChanged = ()=>{
     sgv.dlgCellView.refresh();
+    sgv.dlgNodeProperties.refresh();
     sgv.SPS.refresh();
 };
 
@@ -1114,9 +1117,9 @@ const Graph = /** @class */ (function () {
 
         //console.log("graf.findEdges", nodeId);
         for (const key in this.edges) {
-            if (this.edges[key].begin === nodeId) {
+            if (this.edges[key].begin == nodeId) {
                 add( this.edges[key].end );
-            } else if (this.edges[key].end === nodeId) {
+            } else if (this.edges[key].end == nodeId) {
                 add( this.edges[key].begin );
             }
         }
@@ -3053,13 +3056,13 @@ FileIO.loadGraph2 = function(name,data) {
 
 
 sgv.dlgCPL = new function () {
-    var com; 
+    var switchableContent; 
     var selectionPanel, descriptionPanel;
     var selectScope;
     var sliderRedLimit, sliderGreenLimit;
     var spanRed, spanGreen;
     var btnDispMode, btnCellView, btnShowConsole, btnSaveTXT, btnClear;
-
+    var scopePanel, btnPanel;
     var btnShowConsole2, btnCreate, btnLoad;
 
     var ui = createDialog();
@@ -3098,7 +3101,7 @@ sgv.dlgCPL = new function () {
 
         function createDescriptionPanel() {
             function createInfoBlock() {
-                var i = UI.tag("div", {});
+                let i = UI.tag("div", {});
 
                 i.innerHTML = "Current graph type: ";
                 i.appendChild(UI.span("unknown", {'id': "dscr_type"}));
@@ -3166,12 +3169,38 @@ sgv.dlgCPL = new function () {
 
             function createScopePanel() {
                 let divNS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivNS"}, {'textContent': "add new scope: "});
-                divNS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplSkipAddScope", 'value': "<"}));
-                divNS.appendChild(UI.tag("input", {'type': "text", 'id': "cplAddScopeInput", 'value': "newScope"}));
-                divNS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAcceptAddScope", 'value': "+"}));
+                let divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': "current scope: "});
+                
+                let btnSkipAddScope = UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplSkipAddScope", 'value': "<"});
+                btnSkipAddScope.addEventListener('click',
+                        function () {
+                            divNS.style.display = "none";
+                            divDS.style.display = "block";
+                        });
+                divNS.appendChild(btnSkipAddScope);
+
+                let editAddScope = UI.tag("input", {'type': "text", 'id': "cplAddScopeInput", 'value': "newScope"});
+                divNS.appendChild(editAddScope);
+                
+                let btnAcceptAddScope = UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAcceptAddScope", 'value': "+"});
+                btnAcceptAddScope.addEventListener('click',
+                        function () {
+                            let scope = editAddScope.value;
+                            let idx = sgv.graf.addScopeOfValues(scope);
+
+                            if (idx >= 0) {
+                                selectScope.add(UI.option(scope, scope));
+                                selectScope.selectedIndex = idx;
+                                sgv.graf.displayValues(scope);
+                            }
+
+                            divNS.style.display = "none";
+                            divDS.style.display = "inline";
+                        });
+                divNS.appendChild(btnAcceptAddScope);
+
                 divNS.style.display = "none";
 
-                let divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': "current scope: "});
 
                 selectScope = UI.tag("select", {'id': "cplDispValues"});
                 selectScope.addEventListener('change', () => {
@@ -3180,9 +3209,26 @@ sgv.dlgCPL = new function () {
                 });
                 divDS.appendChild(selectScope);
 
-                divDS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAddScope", 'value': "+"}));
-                divDS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplDelScope", 'value': "-"}));
+                let btnAddScope = UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAddScope", 'value': "+"});
+                btnAddScope.addEventListener('click',
+                        function () {
+                            divNS.style.display = "inline";
+                            divDS.style.display = "none";
+                        });
+                divDS.appendChild(btnAddScope);
 
+
+                let btnDelScope = UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplDelScope", 'value': "-"});
+                btnDelScope.addEventListener('click',
+                        function () {
+                            let idx = sgv.graf.delScopeOfValues(selectScope.value);
+
+                            if (idx >= 0) {
+                                selectScope.remove(selectScope.selectedIndex);
+                                selectScope.selectedIndex = idx;
+                            }
+                        });
+                divDS.appendChild(btnDelScope);
 
                 let scope = UI.tag("div", {'class': "sgvSelectBox", 'id': "cplScope"});
                 scope.appendChild(divNS);
@@ -3191,39 +3237,11 @@ sgv.dlgCPL = new function () {
             }
 
             var divDesc = UI.tag("div", {"class": "content", "id": "graphDescription"});
-
             divDesc.appendChild(createInfoBlock());
+            divDesc.appendChild(scopePanel = createScopePanel());
+            divDesc.appendChild(createLimitSlidersPanel());
 
-//            let divNS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivNS"}, {'textContent': "add new scope: "});
-//            divNS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplSkipAddScope", 'value': "<"}));
-//            divNS.appendChild(UI.tag("input", {'type': "text", 'id': "cplAddScopeInput", 'value': "newScope"}));
-//            divNS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAcceptAddScope", 'value': "+"}));
-//            divNS.style.display = "none";
-//
-//            let divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': "current scope: "});
-//
-//            selectScope = UI.tag("select", {'id': "cplDispValues"});
-//            selectScope.addEventListener('change', () => {
-//                sgv.graf.displayValues(selectScope.value);
-//                updateSlidersX();
-//            });
-//            divDS.appendChild(selectScope);
-//
-//            divDS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAddScope", 'value': "+"}));
-//            divDS.appendChild(UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplDelScope", 'value': "-"}));
-//
-//
-//            let scope = UI.tag("div", {'class': "sgvSelectBox", 'id': "cplScope"});
-//            scope.appendChild(divNS);
-//            scope.appendChild(divDS);
-
-            let scope = createScopePanel();
-            divDesc.appendChild(scope);
-
-            let sldPanel = createLimitSlidersPanel();
-            divDesc.appendChild(sldPanel);
-
-            let btnPanel = UI.tag('div', {'id': 'panelBtns'});
+            btnPanel = UI.tag('div', {'id': 'panelBtns'});
 
             btnPanel.appendChild(
                     btnDispMode = UI.createTransparentBtn1('display mode', "cplDispModeButton", () => {
@@ -3261,56 +3279,13 @@ sgv.dlgCPL = new function () {
         selectionPanel = createSelectionPanel();
         descriptionPanel = createDescriptionPanel();
 
-        com = UI.tag('div', {});
-        com.style.display = 'block';
+        switchableContent = UI.tag('div', {});
+        switchableContent.style.display = 'block';
 
-        com.appendChild(selectionPanel);
-        com.appendChild(descriptionPanel);
+        switchableContent.appendChild(selectionPanel);
+        switchableContent.appendChild(descriptionPanel);
 
-        ui.appendChild(com);
-
-
-
-        ui.querySelector("#cplSkipAddScope").addEventListener('click',
-                function () {
-                    ui.querySelector("#cplDivNS").style.display = "none";
-                    ui.querySelector("#cplDivDS").style.display = "block";
-                });
-
-        ui.querySelector("#cplAcceptAddScope").addEventListener('click',
-                function () {
-                    let scope = ui.querySelector("#cplAddScopeInput").value;
-                    let idx = sgv.graf.addScopeOfValues(scope);
-
-                    if (idx >= 0) {
-                        ui.querySelector("#cplDispValues").add(UI.option(scope, scope));
-                        ui.querySelector("#cplDispValues").selectedIndex = idx;
-                        sgv.graf.displayValues(scope);
-                    }
-
-                    ui.querySelector("#cplDivNS").style.display = "none";
-                    ui.querySelector("#cplDivDS").style.display = "inline";
-                });
-
-        ui.querySelector("#cplAddScope").addEventListener('click',
-                function () {
-                    ui.querySelector("#cplDivNS").style.display = "inline";
-                    ui.querySelector("#cplDivDS").style.display = "none";
-                });
-
-        ui.querySelector("#cplDelScope").addEventListener('click',
-                function () {
-                    const select = ui.querySelector("#cplDispValues");
-
-                    let idx = sgv.graf.delScopeOfValues(select.value);
-
-                    if (idx >= 0) {
-                        select.remove(select.selectedIndex);
-                        select.selectedIndex = idx;
-                    }
-                });
-
-
+        ui.appendChild(switchableContent);
 
         var swt = UI.tag('div', {'id': 'switch'});
 
@@ -3328,19 +3303,17 @@ sgv.dlgCPL = new function () {
 
 
     function showDialog() {
-        updateSlidersX();
-        com.style.display = "block";
+        switchableContent.style.display = "block";
     }
 
 
     function hideDialog() {
-        com.style.display = "none";
+        switchableContent.style.display = "none";
     }
 
 
     function switchDialog() {
-        //updateSlidersX();
-        com.style.display = (com.style.display === "none") ? "block" : "none";
+        (switchableContent.style.display === "none") ? showDialog() : hideDialog();
     }
 
 
@@ -3428,7 +3401,9 @@ sgv.dlgCPL = new function () {
 
     }
 
-
+    function addButtonX(txt, id, onClick) {
+        descriptionPanel.appendChild(UI.createTransparentBtn1(txt, id, onClick));
+    }
 
     function setModeDescriptionX() {
         function refreshScopes() {
@@ -3468,12 +3443,13 @@ sgv.dlgCPL = new function () {
 
 
     return {
-        show: showDialog,
-        hide: hideDialog,
+        showPanel: showDialog,
+        hidePanel: hideDialog,
         switchPanel: switchDialog,
         setModeDescription: setModeDescriptionX,
         setModeSelection: setModeSelectionX,
         updateSliders: updateSlidersX,
+        addButton: addButtonX,
         addScope: addScopeX,
         delScope: delScopeX,
         selScope: selScopeX
@@ -4023,6 +3999,105 @@ sgv.dlgConsole = new function () {
     };
 };
 
+/* 
+ * Copyright 2022 darek.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+const SVG = {};
+
+SVG.NS = "http://www.w3.org/2000/svg";
+
+SVG.createSVG = (_id, _width, _height, _onClick ) => {
+    let svgView = document.createElementNS(SVG.NS, "svg");
+    svgView.setAttributeNS(null, "id", _id);
+    svgView.setAttributeNS(null, "height", _height);
+    svgView.setAttributeNS(null, "width", _width);
+
+    if (typeof _onClick === 'function') {
+        svgView.addEventListener('click', _onClick);
+    }
+
+    return svgView;
+};
+
+SVG.drawSvgText = (svgView, id, x, y, txt, txtColor, bgColor, onClick) => {
+    var text = document.createElementNS(SVG.NS, 'text');
+    text.setAttributeNS(null, 'id', 'text_' + id);
+    text.setAttributeNS(null, 'x', x);
+    text.setAttributeNS(null, 'y', y);
+    text.setAttributeNS(null, 'text-anchor', 'middle');
+    text.setAttributeNS(null, 'alignment-baseline', 'middle');
+    //text.setAttributeNS(null, 'stroke', txtColor);
+    //text.setAttributeNS(null, 'stroke-width', '0');
+    text.setAttributeNS(null, 'font-size', '12px');
+    text.setAttributeNS(null, 'font-family', 'Arial, Helvetica, sans-serif');
+    text.setAttributeNS(null, 'fill', txtColor);
+    //text.setAttributeNS(null, 'fill-opacity', '1');
+    text.textContent = txt;
+    svgView.appendChild(text);
+
+    text.addEventListener('click', onClick);
+
+    if (bgColor !== '') {
+        var rect = document.createElementNS(SVG.NS, 'rect');
+        rect.setAttributeNS(null, 'id', 'textBG_' + id);
+        rect.setAttributeNS(null, "x", x - 12);
+        rect.setAttributeNS(null, "y", y - 8);
+        rect.setAttributeNS(null, "width", 24);
+        rect.setAttributeNS(null, "height", 14);
+        rect.setAttributeNS(null, "fill", bgColor);
+        svgView.insertBefore(rect, text);
+
+        rect.addEventListener('click', onClick);
+    }
+};
+
+
+SVG.drawSvgNode = (svgView, nodeId, x, y, r, color, onClick) => {
+    var circle = document.createElementNS(SVG.NS, 'circle');
+    circle.setAttributeNS(null, 'id', 'node_' + nodeId);
+    circle.setAttributeNS(null, 'cx', x);
+    circle.setAttributeNS(null, 'cy', y);
+    circle.setAttributeNS(null, 'r', r);
+    //circle.setAttributeNS(null, 'style', 'fill: ' + color + '; stroke: black; stroke-width: 1px;');
+    circle.setAttributeNS(null, 'fill', color);
+    circle.setAttributeNS(null, 'stroke', 'black');
+    circle.setAttributeNS(null, 'stroke-width', '1');
+    svgView.appendChild(circle);
+
+    circle.addEventListener('click', onClick);
+};
+
+
+SVG.drawSvgEdge = (svgView, eid, bX, bY, eX, eY, color, wth, onClick) => {
+    var newLine = document.createElementNS(SVG.NS, 'line');
+    newLine.setAttributeNS(null, 'id', 'edge_' + eid);
+    newLine.setAttributeNS(null, 'x1', bX);
+    newLine.setAttributeNS(null, 'y1', bY);
+    newLine.setAttributeNS(null, 'x2', eX);
+    newLine.setAttributeNS(null, 'y2', eY);
+    //newLine.setAttributeNS(null, 'style', 'stroke: ' + color + '; stroke-width: ' + wth + 'px;');
+    newLine.setAttributeNS(null, 'stroke', color);
+    newLine.setAttributeNS(null, 'stroke-width', wth);
+    svgView.appendChild(newLine);
+
+    newLine.addEventListener('click', onClick);
+};
+
+
+
 /* global sgv, UI, Edge, qD, QbDescr */
 
 sgv.dlgCellView = new function () {
@@ -4208,11 +4283,7 @@ sgv.dlgCellView = new function () {
         div.style['margin'] = '0';
         div.style['padding'] = '0';
 
-        svgView = document.createElementNS(svgns, "svg");
-        svgView.setAttributeNS(null, "id", 'svgView');
-        svgView.setAttributeNS(null, "height", _height);
-        svgView.setAttributeNS(null, "width", _width);
-        svgView.addEventListener('click', (event) => {
+        svgView = SVG.createSVG('svgView', _width, _height, (event) => {
             if (event.target.id === 'svgView') {
                 sgv.dlgNodeProperties.hide();
                 sgv.dlgEdgeProperties.hide();
@@ -4255,7 +4326,7 @@ sgv.dlgCellView = new function () {
         ui.style['left'] = '10vh';
         return ui;
     }
-    ;
+    
 
     function onClick(e) {
         var element = e.target;
@@ -4306,7 +4377,7 @@ sgv.dlgCellView = new function () {
         let q = QbDescr.fromNodeId(id, sgv.graf.rows, sgv.graf.cols);
         drawModule(q.x, q.y, q.z);
     }
-    ;
+    
 
     function onNodeClick(event) {
         event.preventDefault();
@@ -4317,7 +4388,7 @@ sgv.dlgCellView = new function () {
         else
             sgv.dlgNodeProperties.show(event.target.id, rect.x, rect.y);
     }
-    ;
+    
 
     function onEdgeClick(event) {
         event.preventDefault();
@@ -4328,57 +4399,7 @@ sgv.dlgCellView = new function () {
         else
             sgv.dlgEdgeProperties.show(event.target.id, rect.x, rect.y);
     }
-    ;
-
-    function drawSvgText(id, x, y, txt, txtColor, bgColor, onClick) {
-
-        var text = document.createElementNS(svgns, 'text');
-        text.setAttributeNS(null, 'id', 'text_' + id);
-        text.setAttributeNS(null, 'x', x);
-        text.setAttributeNS(null, 'y', y);
-        text.setAttributeNS(null, 'text-anchor', 'middle');
-        text.setAttributeNS(null, 'alignment-baseline', 'middle');
-        //text.setAttributeNS(null, 'stroke', txtColor);
-        //text.setAttributeNS(null, 'stroke-width', '0');
-        text.setAttributeNS(null, 'font-size', '12px');
-        text.setAttributeNS(null, 'font-family', 'Arial, Helvetica, sans-serif');
-        text.setAttributeNS(null, 'fill', txtColor);
-        //text.setAttributeNS(null, 'fill-opacity', '1');
-        text.textContent = txt;
-        svgView.appendChild(text);
-
-        text.addEventListener('click', onClick);
-
-        if (bgColor !== '') {
-            var rect = document.createElementNS(svgns, 'rect');
-            rect.setAttributeNS(null, 'id', 'textBG_' + id);
-            rect.setAttributeNS(null, "x", x - 12);
-            rect.setAttributeNS(null, "y", y - 8);
-            rect.setAttributeNS(null, "width", 24);
-            rect.setAttributeNS(null, "height", 14);
-            rect.setAttributeNS(null, "fill", bgColor);
-            svgView.insertBefore(rect, text);
-
-            rect.addEventListener('click', onClick);
-        }
-    }
-    ;
-
-    function drawSvgEdge(eid, bX, bY, eX, eY, color, wth, onClick) {
-        var newLine = document.createElementNS(svgns, 'line');
-        newLine.setAttributeNS(null, 'id', 'edge_' + eid);
-        newLine.setAttributeNS(null, 'x1', bX);
-        newLine.setAttributeNS(null, 'y1', bY);
-        newLine.setAttributeNS(null, 'x2', eX);
-        newLine.setAttributeNS(null, 'y2', eY);
-        //newLine.setAttributeNS(null, 'style', 'stroke: ' + color + '; stroke-width: ' + wth + 'px;');
-        newLine.setAttributeNS(null, 'stroke', color);
-        newLine.setAttributeNS(null, 'stroke-width', wth);
-        svgView.appendChild(newLine);
-
-        newLine.addEventListener('click', onClick);
-    }
-    ;
+    
 
     function drawExtEdge(offset, ijk, e, endX, endY) {
 
@@ -4392,8 +4413,8 @@ sgv.dlgCellView = new function () {
             let eVal = sgv.graf.nodeValue(e);
             let eColor = valueToColor(eVal);
 
-            drawSvgEdge(eid, pos(ijk).x, pos(ijk).y, endX, endY, color.toHexString(), wth, onEdgeClick);
-            drawSvgText(e, endX, endY, e, 'yellow', eColor.toHexString(), onExternalNodeClick);
+            SVG.drawSvgEdge(svgView, eid, pos(ijk).x, pos(ijk).y, endX, endY, color.toHexString(), wth, onEdgeClick);
+            SVG.drawSvgText(svgView, e, endX, endY, e, 'yellow', eColor.toHexString(), onExternalNodeClick);
         }
     }
 
@@ -4409,25 +4430,10 @@ sgv.dlgCellView = new function () {
             let color = valueToColor(val);
             let wth = 2 + 5 * valueToEdgeWidth(val);
 
-            drawSvgEdge(eid, pos(iB).x, pos(iB).y, pos(iE).x, pos(iE).y, color.toHexString(), wth, onEdgeClick);
+            SVG.drawSvgEdge(svgView, eid, pos(iB).x, pos(iB).y, pos(iE).x, pos(iE).y, color.toHexString(), wth, onEdgeClick);
         }
     }
 
-
-    function drawSvgNode(nodeId, x, y, r, color, onClick) {
-        var circle = document.createElementNS(svgns, 'circle');
-        circle.setAttributeNS(null, 'id', 'node_' + nodeId);
-        circle.setAttributeNS(null, 'cx', x);
-        circle.setAttributeNS(null, 'cy', y);
-        circle.setAttributeNS(null, 'r', r);
-        //circle.setAttributeNS(null, 'style', 'fill: ' + color + '; stroke: black; stroke-width: 1px;');
-        circle.setAttributeNS(null, 'fill', color);
-        circle.setAttributeNS(null, 'stroke', 'black');
-        circle.setAttributeNS(null, 'stroke-width', '1');
-        svgView.appendChild(circle);
-
-        circle.addEventListener('click', onClick);
-    }
 
     function drawNode(offset, id) {
         let nodeId = offset + id;
@@ -4435,8 +4441,8 @@ sgv.dlgCellView = new function () {
             let val = sgv.graf.nodeValue(nodeId);
             let color = valueToColor(val);
 
-            drawSvgNode(nodeId, pos(id).x, pos(id).y, 20, color.toHexString(), onNodeClick);
-            drawSvgText(nodeId, pos(id).x, pos(id).y, nodeId.toString(), 'yellow', '', onNodeClick);
+            SVG.drawSvgNode(svgView, nodeId, pos(id).x, pos(id).y, 20, color.toHexString(), onNodeClick);
+            SVG.drawSvgText(svgView, nodeId, pos(id).x, pos(id).y, nodeId.toString(), 'yellow', '', onNodeClick);
         }
     }
 
@@ -4568,7 +4574,7 @@ sgv.dlgCellView = new function () {
             drawNode(offset, i);
         }
     }
-    ;
+    
 
 
     function showDialogX() {
@@ -4604,7 +4610,7 @@ sgv.dlgCellView = new function () {
         prevFocused = window.document.activeElement;
         ui.focus({focusVisible: false});
     }
-    ;
+    
 
 
     function hideDialogX() {
@@ -4612,7 +4618,7 @@ sgv.dlgCellView = new function () {
             prevFocused.focus({focusVisible: false});
         ui.style.display = "none";
     }
-    ;
+    
 
     function switchDialogX() {
         if (ui.style.display === "none") {
@@ -4621,7 +4627,7 @@ sgv.dlgCellView = new function () {
             hideDialogX();
         }
     }
-    ;
+    
 
 
     return {
@@ -5071,6 +5077,7 @@ sgv.dlgEdgeProperties = new function() {
     return {
         show: showDialog,
         hide: hideDialog,
+        ui: ui,
         isVisible: () => {
             return (ui!==null)&&(ui.style.display === "block");
         }
@@ -5085,8 +5092,12 @@ sgv.dlgNodeProperties = new function() {
     var selectNodeId, selectScope, checkValueN, editWagaN;
     var btnSetN, btnConnectN, selectDestN, btnConnectSelectN;
     var checkLabelN, editLabelN;
-    var content, zeroInfo;
+    var content, zeroInfo, svgView;
     var prevFocused=null;
+    
+    const _width = 250;
+    const _height = 250;
+
     var ui = createUI();
 
     ui.addEventListener('keydown', onKeyDownX );
@@ -5118,6 +5129,25 @@ sgv.dlgNodeProperties = new function() {
         ui.appendChild(precontent);
 
 
+
+        let div = UI.tag('div');
+        div.style.width = 'fit-content';
+        div.style.height = 'fit-content';
+        div.style.background = '#fff';
+        div.style['border'] = '0';
+        div.style['margin'] = '0';
+        div.style['padding'] = '0';
+
+        svgView = SVG.createSVG('svgView', _width, _height, (event) => {
+            if (event.target.id === 'svgView') {
+                sgv.dlgEdgeProperties.hide();
+            }
+        });
+        div.appendChild(svgView);
+        ui.appendChild(div);
+
+
+
         content = UI.tag("div", {'class':'content'});
 
         var labelBlock = UI.tag("div");
@@ -5142,6 +5172,9 @@ sgv.dlgNodeProperties = new function() {
 
         selectScope = UI.tag('select',{'id':'nsSelectN'});
         selectScope.addEventListener('change', function () {
+            sgv.graf.displayValues(selectScope.value);
+            sgv.dlgCPL.selScope(selectScope.value);
+            sgv.dlgCPL.updateSliders();
             changeScopeN();
         });
         content.appendChild(UI.tag('label',{'for':'nsSelectN'},{'innerHTML':'Scope: '}));
@@ -5207,6 +5240,64 @@ sgv.dlgNodeProperties = new function() {
         return ui;
     }
 
+    function drawConnectedEdges(n1) {
+        let connected = sgv.graf.findAllConnected(n1);
+        
+        let set = new Set();
+        for (let j of connected.internal) set.add(j);
+        for (let j of connected.horizontal) set.add(j);
+        for (let j of connected.vertical) set.add(j);
+        for (let j of connected.up) set.add(j);
+        for (let j of connected.down) set.add(j);
+        
+        //let angle = 360.0/set.size;
+        let angle = (2.0*Math.PI)/set.size;
+        let currentAngle = angle;
+
+        set.forEach((n2)=>{
+            let x2 = 100.0*Math.sin(currentAngle);
+            let y2 = 100.0*Math.cos(currentAngle);
+
+            let eid = Edge.calcId(n1, n2);
+            if (eid in sgv.graf.edges) {
+                let val = sgv.graf.edgeValue(eid);
+                let color = valueToColor(val);
+                let wth = 2 + 5 * valueToEdgeWidth(val);
+
+                let eVal = sgv.graf.nodeValue(n2);
+                let eColor = valueToColor(eVal);
+
+                SVG.drawSvgEdge(svgView, eid, 125, 125, 125+x2, 125+y2, color.toHexString(), wth, (event)=>{
+                    let rect = event.target.getBoundingClientRect();
+                    sgv.dlgEdgeProperties.show(eid, rect.x, rect.y);
+                    sgv.dlgEdgeProperties.ui.style['z-index']=101;
+                });
+                SVG.drawSvgText(svgView, n2, 125+x2, 125+y2, n2, 'yellow', eColor.toHexString(), ()=>{
+                    showDialog(n2);
+                });
+            }
+            currentAngle += angle;
+        });
+    }
+
+    function drawNode(nodeId) {
+        if (typeof nodeId === 'undefined') {
+            nodeId = hidNodeId.value;
+        }
+ 
+        UI.selectByKey(selectScope, sgv.graf.currentScope);
+        
+        svgView.innerHTML = '';
+        if ((nodeId) in sgv.graf.nodes) {
+            let val = sgv.graf.nodeValue(nodeId);
+            let color = valueToColor(val);
+
+            drawConnectedEdges(nodeId);
+            
+            SVG.drawSvgNode(svgView, nodeId, 125, 125, 25, color.toHexString(), ()=>{});
+            SVG.drawSvgText(svgView, nodeId, 125, 125, nodeId.toString(), 'yellow', '', ()=>{});
+        }
+    }
 
     function showDialog(nodeId, x, y) {
         if (typeof nodeId !== 'undefined') {
@@ -5227,6 +5318,8 @@ sgv.dlgNodeProperties = new function() {
 
         hidNodeId.value = nodeId;
 
+        drawNode(nodeId);
+
         editLabelN.value = sgv.graf.nodes[nodeId].getLabel();
         if ( sgv.graf.nodes[nodeId].isLabelVisible() ) {
             checkLabelN.checked = "checked";
@@ -5238,11 +5331,12 @@ sgv.dlgNodeProperties = new function() {
 
         UI.clearSelect(selectScope, true);
         for (const key in sgv.graf.scopeOfValues) {
-            var opt = UI.tag('option',{'value':key},{'innerHTML':sgv.graf.scopeOfValues[key]});
-            if ( sgv.graf.currentScope === sgv.graf.scopeOfValues[key]) {
-                opt.selected = "selected";
-            }
-            selectScope.appendChild(opt);
+            selectScope.appendChild(UI.option(sgv.graf.scopeOfValues[key], sgv.graf.scopeOfValues[key]),( sgv.graf.currentScope === sgv.graf.scopeOfValues[key]));
+            //var opt = UI.tag('option',{'value':key},{'innerHTML':sgv.graf.scopeOfValues[key]});
+            //if ( sgv.graf.currentScope === sgv.graf.scopeOfValues[key]) {
+            //    opt.selected = "selected";
+            //}
+            //selectScope.appendChild(opt);
         }
 
 
@@ -5320,7 +5414,8 @@ sgv.dlgNodeProperties = new function() {
 
         let nodeId = ui.querySelector("#nodeId").value;
 
-        let currentValue = sgv.graf.nodeValue(nodeId,sgv.graf.scopeOfValues[event.target.value]);
+        //let currentValue = sgv.graf.nodeValue(nodeId,sgv.graf.scopeOfValues[event.target.value]);
+        let currentValue = sgv.graf.nodeValue(nodeId, event.target.value);
         if ((currentValue===null)||isNaN(currentValue)) {
             console.log('NULL');
             ui.querySelector("#valueCheckN").checked = "";
@@ -5384,6 +5479,7 @@ sgv.dlgNodeProperties = new function() {
     return {
         show: showDialog,
         hide: hideDialog,
+        refresh: drawNode,
         isVisible: () => {
             return (ui!==null)&&(ui.style.display === "block");
         }
