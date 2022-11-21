@@ -132,7 +132,7 @@ var Pegasus = /** @class */ (function (gSize) {
     };
 });
 
-Pegasus.prototype = Object.create(Pegasus.prototype);
+Pegasus.prototype = Object.create(Chimera.prototype);
 Pegasus.prototype.constructor = Pegasus;
 
 Graph.registerType('pegasus', Pegasus);

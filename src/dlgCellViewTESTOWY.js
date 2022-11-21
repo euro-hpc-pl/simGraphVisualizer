@@ -1,25 +1,24 @@
 /* global sgv, UI, Edge, qD, QbDescr */
 
-sgv.dlgCellView = new function () {
-    var selectGraphCols, selectGraphRows, selectGraphLays, selectScope;
+const DlgCellView = (function(){
+    GenericWindow.call(this, "sgvdlgCellView", "Cell view", {closeButton: true, setMovable: true});
+    
     var upButton, leftButton, rightButton, downButton;
     var svgView;
     var r, c, l;
-
-    var prevFocused = null;
 
     const _width = 600;
     const _height = 600;
     const ctrX = _width / 2;
     const ctrY = _height / 2;
 
-    var ui = createUI();
+    createUI(this.ui);
 
-    ui.addEventListener('keydown', onKeyDownX);
+    this.ui.addEventListener('keydown', onKeyDownX);
 
-    window.addEventListener('load', () => {
-        window.document.body.appendChild(ui);
-    });
+//    window.addEventListener('load', () => {
+//        window.document.body.appendChild(ui);
+//    });
 
     function onKeyDownX(event) {
         let key = event.key;
@@ -53,14 +52,14 @@ sgv.dlgCellView = new function () {
         }
     }
 
-    function createUI() {
+    function createUI(ui) {
         r = c = l = 0;
 
-        let ui = UI.createEmptyWindow("sgvUIwindow", "sgvdlgCellView", "Cell view", true);
+        //let ui = UI.createEmptyWindow("sgvUIwindow", "sgvdlgCellView", "Cell view", true);
 
-        ui.querySelector(".hidebutton").addEventListener('click', function () {
-            hideDialogX();
-        });
+//        ui.querySelector(".hidebutton").addEventListener('click', function () {
+//            hideDialogX();
+//        });
 
         let content = UI.tag("div", {"class": "content", "id": "graphSelection"});
 
@@ -69,48 +68,48 @@ sgv.dlgCellView = new function () {
 
         g.style['text-align'] = 'center';
 
-        selectGraphCols = UI.tag('select', {'id': 'graphCols'});
-        selectGraphCols.addEventListener('change', () => {
+        this.selectGraphCols = UI.tag('select', {'id': 'graphCols'});
+        this.selectGraphCols.addEventListener('change', () => {
             drawModule(
-                    parseInt(selectGraphCols.value, 10),
-                    parseInt(selectGraphRows.value, 10),
-                    parseInt(selectGraphLays.value, 10));
+                    parseInt(this.selectGraphCols.value, 10),
+                    parseInt(this.selectGraphRows.value, 10),
+                    parseInt(this.selectGraphLays.value, 10));
         });
 
         g.appendChild(UI.tag('label', {'for': 'graphCols'}, {'innerHTML': ' column: '}));
-        g.appendChild(selectGraphCols);
+        g.appendChild(this.selectGraphCols);
 
-        selectGraphRows = UI.tag('select', {'id': 'graphRows'});
-        selectGraphRows.addEventListener('change', () => {
+        this.selectGraphRows = UI.tag('select', {'id': 'graphRows'});
+        this.selectGraphRows.addEventListener('change', () => {
             drawModule(
-                    parseInt(selectGraphCols.value, 10),
-                    parseInt(selectGraphRows.value, 10),
-                    parseInt(selectGraphLays.value, 10));
+                    parseInt(this.selectGraphCols.value, 10),
+                    parseInt(this.selectGraphRows.value, 10),
+                    parseInt(this.selectGraphLays.value, 10));
         });
 
         g.appendChild(UI.tag('label', {'for': 'graphRows'}, {'innerHTML': ' row: '}));
-        g.appendChild(selectGraphRows);
+        g.appendChild(this.selectGraphRows);
 
-        selectGraphLays = UI.tag('select', {'id': 'graphLays'});
-        selectGraphLays.addEventListener('change', () => {
+        this.selectGraphLays = UI.tag('select', {'id': 'graphLays'});
+        this.selectGraphLays.addEventListener('change', () => {
             drawModule(
-                    parseInt(selectGraphCols.value, 10),
-                    parseInt(selectGraphRows.value, 10),
-                    parseInt(selectGraphLays.value, 10));
+                    parseInt(this.selectGraphCols.value, 10),
+                    parseInt(this.selectGraphRows.value, 10),
+                    parseInt(this.selectGraphLays.value, 10));
         });
 
         g.appendChild(UI.tag('label', {'for': 'graphLays'}, {'innerHTML': ' layer: '}));
-        g.appendChild(selectGraphLays);
+        g.appendChild(this.selectGraphLays);
 
-        selectScope = UI.tag("select", {'id': "selectScope"});
-        selectScope.addEventListener('change', () => {
-            sgv.graf.displayValues(selectScope.value);
-            sgv.dlgCPL.selScope(selectScope.value);
+        this.selectScope = UI.tag("select", {'id': "this.selectScope"});
+        this.selectScope.addEventListener('change', () => {
+            sgv.graf.displayValues(this.selectScope.value);
+            sgv.dlgCPL.selScope(this.selectScope.value);
             sgv.dlgCPL.updateSliders();
             drawModule();
         });
-        g.appendChild(UI.tag('label', {'for': 'selectScope'}, {'innerHTML': ' scope: '}));
-        g.appendChild(selectScope);
+        g.appendChild(UI.tag('label', {'for': 'this.selectScope'}, {'innerHTML': ' scope: '}));
+        g.appendChild(this.selectScope);
 
 
         content.appendChild(g);
@@ -222,7 +221,7 @@ sgv.dlgCellView = new function () {
         ui.style.display = "none";
         ui.style['top'] = '10vh';
         ui.style['left'] = '10vh';
-        return ui;
+        //return ui;
     }
     
 
@@ -356,7 +355,7 @@ sgv.dlgCellView = new function () {
         return offset;
     }
 
-    function drawModule(col, row, layer) {
+    this._drawModule = function(col, row, layer){
         svgView.innerHTML = '';
 
         if (sgv.graf === null)
@@ -393,10 +392,11 @@ sgv.dlgCellView = new function () {
 //        rightButton.disabled = lastCol?'disabled':'';
 //        downButton.disabled = firstRow?'disabled':'';
 
-        UI.selectByKey(selectGraphCols, col);
-        UI.selectByKey(selectGraphRows, row);
-        UI.selectByKey(selectGraphLays, layer);
-        UI.selectByKey(selectScope, sgv.graf.currentScope);
+        
+        UI.selectByKey(this.selectGraphCols, col);
+        UI.selectByKey(this.selectGraphRows, row);
+        UI.selectByKey(this.selectGraphLays, layer);
+        UI.selectByKey(this.selectScope, sgv.graf.currentScope);
 
         let offset = calcOffset(col, row, layer);
 
@@ -473,65 +473,72 @@ sgv.dlgCellView = new function () {
         }
     }
     
-
+    var drawModule = this._drawModule;
 
     function showDialogX() {
-        UI.clearSelect(selectGraphCols, true);
+        UI.clearSelect(this.selectGraphCols, true);
         for (let i = 0; i < sgv.graf.cols; i++)
-            selectGraphCols.appendChild(UI.option(i, i));
-        selectGraphCols.selectedIndex = c;
+            this.selectGraphCols.appendChild(UI.option(i, i));
+        this.selectGraphCols.selectedIndex = c;
 
-        UI.clearSelect(selectGraphRows, true);
+        UI.clearSelect(this.selectGraphRows, true);
         for (let i = 0; i < sgv.graf.rows; i++)
-            selectGraphRows.appendChild(UI.option(i, i));
-        selectGraphRows.selectedIndex = r;
+            this.selectGraphRows.appendChild(UI.option(i, i));
+        this.selectGraphRows.selectedIndex = r;
 
-        UI.clearSelect(selectGraphLays, true);
+        UI.clearSelect(this.selectGraphLays, true);
         for (let i = 0; i < sgv.graf.layers; i++)
-            selectGraphLays.appendChild(UI.option(i, i));
-        selectGraphLays.selectedIndex = l;
+            this.selectGraphLays.appendChild(UI.option(i, i));
+        this.selectGraphLays.selectedIndex = l;
 
         if (sgv.graf.layers === 1) {
-            selectGraphLays.disabled = 'disabled';
+            this.selectGraphLays.disabled = 'disabled';
         } else {
-            selectGraphLays.disabled = '';
+            this.selectGraphLays.disabled = '';
         }
 
-        UI.clearSelect(selectScope, true);
+        UI.clearSelect(this.selectScope, true);
         for (let s in sgv.graf.scopeOfValues)
-            selectScope.appendChild(UI.option(sgv.graf.scopeOfValues[s], sgv.graf.scopeOfValues[s]));
-        UI.selectByKey(selectScope, sgv.graf.currentScope);
+            this.selectScope.appendChild(UI.option(sgv.graf.scopeOfValues[s], sgv.graf.scopeOfValues[s]));
+        UI.selectByKey(this.selectScope, sgv.graf.currentScope);
 
         drawModule();
 
-        ui.style.display = "block";
-        prevFocused = window.document.activeElement;
-        ui.focus({focusVisible: false});
+        this._show();
+//        ui.style.display = "block";
+//        prevFocused = window.document.activeElement;
+//        ui.focus({focusVisible: false});
     }
     
 
 
-    function hideDialogX() {
-        if (prevFocused !== null)
-            prevFocused.focus({focusVisible: false});
-        ui.style.display = "none";
-    }
-    
-
-    function switchDialogX() {
-        if (ui.style.display === "none") {
-            showDialogX();
-        } else {
-            hideDialogX();
-        }
-    }
-    
+//    function hideDialogX() {
+//        if (prevFocused !== null)
+//            prevFocused.focus({focusVisible: false});
+//        ui.style.display = "none";
+//    }
+//    
+//
+//    function switchDialogX() {
+//        if (ui.style.display === "none") {
+//            showDialogX();
+//        } else {
+//            hideDialogX();
+//        }
+//    }
+//    
 
 
     return {
         refresh: drawModule,
-        switchDialog: switchDialogX,
+        switchDialog: this._switch,
         show: showDialogX,
-        hide: hideDialogX
+        hide: this._hide
     };
-};
+});
+
+var parentPrototype = Object.create(GenericWindow.prototype);
+parentPrototype.constructor = DlgCellView;
+DlgCellView.prototype = parentPrototype;
+
+sgv.dlgCellView = new DlgCellView();

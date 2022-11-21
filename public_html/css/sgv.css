@@ -54,12 +54,13 @@
 
 .sgvUIwindow .hidebutton {
     float: right;
-    background-color: rgba(0, 0, 0, 0.5);
-    color: #ddd;
+    background-color: #aaa;
+    color: #f00;
+    padding:1px;
     font-weight:normal;
     font-size: 10px;
-    border: 0;
-    border-radius: 10px;
+    border: 1px solid #ff0000;
+    border-radius: 5px;
 }
 
 .sgvUIwindow .delbutton {

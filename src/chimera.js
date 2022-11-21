@@ -234,7 +234,7 @@ const Chimera = /** @class */ (function (gSize) {
 
 });
 
-Chimera.prototype = Object.create(Chimera.prototype);
+Chimera.prototype = Object.create(Graph.prototype);
 Chimera.prototype.constructor = Chimera;
 
 Graph.registerType('chimera', Chimera);

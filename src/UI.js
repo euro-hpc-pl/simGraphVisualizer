@@ -1,30 +1,8 @@
 
 /* global sgv */
 
-var UI = (function () {
-    
-//    this.graphCreateBtn = UI.createTransparentBtn('CREATE','sgvGraphCreateBtn',()=>{
-//        sgv.dlgCreateGraph.show();
-//    });
-//
-//    this.graphCreateBtn = UI.createTransparentBtn('LOAD','sgvGraphLoadBtn',()=>{
-//        sgv.dlgCreateGraph.showLoad();
-//    });
-    
-//    this.panelSwitch = UI.createPanelSwitch();
-//    this.panelSwitch.addEventListener('click', function () {
-//        sgv.dlgCPL.switchPanel();
-//    });
+var UI = (function () {});
 
-//    this.consoleSwitch = UI.createConsoleSwitch();
-//    this.consoleSwitch.addEventListener('click', function () {
-//        sgv.dlgConsole.switchConsole();
-//    });
-//    this.dispModeSwitch = UI.createDispModeSwitch();
-//    this.dispModeSwitch.addEventListener('click', function () {
-//        Graph.switchDisplayMode();
-//    });
-});
 
 UI.tag = function(_tag, _attrs, _props ) {
     var o = document.createElement(_tag);
@@ -113,7 +91,7 @@ UI.createTitlebar = function (title, closebuttonVisible) {
         t.appendChild(
                 UI.tag( "input", {
                         "type": "button",
-                        "value": "x",
+                        "value": '\u274C',
                         "class": "hidebutton" } ) );
     }
 
@@ -179,38 +157,7 @@ UI.createEmptyWindow = function (_class, _id, _title, _closebuttonVisible ) {//,
 };
 
 
-UI.createGraphs = function (id) {
-    var o = UI.createEmptyWindow("sgvUIwindow", id, "graphs", false);
 
-    o.innerHTML += '<div class="content"></div>';
-
-    document.body.appendChild(o);
-    return o;
-};
-
-
-//UI.createPanelSwitch = function () {
-//    let btn = UI.newInput("button", "CPL", "sgvTransparentButton", "sgvPanelSwitch");
-//    document.body.appendChild(btn);
-//    return btn;
-//};
-//
-//UI.createConsoleSwitch = function () {
-//    let btn = UI.newInput("button", "CON", "sgvTransparentButton", "sgvConsoleSwitch");
-//    document.body.appendChild(btn);
-//    return btn;
-//};
-//
-//UI.createDispModeSwitch = function () {
-//    let btn = UI.tag( "input", {
-//                'type':     "button",
-//                'value':    "DIS",
-//                'class':    "sgvTransparentButton",
-//                'id':       "sgvDispModeSwitch"
-//            });
-//    document.body.appendChild(btn);
-//    return btn;
-//};
 
 UI.createTransparentBtn = function (txt, id, onclick) {
     let btn = UI.tag( "input", {

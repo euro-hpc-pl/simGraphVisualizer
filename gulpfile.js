@@ -13,6 +13,7 @@ var concat = require('gulp-concat');
 var del = require('del');
 
 var srcfiles = [
+    "./src/SVG.js",
     "./src/Dispatcher.js",
     "./src/SPS.js",
     "./src/GraphDescr.js",
@@ -26,13 +27,13 @@ var srcfiles = [
     "./src/chimera.js",
     "./src/pegasus.js",
     "./src/UI.js",
+    "./src/GenericWindow.js",
     "./src/SimGraphVisualizer.js",
     "./src/parserTXT.js",
     "./src/parserGEXF.js",
     "./src/FileIO.js",
     "./src/dlgCPL.js",
     "./src/dlgConsole.js",
-    "./src/SVG.js",
     "./src/dlgCellView.js",
     "./src/dlgCreateGraph.js",
     "./src/dlgEdgeProperties.js",

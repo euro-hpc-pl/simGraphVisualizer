@@ -50,12 +50,16 @@ SVG.drawSvgText = (svgView, id, x, y, txt, txtColor, bgColor, onClick) => {
     text.addEventListener('click', onClick);
 
     if (bgColor !== '') {
+        //let bbox = text.getBBox();
+        //let bbox = text.getComputedTextLength();
+        let w = 24; //bbox.width + 4;
+        let h = 12; //bbox.height + 4;
         var rect = document.createElementNS(SVG.NS, 'rect');
         rect.setAttributeNS(null, 'id', 'textBG_' + id);
-        rect.setAttributeNS(null, "x", x - 12);
-        rect.setAttributeNS(null, "y", y - 8);
-        rect.setAttributeNS(null, "width", 24);
-        rect.setAttributeNS(null, "height", 14);
+        rect.setAttributeNS(null, "x", x - w/2);
+        rect.setAttributeNS(null, "y", y - (1 + h/2));
+        rect.setAttributeNS(null, "width", w);
+        rect.setAttributeNS(null, "height", h);
         rect.setAttributeNS(null, "fill", bgColor);
         svgView.insertBefore(rect, text);
 

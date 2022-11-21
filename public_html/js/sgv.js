@@ -1,3 +1,106 @@
+/* 
+ * Copyright 2022 darek.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+const SVG = {};
+
+SVG.NS = "http://www.w3.org/2000/svg";
+
+SVG.createSVG = (_id, _width, _height, _onClick ) => {
+    let svgView = document.createElementNS(SVG.NS, "svg");
+    svgView.setAttributeNS(null, "id", _id);
+    svgView.setAttributeNS(null, "height", _height);
+    svgView.setAttributeNS(null, "width", _width);
+
+    if (typeof _onClick === 'function') {
+        svgView.addEventListener('click', _onClick);
+    }
+
+    return svgView;
+};
+
+SVG.drawSvgText = (svgView, id, x, y, txt, txtColor, bgColor, onClick) => {
+    var text = document.createElementNS(SVG.NS, 'text');
+    text.setAttributeNS(null, 'id', 'text_' + id);
+    text.setAttributeNS(null, 'x', x);
+    text.setAttributeNS(null, 'y', y);
+    text.setAttributeNS(null, 'text-anchor', 'middle');
+    text.setAttributeNS(null, 'alignment-baseline', 'middle');
+    //text.setAttributeNS(null, 'stroke', txtColor);
+    //text.setAttributeNS(null, 'stroke-width', '0');
+    text.setAttributeNS(null, 'font-size', '12px');
+    text.setAttributeNS(null, 'font-family', 'Arial, Helvetica, sans-serif');
+    text.setAttributeNS(null, 'fill', txtColor);
+    //text.setAttributeNS(null, 'fill-opacity', '1');
+    text.textContent = txt;
+    svgView.appendChild(text);
+
+    text.addEventListener('click', onClick);
+
+    if (bgColor !== '') {
+        //let bbox = text.getBBox();
+        //let bbox = text.getComputedTextLength();
+        let w = 24; //bbox.width + 4;
+        let h = 12; //bbox.height + 4;
+        var rect = document.createElementNS(SVG.NS, 'rect');
+        rect.setAttributeNS(null, 'id', 'textBG_' + id);
+        rect.setAttributeNS(null, "x", x - w/2);
+        rect.setAttributeNS(null, "y", y - (1 + h/2));
+        rect.setAttributeNS(null, "width", w);
+        rect.setAttributeNS(null, "height", h);
+        rect.setAttributeNS(null, "fill", bgColor);
+        svgView.insertBefore(rect, text);
+
+        rect.addEventListener('click', onClick);
+    }
+};
+
+
+SVG.drawSvgNode = (svgView, nodeId, x, y, r, color, onClick) => {
+    var circle = document.createElementNS(SVG.NS, 'circle');
+    circle.setAttributeNS(null, 'id', 'node_' + nodeId);
+    circle.setAttributeNS(null, 'cx', x);
+    circle.setAttributeNS(null, 'cy', y);
+    circle.setAttributeNS(null, 'r', r);
+    //circle.setAttributeNS(null, 'style', 'fill: ' + color + '; stroke: black; stroke-width: 1px;');
+    circle.setAttributeNS(null, 'fill', color);
+    circle.setAttributeNS(null, 'stroke', 'black');
+    circle.setAttributeNS(null, 'stroke-width', '1');
+    svgView.appendChild(circle);
+
+    circle.addEventListener('click', onClick);
+};
+
+
+SVG.drawSvgEdge = (svgView, eid, bX, bY, eX, eY, color, wth, onClick) => {
+    var newLine = document.createElementNS(SVG.NS, 'line');
+    newLine.setAttributeNS(null, 'id', 'edge_' + eid);
+    newLine.setAttributeNS(null, 'x1', bX);
+    newLine.setAttributeNS(null, 'y1', bY);
+    newLine.setAttributeNS(null, 'x2', eX);
+    newLine.setAttributeNS(null, 'y2', eY);
+    //newLine.setAttributeNS(null, 'style', 'stroke: ' + color + '; stroke-width: ' + wth + 'px;');
+    newLine.setAttributeNS(null, 'stroke', color);
+    newLine.setAttributeNS(null, 'stroke-width', wth);
+    svgView.appendChild(newLine);
+
+    newLine.addEventListener('click', onClick);
+};
+
+
+
 /* global sgv */
 
 var Dispatcher = {};
@@ -1840,7 +1943,7 @@ const Chimera = /** @class */ (function (gSize) {
 
 });
 
-Chimera.prototype = Object.create(Chimera.prototype);
+Chimera.prototype = Object.create(Graph.prototype);
 Chimera.prototype.constructor = Chimera;
 
 Graph.registerType('chimera', Chimera);
@@ -1979,7 +2082,7 @@ var Pegasus = /** @class */ (function (gSize) {
     };
 });
 
-Pegasus.prototype = Object.create(Pegasus.prototype);
+Pegasus.prototype = Object.create(Chimera.prototype);
 Pegasus.prototype.constructor = Pegasus;
 
 Graph.registerType('pegasus', Pegasus);
@@ -1987,30 +2090,8 @@ Graph.registerType('pegasus', Pegasus);
 
 /* global sgv */
 
-var UI = (function () {
-    
-//    this.graphCreateBtn = UI.createTransparentBtn('CREATE','sgvGraphCreateBtn',()=>{
-//        sgv.dlgCreateGraph.show();
-//    });
-//
-//    this.graphCreateBtn = UI.createTransparentBtn('LOAD','sgvGraphLoadBtn',()=>{
-//        sgv.dlgCreateGraph.showLoad();
-//    });
-    
-//    this.panelSwitch = UI.createPanelSwitch();
-//    this.panelSwitch.addEventListener('click', function () {
-//        sgv.dlgCPL.switchPanel();
-//    });
+var UI = (function () {});
 
-//    this.consoleSwitch = UI.createConsoleSwitch();
-//    this.consoleSwitch.addEventListener('click', function () {
-//        sgv.dlgConsole.switchConsole();
-//    });
-//    this.dispModeSwitch = UI.createDispModeSwitch();
-//    this.dispModeSwitch.addEventListener('click', function () {
-//        Graph.switchDisplayMode();
-//    });
-});
 
 UI.tag = function(_tag, _attrs, _props ) {
     var o = document.createElement(_tag);
@@ -2099,7 +2180,7 @@ UI.createTitlebar = function (title, closebuttonVisible) {
         t.appendChild(
                 UI.tag( "input", {
                         "type": "button",
-                        "value": "x",
+                        "value": '\u274C',
                         "class": "hidebutton" } ) );
     }
 
@@ -2165,38 +2246,7 @@ UI.createEmptyWindow = function (_class, _id, _title, _closebuttonVisible ) {//,
 };
 
 
-UI.createGraphs = function (id) {
-    var o = UI.createEmptyWindow("sgvUIwindow", id, "graphs", false);
 
-    o.innerHTML += '<div class="content"></div>';
-
-    document.body.appendChild(o);
-    return o;
-};
-
-
-//UI.createPanelSwitch = function () {
-//    let btn = UI.newInput("button", "CPL", "sgvTransparentButton", "sgvPanelSwitch");
-//    document.body.appendChild(btn);
-//    return btn;
-//};
-//
-//UI.createConsoleSwitch = function () {
-//    let btn = UI.newInput("button", "CON", "sgvTransparentButton", "sgvConsoleSwitch");
-//    document.body.appendChild(btn);
-//    return btn;
-//};
-//
-//UI.createDispModeSwitch = function () {
-//    let btn = UI.tag( "input", {
-//                'type':     "button",
-//                'value':    "DIS",
-//                'class':    "sgvTransparentButton",
-//                'id':       "sgvDispModeSwitch"
-//            });
-//    document.body.appendChild(btn);
-//    return btn;
-//};
 
 UI.createTransparentBtn = function (txt, id, onclick) {
     let btn = UI.tag( "input", {
@@ -2234,6 +2284,142 @@ UI.createTransparentBtn1 = function (txt, id, onclick) {
 
     return btn;
 };
+
+/* 
+ * Copyright 2022 pojdulos.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+/* global UI */
+
+const GenericWindow = /** @class */ (function (_id, _title, args) {
+    var prevFocused = null;
+
+    this.ui = UI.tag("div", {'class': 'sgvUIwindow'});
+    var movable = false;
+    
+    if ((typeof _id !== 'undefined') && (_id !== "")) {
+        this.ui.setAttribute("id", _id);
+    }
+
+    let titleBar = UI.tag( "div", { "class": "title" });
+    titleBar.appendChild( UI.tag( "span", { "class": "titleText" }, {"textContent": _title}) );
+    
+    if (('closeButton' in args)&&(args['closeButton']===true)) {
+        let closeButton = UI.tag( "input", {'type':'button', 'class':'hidebutton', 'value': '\u274C'});
+        closeButton.addEventListener('click', ()=>this._hide());
+        titleBar.appendChild(closeButton);
+    }
+    this.ui.appendChild(titleBar);
+
+    if (('setMovable' in args)&&(args['setMovable']===true)) {
+        setMovable(this.ui);
+    }
+    this.ui.setAttribute('tabindex', '0');
+
+    window.addEventListener('load', () => window.document.body.appendChild(this.ui));
+    
+    function setMovable(ui) {
+        ui.offset = {x:0,y:0};
+        ui.isDown = false;
+
+        titleBar.addEventListener('mouseover', function() {
+            titleBar.style.cursor='pointer';
+            movable = true;
+        });
+
+        titleBar.addEventListener('mouseout', function() {
+            movable = false;
+        });
+
+        titleBar.addEventListener('mousedown', function (e) {
+            ui.isDown = movable;
+            ui.offset = {
+                x: ui.offsetLeft - e.clientX,
+                y: ui.offsetTop - e.clientY
+            };
+        }, true);
+
+        titleBar.addEventListener('mouseup', function () {
+            ui.isDown = false;
+        }, true);
+
+        document.addEventListener('mousemove', function (event) {
+            //event.preventDefault();
+            if (ui.isDown) {
+                let mousePosition = {
+                    x: event.clientX,
+                    y: event.clientY
+                };
+
+                ui.style.left = (mousePosition.x + ui.offset.x) + 'px';
+                ui.style.top = (mousePosition.y + ui.offset.y) + 'px';
+            }
+        }, true);
+    }
+    
+    this._show = ()=>{
+        prevFocused = window.document.activeElement;
+        this.ui.style.display = "block";
+        this.ui.focus({focusVisible: false});
+    };
+    
+    this._hide = ()=>{
+        this.ui.style.display = "none";
+        if (prevFocused !== null) prevFocused.focus({focusVisible: false});
+    };
+    
+    this._switch = ()=>{
+        if (this.ui.style.display === "none") {
+            this._show();
+        } else {
+            this._hide();
+        }
+    };
+    
+    this._test = function() { console.log('test 1a'); };
+    
+});
+
+GenericWindow.prototype.show = ()=>this._show();
+GenericWindow.prototype.hide = ()=>this._hide();
+GenericWindow.prototype.switch = ()=>this._switch();
+GenericWindow.prototype.test = ()=> { console.log('test 1'); };
+    
+
+//const Test = (function(){
+//    GenericWindow.call(this, 'test_id', 'Generic window test', {closeButton: true, setMovable: true});
+//    
+//    this.test = () => {
+//        console.log('test 0');
+//        GenericWindow.prototype.test();
+//        this._test();
+//        console.log('test 2');
+//    };
+//    
+//    this.ui.appendChild(SVG.createSVG('svgView',300,150,()=>{}));
+//});
+//
+//var parentPrototype = Object.create(GenericWindow.prototype);
+//parentPrototype.constructor = Test;
+//Test.prototype = parentPrototype;
+//
+//var test = new Test();
+//
+//test.test();
+//test._test();
 
 
 /* 
@@ -3171,7 +3357,8 @@ sgv.dlgCPL = new function () {
                 let divNS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivNS"}, {'textContent': "add new scope: "});
                 let divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': "current scope: "});
                 
-                let btnSkipAddScope = UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplSkipAddScope", 'value': "<"});
+                let btnSkipAddScope = UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplSkipAddScope", 'value': '\u2717'});
+                btnSkipAddScope.style.color="#f00";
                 btnSkipAddScope.addEventListener('click',
                         function () {
                             divNS.style.display = "none";
@@ -3182,7 +3369,8 @@ sgv.dlgCPL = new function () {
                 let editAddScope = UI.tag("input", {'type': "text", 'id': "cplAddScopeInput", 'value': "newScope"});
                 divNS.appendChild(editAddScope);
                 
-                let btnAcceptAddScope = UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAcceptAddScope", 'value': "+"});
+                let btnAcceptAddScope = UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAcceptAddScope", 'value': '\u2713'});
+                btnAcceptAddScope.style.color="#0f0";
                 btnAcceptAddScope.addEventListener('click',
                         function () {
                             let scope = editAddScope.value;
@@ -3999,105 +4187,6 @@ sgv.dlgConsole = new function () {
     };
 };
 
-/* 
- * Copyright 2022 darek.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-const SVG = {};
-
-SVG.NS = "http://www.w3.org/2000/svg";
-
-SVG.createSVG = (_id, _width, _height, _onClick ) => {
-    let svgView = document.createElementNS(SVG.NS, "svg");
-    svgView.setAttributeNS(null, "id", _id);
-    svgView.setAttributeNS(null, "height", _height);
-    svgView.setAttributeNS(null, "width", _width);
-
-    if (typeof _onClick === 'function') {
-        svgView.addEventListener('click', _onClick);
-    }
-
-    return svgView;
-};
-
-SVG.drawSvgText = (svgView, id, x, y, txt, txtColor, bgColor, onClick) => {
-    var text = document.createElementNS(SVG.NS, 'text');
-    text.setAttributeNS(null, 'id', 'text_' + id);
-    text.setAttributeNS(null, 'x', x);
-    text.setAttributeNS(null, 'y', y);
-    text.setAttributeNS(null, 'text-anchor', 'middle');
-    text.setAttributeNS(null, 'alignment-baseline', 'middle');
-    //text.setAttributeNS(null, 'stroke', txtColor);
-    //text.setAttributeNS(null, 'stroke-width', '0');
-    text.setAttributeNS(null, 'font-size', '12px');
-    text.setAttributeNS(null, 'font-family', 'Arial, Helvetica, sans-serif');
-    text.setAttributeNS(null, 'fill', txtColor);
-    //text.setAttributeNS(null, 'fill-opacity', '1');
-    text.textContent = txt;
-    svgView.appendChild(text);
-
-    text.addEventListener('click', onClick);
-
-    if (bgColor !== '') {
-        var rect = document.createElementNS(SVG.NS, 'rect');
-        rect.setAttributeNS(null, 'id', 'textBG_' + id);
-        rect.setAttributeNS(null, "x", x - 12);
-        rect.setAttributeNS(null, "y", y - 8);
-        rect.setAttributeNS(null, "width", 24);
-        rect.setAttributeNS(null, "height", 14);
-        rect.setAttributeNS(null, "fill", bgColor);
-        svgView.insertBefore(rect, text);
-
-        rect.addEventListener('click', onClick);
-    }
-};
-
-
-SVG.drawSvgNode = (svgView, nodeId, x, y, r, color, onClick) => {
-    var circle = document.createElementNS(SVG.NS, 'circle');
-    circle.setAttributeNS(null, 'id', 'node_' + nodeId);
-    circle.setAttributeNS(null, 'cx', x);
-    circle.setAttributeNS(null, 'cy', y);
-    circle.setAttributeNS(null, 'r', r);
-    //circle.setAttributeNS(null, 'style', 'fill: ' + color + '; stroke: black; stroke-width: 1px;');
-    circle.setAttributeNS(null, 'fill', color);
-    circle.setAttributeNS(null, 'stroke', 'black');
-    circle.setAttributeNS(null, 'stroke-width', '1');
-    svgView.appendChild(circle);
-
-    circle.addEventListener('click', onClick);
-};
-
-
-SVG.drawSvgEdge = (svgView, eid, bX, bY, eX, eY, color, wth, onClick) => {
-    var newLine = document.createElementNS(SVG.NS, 'line');
-    newLine.setAttributeNS(null, 'id', 'edge_' + eid);
-    newLine.setAttributeNS(null, 'x1', bX);
-    newLine.setAttributeNS(null, 'y1', bY);
-    newLine.setAttributeNS(null, 'x2', eX);
-    newLine.setAttributeNS(null, 'y2', eY);
-    //newLine.setAttributeNS(null, 'style', 'stroke: ' + color + '; stroke-width: ' + wth + 'px;');
-    newLine.setAttributeNS(null, 'stroke', color);
-    newLine.setAttributeNS(null, 'stroke-width', wth);
-    svgView.appendChild(newLine);
-
-    newLine.addEventListener('click', onClick);
-};
-
-
-
 /* global sgv, UI, Edge, qD, QbDescr */
 
 sgv.dlgCellView = new function () {
@@ -4112,8 +4201,6 @@ sgv.dlgCellView = new function () {
     const _height = 600;
     const ctrX = _width / 2;
     const ctrY = _height / 2;
-
-    const svgns = "http://www.w3.org/2000/svg";
 
     var ui = createUI();
 

@@ -119,7 +119,8 @@ sgv.dlgCPL = new function () {
                 let divNS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivNS"}, {'textContent': "add new scope: "});
                 let divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': "current scope: "});
                 
-                let btnSkipAddScope = UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplSkipAddScope", 'value': "<"});
+                let btnSkipAddScope = UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplSkipAddScope", 'value': '\u2717'});
+                btnSkipAddScope.style.color="#f00";
                 btnSkipAddScope.addEventListener('click',
                         function () {
                             divNS.style.display = "none";
@@ -130,7 +131,8 @@ sgv.dlgCPL = new function () {
                 let editAddScope = UI.tag("input", {'type': "text", 'id': "cplAddScopeInput", 'value': "newScope"});
                 divNS.appendChild(editAddScope);
                 
-                let btnAcceptAddScope = UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAcceptAddScope", 'value': "+"});
+                let btnAcceptAddScope = UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAcceptAddScope", 'value': '\u2713'});
+                btnAcceptAddScope.style.color="#0f0";
                 btnAcceptAddScope.addEventListener('click',
                         function () {
                             let scope = editAddScope.value;
