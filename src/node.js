@@ -175,3 +175,9 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
     }
 
 });
+
+Node.create = (graf, x, y, z, i, j, k)=>{
+    let q = qD(x,y,z,i,j,k);
+    let pos = graf.calcPosition2(x, y, z, q.n0());
+    return new Node(graf, q.toNodeId(graf.rows, graf.cols), pos.x, pos.y, pos.z );
+};

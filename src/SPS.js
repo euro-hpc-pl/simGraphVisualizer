@@ -34,12 +34,19 @@ var SPS = (function(scene) {
         refreshX();
     };
 
-    function refreshX() {
+    function refreshNodesX() {
         NodeSPS.setParticles();
         NodeSPS.refreshVisibleSize();
+    };
 
+    function refreshEdgesX() {
         EdgeSPS.setParticles();
         EdgeSPS.refreshVisibleSize();
+    };
+
+    function refreshX() {
+        refreshNodesX();
+        refreshEdgesX();
     };
     
     function _uniqueNodeId() {
@@ -206,6 +213,8 @@ var SPS = (function(scene) {
         reset: resetX,
         onPick: onPickX,
         refresh: refreshX,
+        refreshNodes: refreshNodesX,
+        refreshEdges: refreshEdgesX,
         bindNode: bindNodeX,
         updateNodeValue: updateNodeValueX,
         unbindNode: unbindNodeX,

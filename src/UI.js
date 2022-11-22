@@ -4,7 +4,7 @@
 var UI = (function () {});
 
 
-UI.tag = function(_tag, _attrs, _props ) {
+UI.tag = function(_tag, _attrs, _props, _evnts ) {
     var o = document.createElement(_tag);
 
     for (const key in _attrs) {
@@ -13,6 +13,12 @@ UI.tag = function(_tag, _attrs, _props ) {
     
     for (const key in _props) {
         o[key] = _props[key];
+    }
+
+    for (const key in _evnts) {
+        if ((typeof key==='string')&&(typeof _evnts[key]==='function')) {
+            o.addEventListener(key, _evnts[key]);
+        }
     }
     
     return o;

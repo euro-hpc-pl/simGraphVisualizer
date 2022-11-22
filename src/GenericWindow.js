@@ -106,30 +106,124 @@ const GenericWindow = /** @class */ (function (_id, _title, args) {
     
 });
 
-GenericWindow.prototype.show = ()=>this._show();
-GenericWindow.prototype.hide = ()=>this._hide();
-GenericWindow.prototype.switch = ()=>this._switch();
+GenericWindow.prototype.show = this._show;
+GenericWindow.prototype.hide = this._hide;
+GenericWindow.prototype.switch = this._switch;
 GenericWindow.prototype.test = ()=> { console.log('test 1'); };
     
+/****************************************************************************/
+/*                            TESTY                                         */
+/****************************************************************************/
 
-//const Test = (function(){
-//    GenericWindow.call(this, 'test_id', 'Generic window test', {closeButton: true, setMovable: true});
-//    
+
+function ExePanel() {
+    function PathLine(id) {
+        let content = UI.tag( "div" );
+        content.append(
+                UI.tag('input',{'type':'button','id':'btnDelPath'+id,'value':'\u2796'}),
+                UI.tag('input',{'type':'text','id':'dispBtn'+id,'value':'Button text'}),
+                UI.tag('input',{'type':'text','id':'editPath'+id,'value':'d:/any/path/to/prog.exe'}),
+                UI.tag('input',{'type':'button','id':'btnPath'+id,'value':'...'})
+        );
+        return content;
+    }
+
+    let paths = [];
+    paths.push(PathLine(1));
+    paths.push(PathLine(2));
+    paths.push(PathLine(3));
+
+    let content = UI.tag( "div", { "class": "content", "id": "graphSelection" });
+
+    paths.forEach((path)=>{
+        content.appendChild(path);
+    });
+    
+    content.appendChild(UI.tag('input',{'type':'button','id':'btnDelPath1','value':'\u2795'}));
+    
+    return {
+        ui: content
+    };
+}
+
+function KnownProgsPanel() {
+    function PathLine(id) {
+        let content = UI.tag( "div" );
+        let edit;
+        content.append(
+                UI.tag('input',{'type':'checkbox','id':'chkPath'+id,'checked':'checked'}),
+                UI.tag('label',{'for':'editPath'+id},{'innerHTML':' Path to prog.'+id+' '}),
+                edit = UI.tag('input',{'type':'text','id':'editPath'+id,'value':'d:/any/path/to/prog.exe'}),
+                UI.tag('input',{'type':'button','id':'btnPath'+id,'value':'...'},{},{
+                    'click': ()=>{
+                        let btnLoad1 = UI.tag('input',{'type':'file', 'id':'inputfile', 'display':'none'});
+
+                        btnLoad1.addEventListener('change', ()=>{
+                            if (typeof btnLoad1.files[0]!=='undefined') {
+                                edit.value = btnLoad1.files[0].name;
+                            }
+                        });
+
+                        btnLoad1.click();
+                    }
+                })
+        );
+        return content;
+    }
+
+    let paths = [];
+    paths.push(PathLine(1));
+    paths.push(PathLine(2));
+    paths.push(PathLine(3));
+
+    let content = UI.tag( "div", { "class": "content", "id": "graphSelection" });
+
+    paths.forEach((path)=>{
+        content.appendChild(path);
+    });
+    
+    //content.appendChild(UI.tag('input',{'type':'button','id':'btnDelPath1','value':'\u2795'}));
+    
+    return {
+        ui: content
+    };
+}
+
+const DlgPreferences = (function(){
+    GenericWindow.call(this, 'sgvPrefsDlg', 'Preferences', {closeButton: true, setMovable: true});
+    
+    var BtnsPanel = ()=>{
+        let btns = UI.tag('div',{'id':'buttons'});
+
+        btns.appendChild(UI.tag('input',{'type':'button', 'class':'actionbutton', 'id':'cplCancelButton', 'name':'cancelButton', 'value':'Cancel'},{},{
+            'click': this._hide
+        }));
+
+        let createButton = UI.tag('input',{'type':'button', 'class':'actionbutton', 'id':'cplCreateButton', 'name':'createButton', 'value':'OK'});
+        //createButton.addEventListener('click', ()=>{onCreateButton();});
+        btns.appendChild(createButton);
+
+        return {
+            ui: btns
+        };
+    };
+    
+    this.ui.appendChild(KnownProgsPanel().ui);
+    this.ui.appendChild(BtnsPanel().ui);
+
 //    this.test = () => {
 //        console.log('test 0');
 //        GenericWindow.prototype.test();
 //        this._test();
 //        console.log('test 2');
 //    };
-//    
-//    this.ui.appendChild(SVG.createSVG('svgView',300,150,()=>{}));
-//});
-//
-//var parentPrototype = Object.create(GenericWindow.prototype);
-//parentPrototype.constructor = Test;
-//Test.prototype = parentPrototype;
-//
-//var test = new Test();
+});
+
+var parentPrototype = Object.create(GenericWindow.prototype);
+parentPrototype.constructor = DlgPreferences;
+DlgPreferences.prototype = parentPrototype;
+
+//var test = new DlgPreferences();
 //
 //test.test();
 //test._test();

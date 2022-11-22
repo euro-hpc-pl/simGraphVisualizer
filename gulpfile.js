@@ -32,6 +32,8 @@ var srcfiles = [
     "./src/parserTXT.js",
     "./src/parserGEXF.js",
     "./src/FileIO.js",
+    "./src/ScopePanel.js",
+    "./src/SlidersPanel.js",
     "./src/dlgCPL.js",
     "./src/dlgConsole.js",
     "./src/dlgCellView.js",

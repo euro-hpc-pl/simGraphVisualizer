@@ -28,6 +28,7 @@ SVG.createSVG = (_id, _width, _height, _onClick ) => {
         svgView.addEventListener('click', _onClick);
     }
 
+    svgView.style.display = 'block';
     return svgView;
 };
 

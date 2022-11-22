@@ -170,6 +170,68 @@ button#cplClearButton {
     top:0px;
 }
 
+
+select#cplDispValues {
+    height: 24px;
+    width: 150px;
+    font-family: monospace;
+    font-weight: bold;
+    font-size: 18px;
+    background-color: #000;
+    color: #ddd;
+    text-align: center;
+    vertical-align: middle;
+}
+
+input#cplAddScopeInput {
+    height: 20px;
+    width: 150px;
+    font-family: monospace;
+    font-weight: bold;
+    font-size: 18px;
+    background-color: #000;
+    color: #ddd;
+    text-align: center;
+    vertical-align: middle;
+    padding: 0;
+}
+
+input.sgvC {
+    height: 24px;
+    width: 24px;
+    padding:0;
+    text-align: center;
+    vertical-align: middle;
+    border-top: #ddd solid 1px;
+    border-left: #ddd solid 1px;
+    border-bottom: #000 solid 1px;
+    border-right: #000 solid 1px;
+    background-color: rgba(0,0,0,0.5);
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+input.sgvC#cplAcceptAddScope, input.sgvC#cplAddScope {
+    background-image: url(pics/Add.png);
+}
+input.sgvC#cplSkipAddScope {
+    background-image: url(pics/Undo.ico);
+}
+input.sgvC#cplDelScope {
+    background-image: url(pics/Remove.ico);
+}
+input.sgvC#cplEditScope {
+    background-image: url(pics/Modify.ico);
+}
+
+input.sgvC:hover {
+    border-top: #000 solid 1px;
+    border-left: #000 solid 1px;
+    border-bottom: #ddd solid 1px;
+    border-right: #ddd solid 1px;
+    padding: 1px 0 0 1px;
+}
+
 #switch {
     /*background: rgba(0, 1.0, 0, 0.5);*/
     min-width: 564px;
