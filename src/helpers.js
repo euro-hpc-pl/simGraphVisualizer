@@ -108,30 +108,43 @@ function valueToEdgeWidth(val) {
 var detectedOS = 'unknown';
 
 function detectClient() {
-    let winH = window.innerHeight;
-    let winW = window.innerWidth;
-    
-    let winS = Math.min(winH, winW);
+//    let winH = window.innerHeight;
+//    let winW = window.innerWidth;
+//    
+//    let winS = Math.min(winH, winW);
     
     var ua = navigator.userAgent.toLowerCase();
     var isAndroid = ua.indexOf("android") > -1; //&& ua.indexOf("mobile");
-    var r = document.querySelector(':root');
+//    var r = document.querySelector(':root');
     if(isAndroid) {
         detectedOS = 'android';
-        r.style.setProperty('--ref_size', winS+'px');
-        r.style.setProperty('--btn_size', (winS/8)+'px'); //96px
-        r.style.setProperty('--btn_aspect_ratio', '0.75');
-        r.style.setProperty('--btn_font_size', (winS/32)+'px');
-        r.style.setProperty('--tool_btn_size', (winS/12)+'px');
+        
+        //<link href="css/style.css" rel="stylesheet">        
+//        r.style.setProperty('--ref_size', winS+'px');
+//        r.style.setProperty('--btn_size', (winS/6)+'px'); //96px
+//        r.style.setProperty('--btn_aspect_ratio', '0.6');
+//        r.style.setProperty('--btn_font_size', (winS/40)+'px');
+//        r.style.setProperty('--tool_btn_size', (winS/12)+'px');
     }
     else {
-        r.style.setProperty('--ref_size', '800px');
-        r.style.setProperty('--btn_size', '96px'); //96px
-        r.style.setProperty('--btn_aspect_ratio', '0.3');
-        r.style.setProperty('--btn_font_size', '12px');
-        r.style.setProperty('--tool_btn_size', '32px');
+//        r.style.setProperty('--ref_size', '800px');
+//        r.style.setProperty('--btn_size', '96px'); //96px
+//        r.style.setProperty('--btn_aspect_ratio', '0.4');
+//        r.style.setProperty('--btn_font_size', '12px');
+//        r.style.setProperty('--tool_btn_size', '32px');
         //r.style.setProperty('--tool_btn_size', (winS/9)+'px');
     }
 }
 
 detectClient();
+
+window.addEventListener('load', () => {
+    if (detectedOS === 'android') {
+        var linkElement = this.document.createElement('link');
+        linkElement.setAttribute('rel', 'stylesheet');
+        linkElement.setAttribute('type', 'text/css');
+        linkElement.setAttribute('href', "css/mobile.css");
+
+        document.head.appendChild(linkElement);
+    }
+});

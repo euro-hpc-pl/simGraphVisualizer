@@ -18,6 +18,7 @@ sgv.dlgNodeProperties = new function() {
     
     window.addEventListener('load',()=>{
         window.document.body.appendChild(ui);
+        showDialog(0);
     });
 
     function createUI() {
@@ -44,7 +45,7 @@ sgv.dlgNodeProperties = new function() {
 
 
 
-        let div = UI.tag('div');
+        let div = UI.tag('div', {'id':'svg'});
         div.style.width = 'fit-content';
         div.style.height = 'fit-content';
         div.style.background = '#fff';
@@ -62,7 +63,7 @@ sgv.dlgNodeProperties = new function() {
 
 
 
-        content = UI.tag("div", {'class':'content'});
+        content = UI.tag("div", {'id':'tools', 'class':'content'});
 
         var labelBlock = UI.tag("div");
         checkLabelN = UI.newInput("checkbox", "", "", "checkLabelN");
@@ -145,7 +146,7 @@ sgv.dlgNodeProperties = new function() {
 
         ui.appendChild(content);
 
-        zeroInfo = UI.tag("div", {'class':'content'});
+        zeroInfo = UI.tag("div", {'id':'zeroInfo', 'class':'content'});
         zeroInfo.innerHTML = "Select a node, please.";
         zeroInfo.style['min-width'] = '240px'; 
         zeroInfo.style['min-height'] = '105px'; 
@@ -282,11 +283,13 @@ sgv.dlgNodeProperties = new function() {
         
         UI.selectByKey( selectNodeId, nodeId );
 
-        if ((typeof x!=='undefined')&&(typeof y!=='undefined')) {
-            let xOffset = sgv.canvas.clientLeft;
+        if (detectedOS!=='android'){
+            if ((typeof x!=='undefined')&&(typeof y!=='undefined')) {
+                let xOffset = sgv.canvas.clientLeft;
 
-            ui.style.top = y + "px";
-            ui.style.left = (xOffset + x) + "px";
+                ui.style.top = y + "px";
+                ui.style.left = (xOffset + x) + "px";
+            }
         }
 
         ui.style.display = "block";

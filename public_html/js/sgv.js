@@ -108,33 +108,46 @@ function valueToEdgeWidth(val) {
 var detectedOS = 'unknown';
 
 function detectClient() {
-    let winH = window.innerHeight;
-    let winW = window.innerWidth;
-    
-    let winS = Math.min(winH, winW);
+//    let winH = window.innerHeight;
+//    let winW = window.innerWidth;
+//    
+//    let winS = Math.min(winH, winW);
     
     var ua = navigator.userAgent.toLowerCase();
     var isAndroid = ua.indexOf("android") > -1; //&& ua.indexOf("mobile");
-    var r = document.querySelector(':root');
+//    var r = document.querySelector(':root');
     if(isAndroid) {
         detectedOS = 'android';
-        r.style.setProperty('--ref_size', winS+'px');
-        r.style.setProperty('--btn_size', (winS/8)+'px'); //96px
-        r.style.setProperty('--btn_aspect_ratio', '0.75');
-        r.style.setProperty('--btn_font_size', (winS/32)+'px');
-        r.style.setProperty('--tool_btn_size', (winS/12)+'px');
+        
+        //<link href="css/style.css" rel="stylesheet">        
+//        r.style.setProperty('--ref_size', winS+'px');
+//        r.style.setProperty('--btn_size', (winS/6)+'px'); //96px
+//        r.style.setProperty('--btn_aspect_ratio', '0.6');
+//        r.style.setProperty('--btn_font_size', (winS/40)+'px');
+//        r.style.setProperty('--tool_btn_size', (winS/12)+'px');
     }
     else {
-        r.style.setProperty('--ref_size', '800px');
-        r.style.setProperty('--btn_size', '96px'); //96px
-        r.style.setProperty('--btn_aspect_ratio', '0.3');
-        r.style.setProperty('--btn_font_size', '12px');
-        r.style.setProperty('--tool_btn_size', '32px');
+//        r.style.setProperty('--ref_size', '800px');
+//        r.style.setProperty('--btn_size', '96px'); //96px
+//        r.style.setProperty('--btn_aspect_ratio', '0.4');
+//        r.style.setProperty('--btn_font_size', '12px');
+//        r.style.setProperty('--tool_btn_size', '32px');
         //r.style.setProperty('--tool_btn_size', (winS/9)+'px');
     }
 }
 
 detectClient();
+
+window.addEventListener('load', () => {
+    if (detectedOS === 'android') {
+        var linkElement = this.document.createElement('link');
+        linkElement.setAttribute('rel', 'stylesheet');
+        linkElement.setAttribute('type', 'text/css');
+        linkElement.setAttribute('href', "css/mobile.css");
+
+        document.head.appendChild(linkElement);
+    }
+});
 
 /* 
  * Copyright 2022 darek.
@@ -5525,6 +5538,7 @@ sgv.dlgNodeProperties = new function() {
     
     window.addEventListener('load',()=>{
         window.document.body.appendChild(ui);
+        showDialog(0);
     });
 
     function createUI() {
@@ -5551,7 +5565,7 @@ sgv.dlgNodeProperties = new function() {
 
 
 
-        let div = UI.tag('div');
+        let div = UI.tag('div', {'id':'svg'});
         div.style.width = 'fit-content';
         div.style.height = 'fit-content';
         div.style.background = '#fff';
@@ -5569,7 +5583,7 @@ sgv.dlgNodeProperties = new function() {
 
 
 
-        content = UI.tag("div", {'class':'content'});
+        content = UI.tag("div", {'id':'tools', 'class':'content'});
 
         var labelBlock = UI.tag("div");
         checkLabelN = UI.newInput("checkbox", "", "", "checkLabelN");
@@ -5652,7 +5666,7 @@ sgv.dlgNodeProperties = new function() {
 
         ui.appendChild(content);
 
-        zeroInfo = UI.tag("div", {'class':'content'});
+        zeroInfo = UI.tag("div", {'id':'zeroInfo', 'class':'content'});
         zeroInfo.innerHTML = "Select a node, please.";
         zeroInfo.style['min-width'] = '240px'; 
         zeroInfo.style['min-height'] = '105px'; 
@@ -5789,11 +5803,13 @@ sgv.dlgNodeProperties = new function() {
         
         UI.selectByKey( selectNodeId, nodeId );
 
-        if ((typeof x!=='undefined')&&(typeof y!=='undefined')) {
-            let xOffset = sgv.canvas.clientLeft;
+        if (detectedOS!=='android'){
+            if ((typeof x!=='undefined')&&(typeof y!=='undefined')) {
+                let xOffset = sgv.canvas.clientLeft;
 
-            ui.style.top = y + "px";
-            ui.style.left = (xOffset + x) + "px";
+                ui.style.top = y + "px";
+                ui.style.left = (xOffset + x) + "px";
+            }
         }
 
         ui.style.display = "block";
