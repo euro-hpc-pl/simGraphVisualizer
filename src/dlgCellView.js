@@ -8,8 +8,18 @@ sgv.dlgCellView = new function () {
 
     var prevFocused = null;
 
-    const _width = 600;
-    const _height = 600;
+    console.log(detectedOS);
+    console.log(navigator);
+    console.log(screen);
+    console.log(window);
+    
+    let winH = window.innerHeight;
+    let winW = window.innerWidth;
+    
+    let winS = Math.min(winH, winW)*0.9;
+    
+    const _width = (detectedOS==='android')?winS:600;
+    const _height = (detectedOS==='android')?winS:600;
     const ctrX = _width / 2;
     const ctrY = _height / 2;
 
@@ -17,9 +27,67 @@ sgv.dlgCellView = new function () {
 
     ui.addEventListener('keydown', onKeyDownX);
 
+    var xDown = null;                                                        
+    var yDown = null;
+
+    ui.addEventListener('touchstart', handleTouchStart, false);        
+    ui.addEventListener('touchmove', handleTouchMove, false);
+
     window.addEventListener('load', () => {
         window.document.body.appendChild(ui);
     });
+
+    function getTouches(evt) {
+      return evt.touches ||             // browser API
+             evt.originalEvent.touches; // jQuery
+    }    
+
+    function handleTouchStart(evt) {
+        const firstTouch = getTouches(evt)[0];                                      
+        xDown = firstTouch.clientX;                                      
+        yDown = firstTouch.clientY;                                      
+    };                                                
+
+    function handleTouchMove(evt) {
+        if ( ! xDown || ! yDown ) {
+            return;
+        }
+
+        var xUp = evt.touches[0].clientX;                                    
+        var yUp = evt.touches[0].clientY;
+
+        var xDiff = xDown - xUp;
+        var yDiff = yDown - yUp;
+
+        if ( Math.abs( xDiff ) > Math.abs( yDiff ) ) {/*most significant*/
+            if ( xDiff > 0 ) {
+                /* right swipe */ 
+                if (c < (sgv.graf.cols - 1)) {
+                    drawModule(c + 1, r, l);
+                }
+            } else {
+                /* left swipe */
+                if (c > 0) {
+                    drawModule(c - 1, r, l);
+                }
+            }                       
+        } else {
+            if ( yDiff > 0 ) {
+                /* down swipe */ 
+                if (r > 0) {
+                    drawModule(c, r - 1, l);
+                }
+            } else { 
+                /* up swipe */
+                if (r < (sgv.graf.rows - 1)) {
+                    drawModule(c, r + 1, l);
+                }
+            }                                                                 
+        }
+        /* reset values */
+        xDown = null;
+        yDown = null;                                             
+    };
 
     function onKeyDownX(event) {
         let key = event.key;
@@ -220,8 +288,8 @@ sgv.dlgCellView = new function () {
         ui.appendChild(content);
 
         ui.style.display = "none";
-        ui.style['top'] = '10vh';
-        ui.style['left'] = '10vh';
+        ui.style['top'] = (detectedOS==='android')?winS*0.05:'10vh';
+        ui.style['left'] = (detectedOS==='android')?winS*0.05:'10vh';
         return ui;
     }
     

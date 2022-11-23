@@ -316,6 +316,7 @@ sgv.display = function(args) {
             let sceneToRender = sgv.scene;
             sgv.engine.runRenderLoop(function () {
                 if (sceneToRender && sceneToRender.activeCamera) {
+                    //console.log('loop');
                     sceneToRender.render();
                 }
             });
@@ -325,11 +326,15 @@ sgv.display = function(args) {
         window.addEventListener("resize",
             function () {
                 sgv.engine.resize();
+                
+                detectClient();
             });
 
         desktopInit();
     });
 };
+
+
 
 //=========================================
 // functions overriden in desktop scripts

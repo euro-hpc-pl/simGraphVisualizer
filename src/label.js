@@ -23,24 +23,45 @@
  * @param {BABYLON.Vector3} position position over which the label is to be displayed
  * @returns {Label}
  */
-var Label = (function (labelId, txt, position, enabled) {
+var Label = (function (labelId, txt, position) {
+    /**
+     * @param {BABYLON.Vector3} position
+     * @param {boolean} enabled
+     * @returns {undefined}
+     */
+    this.createMe = async function (position, enabled) {
+        this.plane = this.createPlane();
+        this.plane.position = position.add(this.planeOffset);
+        this.plane.billboardMode = BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
+        this.plane.setEnabled(enabled);
+        this.plane.isPickable = false;
+    };
+
+    /**
+     * @param {string} txt
+     * @param {boolean} enabled
+     * @returns {undefined}
+     */
     this.setText = async function(txt, enabled) {
         this.text = txt;
         
         if (this.plane!==null)
             this.plane.dispose();
         
-        this.plane = this.createPlane();
-        this.plane.position = this.position.add(new BABYLON.Vector3(0.0, 5.0, 0.0));
-        this.plane.billboardMode = BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
-        this.plane.setEnabled(enabled);
-        this.plane.isPickable = false;
+        this.createMe(this.position, enabled);
     };
     
+    /**
+     * @returns {string}
+     */
     this.getText = function() {
         return this.text;
     };
     
+    /**
+     * @param {BABYLON.Vector3} position
+     * @returns {undefined}
+     */
     this.setPosition = function(pos) {
         this.position = pos;
         
@@ -48,6 +69,9 @@ var Label = (function (labelId, txt, position, enabled) {
             this.plane.position = pos.add(this.planeOffset);
     };
 
+    /**
+     * @returns {BABYLON.Plane}
+     */
     this.createPlane = function() {
         let font_size = 64;
         let font = "normal " + font_size + "px Arial,Helvetica,sans-serif";
@@ -85,21 +109,15 @@ var Label = (function (labelId, txt, position, enabled) {
     };
 
     /**
-     * @param {type} txt
-     * @param {type} position
+     * @param {boolean} b
      * @returns {undefined}
      */
-    this.createMe = async function (position, enabled) {
-        this.plane = this.createPlane();
-        this.plane.position = position.add(this.planeOffset);
-        this.plane.billboardMode = BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
-        this.plane.setEnabled(enabled);
-        this.plane.isPickable = false;
-    };
-
     this.setEnabled = function (b) {
         if (this.plane!==null)
             this.plane.setEnabled(b);
+        else if (b) {
+            this.createMe(this.position, true);
+        }
     };
 
     this.text = txt;
@@ -107,5 +125,4 @@ var Label = (function (labelId, txt, position, enabled) {
     this.position = position;
     this.id = labelId;
     this.plane = null;
-    this.createMe(position, enabled);
 });

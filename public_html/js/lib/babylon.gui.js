@@ -480,7 +480,7 @@ __webpack_require__.r(__webpack_exports__);
 
 /**
  * Class used to create texture to support 2D GUI elements
- * @see https://doc.babylonjs.com/how_to/gui
+ * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui
  */
 var AdvancedDynamicTexture = /** @class */ (function (_super) {
     (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(AdvancedDynamicTexture, _super);
@@ -688,7 +688,7 @@ var AdvancedDynamicTexture = /** @class */ (function (_super) {
         /**
          * Gets or sets the ideal width used to design controls.
          * The GUI will then rescale everything accordingly
-         * @see https://doc.babylonjs.com/how_to/gui#adaptive-scaling
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#adaptive-scaling
          */
         get: function () {
             return this._idealWidth;
@@ -708,7 +708,7 @@ var AdvancedDynamicTexture = /** @class */ (function (_super) {
         /**
          * Gets or sets the ideal height used to design controls.
          * The GUI will then rescale everything accordingly
-         * @see https://doc.babylonjs.com/how_to/gui#adaptive-scaling
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#adaptive-scaling
          */
         get: function () {
             return this._idealHeight;
@@ -727,7 +727,7 @@ var AdvancedDynamicTexture = /** @class */ (function (_super) {
     Object.defineProperty(AdvancedDynamicTexture.prototype, "useSmallestIdeal", {
         /**
          * Gets or sets a boolean indicating if the smallest ideal value must be used if idealWidth and idealHeight are both set
-         * @see https://doc.babylonjs.com/how_to/gui#adaptive-scaling
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#adaptive-scaling
          */
         get: function () {
             return this._useSmallestIdeal;
@@ -746,7 +746,7 @@ var AdvancedDynamicTexture = /** @class */ (function (_super) {
     Object.defineProperty(AdvancedDynamicTexture.prototype, "renderAtIdealSize", {
         /**
          * Gets or sets a boolean indicating if adaptive scaling must be used
-         * @see https://doc.babylonjs.com/how_to/gui#adaptive-scaling
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#adaptive-scaling
          */
         get: function () {
             return this._renderAtIdealSize;
@@ -764,7 +764,7 @@ var AdvancedDynamicTexture = /** @class */ (function (_super) {
     Object.defineProperty(AdvancedDynamicTexture.prototype, "idealRatio", {
         /**
          * Gets the ratio used when in "ideal mode"
-         * @see https://doc.babylonjs.com/how_to/gui#adaptive-scaling
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#adaptive-scaling
          * */
         get: function () {
             var rwidth = 0;
@@ -976,7 +976,7 @@ var AdvancedDynamicTexture = /** @class */ (function (_super) {
     /**
      * Helper function used to create a new style
      * @returns a new style
-     * @see https://doc.babylonjs.com/how_to/gui#styles
+     * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#styles
      */
     AdvancedDynamicTexture.prototype.createStyle = function () {
         return new _style__WEBPACK_IMPORTED_MODULE_4__.Style(this);
@@ -2488,7 +2488,7 @@ var ColorPicker = /** @class */ (function (_super) {
     Object.defineProperty(ColorPicker.prototype, "width", {
         /**
          * Gets or sets control width
-         * @see https://doc.babylonjs.com/how_to/gui#position-and-size
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#position-and-size
          */
         get: function () {
             return this._width.toString(this._host);
@@ -2512,7 +2512,7 @@ var ColorPicker = /** @class */ (function (_super) {
     Object.defineProperty(ColorPicker.prototype, "height", {
         /**
          * Gets or sets control height
-         * @see https://doc.babylonjs.com/how_to/gui#position-and-size
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#position-and-size
          */
         get: function () {
             return this._height.toString(this._host);
@@ -3849,7 +3849,7 @@ __webpack_require__.r(__webpack_exports__);
 
 /**
  * Root class for 2D containers
- * @see https://doc.babylonjs.com/how_to/gui#containers
+ * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#containers
  */
 var Container = /** @class */ (function (_super) {
     (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(Container, _super);
@@ -4438,7 +4438,7 @@ __webpack_require__.r(__webpack_exports__);
 
 /**
  * Root class used for all 2D controls
- * @see https://doc.babylonjs.com/how_to/gui#controls
+ * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#controls
  */
 var Control = /** @class */ (function () {
     // Functions
@@ -4837,7 +4837,7 @@ var Control = /** @class */ (function () {
     });
     Object.defineProperty(Control.prototype, "scaleX", {
         /** Gets or sets a value indicating the scale factor on X axis (1 by default)
-         * @see https://doc.babylonjs.com/how_to/gui#rotation-and-scaling
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#rotation-and-scaling
          */
         get: function () {
             return this._scaleX;
@@ -4855,7 +4855,7 @@ var Control = /** @class */ (function () {
     });
     Object.defineProperty(Control.prototype, "scaleY", {
         /** Gets or sets a value indicating the scale factor on Y axis (1 by default)
-         * @see https://doc.babylonjs.com/how_to/gui#rotation-and-scaling
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#rotation-and-scaling
          */
         get: function () {
             return this._scaleY;
@@ -4873,7 +4873,7 @@ var Control = /** @class */ (function () {
     });
     Object.defineProperty(Control.prototype, "rotation", {
         /** Gets or sets the rotation angle (0 by default)
-         * @see https://doc.babylonjs.com/how_to/gui#rotation-and-scaling
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#rotation-and-scaling
          */
         get: function () {
             return this._rotation;
@@ -4891,7 +4891,7 @@ var Control = /** @class */ (function () {
     });
     Object.defineProperty(Control.prototype, "transformCenterY", {
         /** Gets or sets the transformation center on Y axis (0 by default)
-         * @see https://doc.babylonjs.com/how_to/gui#rotation-and-scaling
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#rotation-and-scaling
          */
         get: function () {
             return this._transformCenterY;
@@ -4909,7 +4909,7 @@ var Control = /** @class */ (function () {
     });
     Object.defineProperty(Control.prototype, "transformCenterX", {
         /** Gets or sets the transformation center on X axis (0 by default)
-         * @see https://doc.babylonjs.com/how_to/gui#rotation-and-scaling
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#rotation-and-scaling
          */
         get: function () {
             return this._transformCenterX;
@@ -4928,7 +4928,7 @@ var Control = /** @class */ (function () {
     Object.defineProperty(Control.prototype, "horizontalAlignment", {
         /**
          * Gets or sets the horizontal alignment
-         * @see https://doc.babylonjs.com/how_to/gui#alignments
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#alignments
          */
         get: function () {
             return this._horizontalAlignment;
@@ -4946,7 +4946,7 @@ var Control = /** @class */ (function () {
     Object.defineProperty(Control.prototype, "verticalAlignment", {
         /**
          * Gets or sets the vertical alignment
-         * @see https://doc.babylonjs.com/how_to/gui#alignments
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#alignments
          */
         get: function () {
             return this._verticalAlignment;
@@ -4964,7 +4964,7 @@ var Control = /** @class */ (function () {
     Object.defineProperty(Control.prototype, "width", {
         /**
          * Gets or sets control width
-         * @see https://doc.babylonjs.com/how_to/gui#position-and-size
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#position-and-size
          */
         get: function () {
             return this._width.toString(this._host);
@@ -4984,7 +4984,7 @@ var Control = /** @class */ (function () {
     Object.defineProperty(Control.prototype, "widthInPixels", {
         /**
          * Gets or sets the control width in pixel
-         * @see https://doc.babylonjs.com/how_to/gui#position-and-size
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#position-and-size
          */
         get: function () {
             return this._width.getValueInPixel(this._host, this._cachedParentMeasure.width);
@@ -5002,7 +5002,7 @@ var Control = /** @class */ (function () {
     Object.defineProperty(Control.prototype, "height", {
         /**
          * Gets or sets control height
-         * @see https://doc.babylonjs.com/how_to/gui#position-and-size
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#position-and-size
          */
         get: function () {
             return this._height.toString(this._host);
@@ -5022,7 +5022,7 @@ var Control = /** @class */ (function () {
     Object.defineProperty(Control.prototype, "heightInPixels", {
         /**
          * Gets or sets control height in pixel
-         * @see https://doc.babylonjs.com/how_to/gui#position-and-size
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#position-and-size
          */
         get: function () {
             return this._height.getValueInPixel(this._host, this._cachedParentMeasure.height);
@@ -5085,7 +5085,7 @@ var Control = /** @class */ (function () {
     Object.defineProperty(Control.prototype, "style", {
         /**
          * Gets or sets style
-         * @see https://doc.babylonjs.com/how_to/gui#styles
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#styles
          */
         get: function () {
             return this._style;
@@ -5254,7 +5254,7 @@ var Control = /** @class */ (function () {
     Object.defineProperty(Control.prototype, "paddingLeft", {
         /**
          * Gets or sets a value indicating the padding to use on the left of the control
-         * @see https://doc.babylonjs.com/how_to/gui#position-and-size
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#position-and-size
          */
         get: function () {
             return this._paddingLeft.toString(this._host);
@@ -5270,7 +5270,7 @@ var Control = /** @class */ (function () {
     Object.defineProperty(Control.prototype, "paddingLeftInPixels", {
         /**
          * Gets or sets a value indicating the padding in pixels to use on the left of the control
-         * @see https://doc.babylonjs.com/how_to/gui#position-and-size
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#position-and-size
          */
         get: function () {
             return this._paddingLeft.getValueInPixel(this._host, this._cachedParentMeasure.width);
@@ -5298,7 +5298,7 @@ var Control = /** @class */ (function () {
     Object.defineProperty(Control.prototype, "paddingRight", {
         /**
          * Gets or sets a value indicating the padding to use on the right of the control
-         * @see https://doc.babylonjs.com/how_to/gui#position-and-size
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#position-and-size
          */
         get: function () {
             return this._paddingRight.toString(this._host);
@@ -5314,7 +5314,7 @@ var Control = /** @class */ (function () {
     Object.defineProperty(Control.prototype, "paddingRightInPixels", {
         /**
          * Gets or sets a value indicating the padding in pixels to use on the right of the control
-         * @see https://doc.babylonjs.com/how_to/gui#position-and-size
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#position-and-size
          */
         get: function () {
             return this._paddingRight.getValueInPixel(this._host, this._cachedParentMeasure.width);
@@ -5342,7 +5342,7 @@ var Control = /** @class */ (function () {
     Object.defineProperty(Control.prototype, "paddingTop", {
         /**
          * Gets or sets a value indicating the padding to use on the top of the control
-         * @see https://doc.babylonjs.com/how_to/gui#position-and-size
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#position-and-size
          */
         get: function () {
             return this._paddingTop.toString(this._host);
@@ -5358,7 +5358,7 @@ var Control = /** @class */ (function () {
     Object.defineProperty(Control.prototype, "paddingTopInPixels", {
         /**
          * Gets or sets a value indicating the padding in pixels to use on the top of the control
-         * @see https://doc.babylonjs.com/how_to/gui#position-and-size
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#position-and-size
          */
         get: function () {
             return this._paddingTop.getValueInPixel(this._host, this._cachedParentMeasure.height);
@@ -5386,7 +5386,7 @@ var Control = /** @class */ (function () {
     Object.defineProperty(Control.prototype, "paddingBottom", {
         /**
          * Gets or sets a value indicating the padding to use on the bottom of the control
-         * @see https://doc.babylonjs.com/how_to/gui#position-and-size
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#position-and-size
          */
         get: function () {
             return this._paddingBottom.toString(this._host);
@@ -5402,7 +5402,7 @@ var Control = /** @class */ (function () {
     Object.defineProperty(Control.prototype, "paddingBottomInPixels", {
         /**
          * Gets or sets a value indicating the padding in pixels to use on the bottom of the control
-         * @see https://doc.babylonjs.com/how_to/gui#position-and-size
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#position-and-size
          */
         get: function () {
             return this._paddingBottom.getValueInPixel(this._host, this._cachedParentMeasure.height);
@@ -5430,7 +5430,7 @@ var Control = /** @class */ (function () {
     Object.defineProperty(Control.prototype, "left", {
         /**
          * Gets or sets a value indicating the left coordinate of the control
-         * @see https://doc.babylonjs.com/how_to/gui#position-and-size
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#position-and-size
          */
         get: function () {
             return this._left.toString(this._host);
@@ -5446,7 +5446,7 @@ var Control = /** @class */ (function () {
     Object.defineProperty(Control.prototype, "leftInPixels", {
         /**
          * Gets or sets a value indicating the left coordinate in pixels of the control
-         * @see https://doc.babylonjs.com/how_to/gui#position-and-size
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#position-and-size
          */
         get: function () {
             return this._left.getValueInPixel(this._host, this._cachedParentMeasure.width);
@@ -5463,7 +5463,7 @@ var Control = /** @class */ (function () {
     Object.defineProperty(Control.prototype, "top", {
         /**
          * Gets or sets a value indicating the top coordinate of the control
-         * @see https://doc.babylonjs.com/how_to/gui#position-and-size
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#position-and-size
          */
         get: function () {
             return this._top.toString(this._host);
@@ -5479,7 +5479,7 @@ var Control = /** @class */ (function () {
     Object.defineProperty(Control.prototype, "topInPixels", {
         /**
          * Gets or sets a value indicating the top coordinate in pixels of the control
-         * @see https://doc.babylonjs.com/how_to/gui#position-and-size
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#position-and-size
          */
         get: function () {
             return this._top.getValueInPixel(this._host, this._cachedParentMeasure.height);
@@ -5496,7 +5496,7 @@ var Control = /** @class */ (function () {
     Object.defineProperty(Control.prototype, "linkOffsetX", {
         /**
          * Gets or sets a value indicating the offset on X axis to the linked mesh
-         * @see https://doc.babylonjs.com/how_to/gui#tracking-positions
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#tracking-positions
          */
         get: function () {
             return this._linkOffsetX.toString(this._host);
@@ -5512,7 +5512,7 @@ var Control = /** @class */ (function () {
     Object.defineProperty(Control.prototype, "linkOffsetXInPixels", {
         /**
          * Gets or sets a value indicating the offset in pixels on X axis to the linked mesh
-         * @see https://doc.babylonjs.com/how_to/gui#tracking-positions
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#tracking-positions
          */
         get: function () {
             return this._linkOffsetX.getValueInPixel(this._host, this._cachedParentMeasure.width);
@@ -5529,7 +5529,7 @@ var Control = /** @class */ (function () {
     Object.defineProperty(Control.prototype, "linkOffsetY", {
         /**
          * Gets or sets a value indicating the offset on Y axis to the linked mesh
-         * @see https://doc.babylonjs.com/how_to/gui#tracking-positions
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#tracking-positions
          */
         get: function () {
             return this._linkOffsetY.toString(this._host);
@@ -5545,7 +5545,7 @@ var Control = /** @class */ (function () {
     Object.defineProperty(Control.prototype, "linkOffsetYInPixels", {
         /**
          * Gets or sets a value indicating the offset in pixels on Y axis to the linked mesh
-         * @see https://doc.babylonjs.com/how_to/gui#tracking-positions
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#tracking-positions
          */
         get: function () {
             return this._linkOffsetY.getValueInPixel(this._host, this._cachedParentMeasure.height);
@@ -5765,7 +5765,7 @@ var Control = /** @class */ (function () {
     /**
      * Link current control with a target mesh
      * @param mesh defines the mesh to link with
-     * @see https://doc.babylonjs.com/how_to/gui#tracking-positions
+     * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#tracking-positions
      */
     Control.prototype.linkWithMesh = function (mesh) {
         if (!this._host || (this.parent && this.parent !== this._host._rootContainer)) {
@@ -5796,7 +5796,7 @@ var Control = /** @class */ (function () {
      * @param { string | number} paddingRight - The value of the right padding. If omitted, top is used.
      * @param { string | number} paddingBottom - The value of the bottom padding. If omitted, top is used.
      * @param { string | number} paddingLeft - The value of the left padding. If omitted, right is used.
-     * @see https://doc.babylonjs.com/how_to/gui#position-and-size
+     * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#position-and-size
      */
     Control.prototype.setPadding = function (paddingTop, paddingRight, paddingBottom, paddingLeft) {
         var top = paddingTop;
@@ -5814,7 +5814,7 @@ var Control = /** @class */ (function () {
      * @param { number} paddingRight - The value in pixels of the right padding. If omitted, top is used.
      * @param { number} paddingBottom - The value in pixels of the bottom padding. If omitted, top is used.
      * @param { number} paddingLeft - The value in pixels of the left padding. If omitted, right is used.
-     * @see https://doc.babylonjs.com/how_to/gui#position-and-size
+     * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#position-and-size
      */
     Control.prototype.setPaddingInPixels = function (paddingTop, paddingRight, paddingBottom, paddingLeft) {
         var top = paddingTop;
@@ -8164,7 +8164,7 @@ var Image = /** @class */ (function (_super) {
     Object.defineProperty(Image.prototype, "autoScale", {
         /**
          * Gets or sets a boolean indicating if the image can force its container to adapt its size
-         * @see https://doc.babylonjs.com/how_to/gui#image
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#image
          */
         get: function () {
             return this._autoScale;
@@ -8487,7 +8487,7 @@ var Image = /** @class */ (function (_super) {
     Object.defineProperty(Image.prototype, "cellWidth", {
         /**
          * Gets or sets the cell width to use when animation sheet is enabled
-         * @see https://doc.babylonjs.com/how_to/gui#image
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#image
          */
         get: function () {
             return this._cellWidth;
@@ -8505,7 +8505,7 @@ var Image = /** @class */ (function (_super) {
     Object.defineProperty(Image.prototype, "cellHeight", {
         /**
          * Gets or sets the cell height to use when animation sheet is enabled
-         * @see https://doc.babylonjs.com/how_to/gui#image
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#image
          */
         get: function () {
             return this._cellHeight;
@@ -8523,7 +8523,7 @@ var Image = /** @class */ (function (_super) {
     Object.defineProperty(Image.prototype, "cellId", {
         /**
          * Gets or sets the cell id to use (this will turn on the animation sheet mode)
-         * @see https://doc.babylonjs.com/how_to/gui#image
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#image
          */
         get: function () {
             return this._cellId;
@@ -13465,7 +13465,7 @@ var SliderGroup = /** @class */ (function (_super) {
 }(SelectorGroup));
 
 /** Class used to hold the controls for the checkboxes, radio buttons and sliders
- * @see https://doc.babylonjs.com/how_to/selector
+ * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/selector
  */
 var SelectionPanel = /** @class */ (function (_super) {
     (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(SelectionPanel, _super);
@@ -15559,6 +15559,7 @@ var TextBlock = /** @class */ (function (_super) {
          * An event triggered after the text was broken up into lines
          */
         _this.onLinesReadyObservable = new core_Misc_observable__WEBPACK_IMPORTED_MODULE_1__.Observable();
+        _this._linesTemp = [];
         _this.text = text;
         return _this;
     }
@@ -15899,33 +15900,34 @@ var TextBlock = /** @class */ (function (_super) {
         }
     };
     TextBlock.prototype._breakLines = function (refWidth, refHeight, context) {
-        var lines = [];
+        var _a, _b;
+        this._linesTemp.length = 0;
         var _lines = this.text.split("\n");
         if (this._textWrapping === TextWrapping.Ellipsis) {
             for (var _i = 0, _lines_1 = _lines; _i < _lines_1.length; _i++) {
                 var _line = _lines_1[_i];
-                lines.push(this._parseLineEllipsis(_line, refWidth, context));
+                this._linesTemp.push(this._parseLineEllipsis(_line, refWidth, context));
             }
         }
         else if (this._textWrapping === TextWrapping.WordWrap) {
-            for (var _a = 0, _lines_2 = _lines; _a < _lines_2.length; _a++) {
-                var _line = _lines_2[_a];
-                lines.push.apply(lines, this._parseLineWordWrap(_line, refWidth, context));
+            for (var _c = 0, _lines_2 = _lines; _c < _lines_2.length; _c++) {
+                var _line = _lines_2[_c];
+                (_a = this._linesTemp).push.apply(_a, this._parseLineWordWrap(_line, refWidth, context));
             }
         }
         else if (this._textWrapping === TextWrapping.WordWrapEllipsis) {
-            for (var _b = 0, _lines_3 = _lines; _b < _lines_3.length; _b++) {
-                var _line = _lines_3[_b];
-                lines.push.apply(lines, this._parseLineWordWrapEllipsis(_line, refWidth, refHeight, context));
+            for (var _d = 0, _lines_3 = _lines; _d < _lines_3.length; _d++) {
+                var _line = _lines_3[_d];
+                (_b = this._linesTemp).push.apply(_b, this._parseLineWordWrapEllipsis(_line, refWidth, refHeight, context));
             }
         }
         else {
-            for (var _c = 0, _lines_4 = _lines; _c < _lines_4.length; _c++) {
-                var _line = _lines_4[_c];
-                lines.push(this._parseLine(_line, context));
+            for (var _e = 0, _lines_4 = _lines; _e < _lines_4.length; _e++) {
+                var _line = _lines_4[_e];
+                this._linesTemp.push(this._parseLine(_line, context));
             }
         }
-        return lines;
+        return this._linesTemp;
     };
     TextBlock.prototype._parseLine = function (line, context) {
         if (line === void 0) { line = ""; }
@@ -17583,7 +17585,7 @@ var ValueAndUnit = /** @class */ (function () {
         this._unit = ValueAndUnit.UNITMODE_PIXEL;
         /**
          * Gets or sets a value indicating that this value will not scale accordingly with adaptive scaling property
-         * @see https://doc.babylonjs.com/how_to/gui#adaptive-scaling
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui#adaptive-scaling
          */
         this.ignoreAdaptiveScaling = false;
         /**
@@ -19763,7 +19765,7 @@ var Control3D = /** @class */ (function () {
     Object.defineProperty(Control3D.prototype, "behaviors", {
         /**
          * Gets the list of attached behaviors
-         * @see https://doc.babylonjs.com/features/behaviour
+         * @see https://doc.babylonjs.com/features/featuresDeepDive/behaviors
          */
         get: function () {
             return this._behaviors;
@@ -19773,7 +19775,7 @@ var Control3D = /** @class */ (function () {
     });
     /**
      * Attach a behavior to the control
-     * @see https://doc.babylonjs.com/features/behaviour
+     * @see https://doc.babylonjs.com/features/featuresDeepDive/behaviors
      * @param behavior defines the behavior to attach
      * @returns the current control
      */
@@ -19799,7 +19801,7 @@ var Control3D = /** @class */ (function () {
     };
     /**
      * Remove an attached behavior
-     * @see https://doc.babylonjs.com/features/behaviour
+     * @see https://doc.babylonjs.com/features/featuresDeepDive/behaviors
      * @param behavior defines the behavior to attach
      * @returns the current control
      */
@@ -19815,7 +19817,7 @@ var Control3D = /** @class */ (function () {
     /**
      * Gets an attached behavior by name
      * @param name defines the name of the behavior to look for
-     * @see https://doc.babylonjs.com/features/behaviour
+     * @see https://doc.babylonjs.com/features/featuresDeepDive/behaviors
      * @returns null if behavior was not found else the requested behavior
      */
     Control3D.prototype.getBehaviorByName = function (name) {
@@ -24016,7 +24018,7 @@ __webpack_require__.r(__webpack_exports__);
 
 /**
  * Class used to manage 3D user interface
- * @see https://doc.babylonjs.com/how_to/gui3d
+ * @see https://doc.babylonjs.com/features/featuresDeepDive/gui/gui3D
  */
 var GUI3DManager = /** @class */ (function () {
     /**
@@ -28085,6 +28087,9 @@ var MRDLSliderBarMaterial = /** @class */ (function (_super) {
         _this.alphaMode = core_Misc_decorators__WEBPACK_IMPORTED_MODULE_1__.Constants.ALPHA_DISABLE;
         _this.backFaceCulling = false;
         _this._blueGradientTexture = new core_Misc_decorators__WEBPACK_IMPORTED_MODULE_1__.Texture(MRDLSliderBarMaterial.BLUE_GRADIENT_TEXTURE_URL, _this.getScene(), true, false, core_Misc_decorators__WEBPACK_IMPORTED_MODULE_1__.Texture.NEAREST_SAMPLINGMODE);
+        _this._decalTexture = new core_Misc_decorators__WEBPACK_IMPORTED_MODULE_1__.Texture("", _this.getScene());
+        _this._reflectionMapTexture = new core_Misc_decorators__WEBPACK_IMPORTED_MODULE_1__.Texture("", _this.getScene());
+        _this._indirectEnvTexture = new core_Misc_decorators__WEBPACK_IMPORTED_MODULE_1__.Texture("", _this.getScene());
         return _this;
     }
     MRDLSliderBarMaterial.prototype.needAlphaBlending = function () {
@@ -28313,8 +28318,8 @@ var MRDLSliderBarMaterial = /** @class */ (function (_super) {
         this._activeEffect.setFloat("_Horizon_Power_", this.horizonPower);
         // "Mapped Environment"
         //define ENV_ENABLE false;
-        this._activeEffect.setTexture("_Reflection_Map_", new core_Misc_decorators__WEBPACK_IMPORTED_MODULE_1__.Texture("", this.getScene()));
-        this._activeEffect.setTexture("_Indirect_Environment_", new core_Misc_decorators__WEBPACK_IMPORTED_MODULE_1__.Texture("", this.getScene()));
+        this._activeEffect.setTexture("_Reflection_Map_", this._reflectionMapTexture);
+        this._activeEffect.setTexture("_Indirect_Environment_", this._indirectEnvTexture);
         // "FingerOcclusion"
         //define OCCLUSION_ENABLED false;
         this._activeEffect.setFloat("_Width_", this.width);
@@ -28351,7 +28356,7 @@ var MRDLSliderBarMaterial = /** @class */ (function (_super) {
         this._activeEffect.setVector3("_Right_Index_Middle_Pos_", this.rightIndexMiddlePosition);
         // "Decal Texture"
         //define DECAL_ENABLE false;
-        this._activeEffect.setTexture("_Decal_", new core_Misc_decorators__WEBPACK_IMPORTED_MODULE_1__.Texture("", this.getScene()));
+        this._activeEffect.setTexture("_Decal_", this._decalTexture);
         this._activeEffect.setVector2("_Decal_Scale_XY_", this.decalScaleXY);
         this._activeEffect.setFloat("_Decal_Front_Only_", this.decalFrontOnly ? 1.0 : 0.0);
         // "Rim Light"
@@ -28386,6 +28391,10 @@ var MRDLSliderBarMaterial = /** @class */ (function (_super) {
     };
     MRDLSliderBarMaterial.prototype.dispose = function (forceDisposeEffect) {
         _super.prototype.dispose.call(this, forceDisposeEffect);
+        this._reflectionMapTexture.dispose();
+        this._indirectEnvTexture.dispose();
+        this._blueGradientTexture.dispose();
+        this._decalTexture.dispose();
     };
     MRDLSliderBarMaterial.prototype.clone = function (name) {
         var _this = this;
@@ -29183,8 +29192,8 @@ var MRDLSliderThumbMaterial = /** @class */ (function (_super) {
         this._activeEffect.setFloat("_Horizon_Power_", this.horizonPower);
         // "Mapped Environment"
         //define ENV_ENABLE false;
-        this._activeEffect.setTexture("_Reflection_Map_", new core_Misc_decorators__WEBPACK_IMPORTED_MODULE_1__.Texture("", this.getScene()));
-        this._activeEffect.setTexture("_Indirect_Environment_", new core_Misc_decorators__WEBPACK_IMPORTED_MODULE_1__.Texture("", this.getScene()));
+        this._activeEffect.setTexture("_Reflection_Map_", this._reflectionMapTexture);
+        this._activeEffect.setTexture("_Indirect_Environment_", this._indirectEnvTexture);
         // "FingerOcclusion"
         //define OCCLUSION_ENABLED false;
         this._activeEffect.setFloat("_Width_", this.width);
@@ -29221,7 +29230,7 @@ var MRDLSliderThumbMaterial = /** @class */ (function (_super) {
         this._activeEffect.setVector3("_Right_Index_Middle_Pos_", this.rightIndexMiddlePosition);
         // "Decal Texture"
         //define DECAL_ENABLE false;
-        this._activeEffect.setTexture("_Decal_", new core_Misc_decorators__WEBPACK_IMPORTED_MODULE_1__.Texture("", this.getScene()));
+        this._activeEffect.setTexture("_Decal_", this._decalTexture);
         this._activeEffect.setVector2("_Decal_Scale_XY_", this.decalScaleXY);
         this._activeEffect.setFloat("_Decal_Front_Only_", this.decalFrontOnly ? 1.0 : 0.0);
         // "Rim Light"
@@ -29256,6 +29265,10 @@ var MRDLSliderThumbMaterial = /** @class */ (function (_super) {
     };
     MRDLSliderThumbMaterial.prototype.dispose = function (forceDisposeEffect) {
         _super.prototype.dispose.call(this, forceDisposeEffect);
+        this._reflectionMapTexture.dispose();
+        this._indirectEnvTexture.dispose();
+        this._blueGradientTexture.dispose();
+        this._decalTexture.dispose();
     };
     MRDLSliderThumbMaterial.prototype.clone = function (name) {
         var _this = this;

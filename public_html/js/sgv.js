@@ -1,3 +1,141 @@
+/* global BABYLON, sgv */
+
+const DEMO_MODE = false;
+
+function getRandom(min, max) {
+    return (min + (Math.random() * (max - min)));
+};
+
+
+function valueToColor(val) {
+    if ((typeof val ==='undefined')||(val === null)|| isNaN(val)) {
+        return new BABYLON.Color3(0.9, 0.9, 0.9);
+    };
+    
+    if (DEMO_MODE) {
+        if (val===0) return new BABYLON.Color3(0.0, 0.0, 1.0);
+        else if (val===-1) return new BABYLON.Color3(1.0, 0.0, 0.0);
+        else if (val===1) return new BABYLON.Color3(0.0, 1.0, 0.0);
+        else if (val===0.5) return new BABYLON.Color3(1.0, 0.65, 0.0);
+        else if (val===-0.5) return new BABYLON.Color3(1.0, 0.0, 1.0);
+        else return new BABYLON.Color3(0.9, 0.9, 0.9);
+    }
+
+
+    let max = sgv.graf.greenLimit;
+    let min = sgv.graf.redLimit;
+
+    if (val > 0) {
+        var r = 0;
+        var g = (val < max) ? (val / max) : 1.0;
+        var b = 1.0 - g;
+    } else if (val < 0) {
+        var r = (val > min) ? (val / min) : 1.0;
+        var g = 0;
+        var b = 1.0 - r;
+    } else {
+        var r = 0;
+        var g = 0;
+        var b = 1.0;
+    }
+
+    return new BABYLON.Color3(r, g, b);
+}
+
+function valueToColorBAK(val) {
+    if ((typeof val ==='undefined')||(val === null)|| isNaN(val)) {
+        return new BABYLON.Color3(0.9, 0.9, 0.9);
+    };
+
+    let max = sgv.graf.greenLimit;
+    let min = sgv.graf.redLimit;
+
+    if (val > 0) {
+        var r = 0;
+        var g = (val < max) ? (val / max) : 1.0;
+        var b = 0;
+    } else if (val < 0) {
+        var r = (val > min) ? (val / min) : 1.0;
+        var g = 0;
+        var b = 0;
+    } else {
+        var r = 0;
+        var g = 0;
+        var b = 0;
+    }
+
+    return new BABYLON.Color3(r, g, b);
+}
+
+
+function valueToEdgeWidth(val) {
+    if (DEMO_MODE) return 0.2;
+    
+    if ((typeof val ==='undefined')||(val === null)|| isNaN(val)) {
+        return 0.2;
+    };
+
+    let max = Math.abs(sgv.graf.greenLimit);
+    let min = Math.abs(sgv.graf.redLimit);
+
+    max = (max>min)?max:min;
+    
+    if ((val===0)||(max===0)) return 0.2;
+    
+    val = Math.abs(val);
+    
+    if (val>max){
+        return 1.2;
+    }
+    
+    return 0.2 + ( val / max );
+}
+
+//function PitchYawRollToMoveBetweenPointsToRef(start, target, ref) {
+//    const diff = BABYLON.TmpVectors.Vector3[0];
+//    target.subtractToRef(start, diff);
+//    ref.y = Math.atan2(diff.x, diff.z) || 0;
+//    ref.x = Math.atan2(Math.sqrt(diff.x ** 2 + diff.z ** 2), diff.y) || 0;
+//    ref.z = 0;
+//    return ref;
+//}
+
+//function PitchYawRollToMoveBetweenPoints(start, target) {
+//    const ref = BABYLON.Vector3.Zero();
+//    return PitchYawRollToMoveBetweenPointsToRef(start, target, ref);
+//}
+
+var detectedOS = 'unknown';
+
+function detectClient() {
+    let winH = window.innerHeight;
+    let winW = window.innerWidth;
+    
+    let winS = Math.min(winH, winW);
+    
+    var ua = navigator.userAgent.toLowerCase();
+    var isAndroid = ua.indexOf("android") > -1; //&& ua.indexOf("mobile");
+    var r = document.querySelector(':root');
+    if(isAndroid) {
+        detectedOS = 'android';
+        r.style.setProperty('--ref_size', winS+'px');
+        r.style.setProperty('--btn_size', (winS/8)+'px'); //96px
+        r.style.setProperty('--btn_aspect_ratio', '0.75');
+        r.style.setProperty('--btn_font_size', (winS/32)+'px');
+        r.style.setProperty('--tool_btn_size', (winS/12)+'px');
+    }
+    else {
+        r.style.setProperty('--ref_size', '800px');
+        r.style.setProperty('--btn_size', '96px'); //96px
+        r.style.setProperty('--btn_aspect_ratio', '0.3');
+        r.style.setProperty('--btn_font_size', '12px');
+        r.style.setProperty('--tool_btn_size', '32px');
+        //r.style.setProperty('--tool_btn_size', (winS/9)+'px');
+    }
+}
+
+detectClient();
+
 /* 
  * Copyright 2022 darek.
  *
@@ -174,20 +312,56 @@ var SPS = (function(scene) {
     defaultSphere.setEnabled(false);
     defaultCylinder.setEnabled(false);
     
-    function initX() {
-        NodeSPS.addShape(defaultSphere, 100);
-        EdgeSPS.addShape(defaultCylinder, 100);
+    function initX(nbN, nbE) {
+        if (typeof nbN !== 'number') nbN = 100;
+        if (typeof nbE !== 'number') nbE = 500;
 
+        NodeSPS.addShape(defaultSphere, nbN);
         NodeSPSmesh = NodeSPS.buildMesh();
+
+        for (let i=0; i<nbN; i++){
+            NodeSPS.particles[i].isVisible = false;
+        }
+
+        EdgeSPS.addShape(defaultCylinder, nbE);
         EdgeSPSmesh = EdgeSPS.buildMesh();
 
-        for (let i=0; i<100; i++){
-            NodeSPS.particles[i].isVisible = false;
+        for (let i=0; i<nbE; i++){
             EdgeSPS.particles[i].isVisible = false;
         }
 
         refreshX();
     };
+
+    function addSpaceForEdgesX(nb) {
+        if (typeof nb !== 'number') nb = 500;
+
+        let size = EdgeSPS.nbParticles;
+        
+        EdgeSPS.addShape(defaultCylinder, nb);
+        EdgeSPSmesh = EdgeSPS.buildMesh();
+
+        for (let i=size; i<(size+nb); i++){
+            EdgeSPS.particles[i].isVisible = false;
+        }
+        
+        //console.log('EdgeSPS: ',EdgeSPS.nbParticles);
+    }
+        
+    function addSpaceForNodesX(nb) {
+        if (typeof nb !== 'number') nb = 100;
+        
+        let size = NodeSPS.nbParticles;
+
+        NodeSPS.addShape(defaultSphere, nb);
+        NodeSPSmesh = NodeSPS.buildMesh();
+
+        for (let i=size; i<(size+nb); i++){
+            NodeSPS.particles[i].isVisible = false;
+        }
+
+        //console.log('NodeSPS: ',NodeSPS.nbParticles);
+    }
 
     function refreshNodesX() {
         NodeSPS.setParticles();
@@ -211,14 +385,7 @@ var SPS = (function(scene) {
 
         let id = nCnt++;
         let size = NodeSPS.nbParticles;
-        if (id>=size) {
-            NodeSPS.addShape(defaultSphere, 100);
-            NodeSPSmesh = NodeSPS.buildMesh();
-
-            for (let i=size; i<(size+100); i++){
-                NodeSPS.particles[i].isVisible = false;
-            }
-        }
+        if (id>=size) addSpaceForNodesX(100);
         return id;
     };
     
@@ -229,14 +396,7 @@ var SPS = (function(scene) {
 
         let id = eCnt++;
         let size = EdgeSPS.nbParticles;
-        if (id>=size) {
-            EdgeSPS.addShape(defaultCylinder, 100);
-            EdgeSPSmesh = EdgeSPS.buildMesh();
-
-            for (let i=size; i<(size+100); i++){
-                EdgeSPS.particles[i].isVisible = false;
-            }
-        }
+        if (id>=size) addSpaceForEdgesX(500);
         return id;
     };
 
@@ -287,7 +447,8 @@ var SPS = (function(scene) {
         p0.copyFrom(b);
         p0.addInPlace(vec.scale(length/2));
 
-        mesh.rotation = PitchYawRollToMoveBetweenPoints(b, e);
+        //mesh.rotation = PitchYawRollToMoveBetweenPoints(b, e);
+        mesh.rotation = BABYLON.Vector3.PitchYawRollToMoveBetweenPoints(b, e);
         mesh.position = p0;
         mesh.color = edgeColor;
         mesh.scaling = new BABYLON.Vector3( edgeWidth, length, edgeWidth );
@@ -467,117 +628,6 @@ var TempGraphStructure = (function() {
 
 });
 
-/* global BABYLON, sgv */
-
-const DEMO_MODE = false;
-
-function getRandom(min, max) {
-    return (min + (Math.random() * (max - min)));
-};
-
-
-function valueToColor(val) {
-    if ((typeof val ==='undefined')||(val === null)|| isNaN(val)) {
-        return new BABYLON.Color3(0.9, 0.9, 0.9);
-    };
-    
-    if (DEMO_MODE) {
-        if (val===0) return new BABYLON.Color3(0.0, 0.0, 1.0);
-        else if (val===-1) return new BABYLON.Color3(1.0, 0.0, 0.0);
-        else if (val===1) return new BABYLON.Color3(0.0, 1.0, 0.0);
-        else if (val===0.5) return new BABYLON.Color3(1.0, 0.65, 0.0);
-        else if (val===-0.5) return new BABYLON.Color3(1.0, 0.0, 1.0);
-        else return new BABYLON.Color3(0.9, 0.9, 0.9);
-    }
-
-
-    let max = sgv.graf.greenLimit;
-    let min = sgv.graf.redLimit;
-
-    if (val > 0) {
-        var r = 0;
-        var g = (val < max) ? (val / max) : 1.0;
-        var b = 1.0 - g;
-    } else if (val < 0) {
-        var r = (val > min) ? (val / min) : 1.0;
-        var g = 0;
-        var b = 1.0 - r;
-    } else {
-        var r = 0;
-        var g = 0;
-        var b = 1.0;
-    }
-
-    return new BABYLON.Color3(r, g, b);
-}
-
-function valueToColorBAK(val) {
-    if ((typeof val ==='undefined')||(val === null)|| isNaN(val)) {
-        return new BABYLON.Color3(0.9, 0.9, 0.9);
-    };
-
-    let max = sgv.graf.greenLimit;
-    let min = sgv.graf.redLimit;
-
-    if (val > 0) {
-        var r = 0;
-        var g = (val < max) ? (val / max) : 1.0;
-        var b = 0;
-    } else if (val < 0) {
-        var r = (val > min) ? (val / min) : 1.0;
-        var g = 0;
-        var b = 0;
-    } else {
-        var r = 0;
-        var g = 0;
-        var b = 0;
-    }
-
-    return new BABYLON.Color3(r, g, b);
-}
-
-
-function valueToEdgeWidth(val) {
-    if (DEMO_MODE) return 0.2;
-    
-    if ((typeof val ==='undefined')||(val === null)|| isNaN(val)) {
-        return 0.2;
-    };
-
-    let max = Math.abs(sgv.graf.greenLimit);
-    let min = Math.abs(sgv.graf.redLimit);
-
-    max = (max>min)?max:min;
-    
-    if ((val===0)||(max===0)) return 0.2;
-    
-    val = Math.abs(val);
-    
-    if (val>max){
-        return 1.2;
-    }
-    
-    return 0.2 + ( val / max );
-}
-
-
-
-
-function PitchYawRollToMoveBetweenPointsToRef(start, target, ref) {
-    const diff = BABYLON.TmpVectors.Vector3[0];
-    target.subtractToRef(start, diff);
-    ref.y = Math.atan2(diff.x, diff.z) || 0;
-    ref.x = Math.atan2(Math.sqrt(diff.x ** 2 + diff.z ** 2), diff.y) || 0;
-    ref.z = 0;
-    return ref;
-}
-
-function PitchYawRollToMoveBetweenPoints(start, target) {
-    const ref = BABYLON.Vector3.Zero();
-    return PitchYawRollToMoveBetweenPointsToRef(start, target, ref);
-}
-
-
 /* 
  * Copyright 2022 Dariusz Pojda.
  *
@@ -603,24 +653,45 @@ function PitchYawRollToMoveBetweenPoints(start, target) {
  * @param {BABYLON.Vector3} position position over which the label is to be displayed
  * @returns {Label}
  */
-var Label = (function (labelId, txt, position, enabled) {
+var Label = (function (labelId, txt, position) {
+    /**
+     * @param {BABYLON.Vector3} position
+     * @param {boolean} enabled
+     * @returns {undefined}
+     */
+    this.createMe = async function (position, enabled) {
+        this.plane = this.createPlane();
+        this.plane.position = position.add(this.planeOffset);
+        this.plane.billboardMode = BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
+        this.plane.setEnabled(enabled);
+        this.plane.isPickable = false;
+    };
+
+    /**
+     * @param {string} txt
+     * @param {boolean} enabled
+     * @returns {undefined}
+     */
     this.setText = async function(txt, enabled) {
         this.text = txt;
         
         if (this.plane!==null)
             this.plane.dispose();
         
-        this.plane = this.createPlane();
-        this.plane.position = this.position.add(new BABYLON.Vector3(0.0, 5.0, 0.0));
-        this.plane.billboardMode = BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
-        this.plane.setEnabled(enabled);
-        this.plane.isPickable = false;
+        this.createMe(this.position, enabled);
     };
     
+    /**
+     * @returns {string}
+     */
     this.getText = function() {
         return this.text;
     };
     
+    /**
+     * @param {BABYLON.Vector3} position
+     * @returns {undefined}
+     */
     this.setPosition = function(pos) {
         this.position = pos;
         
@@ -628,6 +699,9 @@ var Label = (function (labelId, txt, position, enabled) {
             this.plane.position = pos.add(this.planeOffset);
     };
 
+    /**
+     * @returns {BABYLON.Plane}
+     */
     this.createPlane = function() {
         let font_size = 64;
         let font = "normal " + font_size + "px Arial,Helvetica,sans-serif";
@@ -665,21 +739,15 @@ var Label = (function (labelId, txt, position, enabled) {
     };
 
     /**
-     * @param {type} txt
-     * @param {type} position
+     * @param {boolean} b
      * @returns {undefined}
      */
-    this.createMe = async function (position, enabled) {
-        this.plane = this.createPlane();
-        this.plane.position = position.add(this.planeOffset);
-        this.plane.billboardMode = BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
-        this.plane.setEnabled(enabled);
-        this.plane.isPickable = false;
-    };
-
     this.setEnabled = function (b) {
         if (this.plane!==null)
             this.plane.setEnabled(b);
+        else if (b) {
+            this.createMe(this.position, true);
+        }
     };
 
     this.text = txt;
@@ -687,7 +755,6 @@ var Label = (function (labelId, txt, position, enabled) {
     this.position = position;
     this.id = labelId;
     this.plane = null;
-    this.createMe(position, enabled);
 });
 
 
@@ -710,8 +777,8 @@ var Label = (function (labelId, txt, position, enabled) {
 "use strict";
 /* global BABYLON, greenMat, redMat, grayMat0, grayMat1, advancedTexture, sgv */
 
-const createLabel = function(id, position, scene, enabled) {
-    return new Label("q" + id, "q" + id, position, scene, enabled);
+const createLabel = function(id, position) {
+    return new Label("q" + id, "q" + id, position);
 };
 
 var Node = /** @class */ (function(graf, id, x, y, z, _values) {
@@ -753,7 +820,7 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
     this.dispose = function() {
         sgv.SPS.unbindNode(this);
         
-        if (label.plane!==null) {
+        if ((label!==null) && (label.plane!==null)) {
             label.plane.dispose();
 //            delete this.label.plane;
         }
@@ -768,7 +835,6 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         if (typeof b!== 'undefined') {
             this.labelIsVisible = b;
         }
-        
         label.setEnabled(this.labelIsVisible && this.parentGraph.labelsVisible);
     };
 
@@ -776,7 +842,6 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         if (typeof b!== 'undefined') {
             this.labelIsVisible = b;
         }
-
         label.setText(t, this.labelIsVisible && this.parentGraph.labelsVisible);
     };
 
@@ -863,16 +928,21 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         console.error("Can't bind NodeSPS");
     }
     else {
-        var label = createLabel(this.id, this.mesh.position, sgv.scene, false);
+        var label = createLabel(this.id, this.mesh.position);
     }
 
 });
 
-Node.create = (graf, x, y, z, i, j, k)=>{
-    let q = qD(x,y,z,i,j,k);
-    let pos = graf.calcPosition2(x, y, z, q.n0());
-    return new Node(graf, q.toNodeId(graf.rows, graf.cols), pos.x, pos.y, pos.z );
+Node.fromQDescr = (graf, qd)=>{
+    let pos = graf.calcPosition2(qd.x, qd.y, qd.z, qd.n0());
+    return new Node(graf, qd.toNodeId(graf.rows, graf.cols), pos.x, pos.y, pos.z );
 };
+
+Node.fromXYZIJK = (graf, x, y, z, i, j, k)=>{
+    return Node.fromQDescr(graf, qD(x,y,z,i,j,k));
+};
+
+
 
 
 /* 
@@ -2854,6 +2924,7 @@ sgv.display = function(args) {
             let sceneToRender = sgv.scene;
             sgv.engine.runRenderLoop(function () {
                 if (sceneToRender && sceneToRender.activeCamera) {
+                    //console.log('loop');
                     sceneToRender.render();
                 }
             });
@@ -2863,11 +2934,15 @@ sgv.display = function(args) {
         window.addEventListener("resize",
             function () {
                 sgv.engine.resize();
+                
+                detectClient();
             });
 
         desktopInit();
     });
 };
+
+
 
 //=========================================
 // functions overriden in desktop scripts
@@ -3378,7 +3453,7 @@ const ScopePanel = (function(addButtons) {
         let createNew = true;
         if ((typeof scopeToEdit === 'string')&&(scopeToEdit!=='')) createNew = false;
         
-        let divNS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivNS"}, {'textContent': (createNew)?"add new scope: ":"edit scope: "});
+        let divNS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivNS"}, {'textContent': (detectedOS==='android')?'':(createNew)?"add new scope: ":"edit scope: "});
         
         let editAddScope = UI.tag("input", {'type': "text", 'id': "cplAddScopeInput", 'value': (createNew)?"newScope":scopeToEdit});
         divNS.appendChild(editAddScope);
@@ -3425,7 +3500,7 @@ const ScopePanel = (function(addButtons) {
     
     this.ui = UI.tag("div", {'class': "sgvSelectBox", 'id': "cplScope"});
     
-    divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': "current scope: "});
+    divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': (detectedOS==='android')?'':"current scope: "});
     this.ui.appendChild(divDS);
 
     let selectScope = UI.tag("select", {'id': "cplDispValues"});
@@ -3646,7 +3721,8 @@ sgv.dlgCPL = new function () {
     var switchableContent; 
     var selectionPanel, descriptionPanel;
     var scopePanel, slidersPanel;
-
+    var switchHandle;
+    
     var ui = createDialog();
 
     window.addEventListener('load', () => {
@@ -3783,7 +3859,7 @@ sgv.dlgCPL = new function () {
 
         
         ui.appendChild(switchableContent);
-        ui.appendChild( UI.tag( 'div', {'id': 'switch'}, {'innerHTML': '. . .'}, {'click': () => switchDialog()} ) );
+        ui.appendChild( switchHandle = UI.tag( 'div', {'id': 'switch'}, {'innerHTML': '. . .'}, {'click': () => switchDialog()} ) );
 
         ui.style.display = 'block';
 
@@ -3827,6 +3903,7 @@ sgv.dlgCPL = new function () {
         setModeSelection: setModeSelectionX,
         updateSliders: slidersPanel.refresh,
         addButton: descriptionPanel.addButton,
+        //quickInfo: (s)=>(switchHandle.innerHTML=s),
         addScope: scopePanel.addScope,
         delScope: scopePanel.delScope,
         selScope: scopePanel.selScope
@@ -4386,8 +4463,18 @@ sgv.dlgCellView = new function () {
 
     var prevFocused = null;
 
-    const _width = 600;
-    const _height = 600;
+    console.log(detectedOS);
+    console.log(navigator);
+    console.log(screen);
+    console.log(window);
+    
+    let winH = window.innerHeight;
+    let winW = window.innerWidth;
+    
+    let winS = Math.min(winH, winW)*0.9;
+    
+    const _width = (detectedOS==='android')?winS:600;
+    const _height = (detectedOS==='android')?winS:600;
     const ctrX = _width / 2;
     const ctrY = _height / 2;
 
@@ -4395,9 +4482,67 @@ sgv.dlgCellView = new function () {
 
     ui.addEventListener('keydown', onKeyDownX);
 
+    var xDown = null;                                                        
+    var yDown = null;
+
+    ui.addEventListener('touchstart', handleTouchStart, false);        
+    ui.addEventListener('touchmove', handleTouchMove, false);
+
     window.addEventListener('load', () => {
         window.document.body.appendChild(ui);
     });
+
+    function getTouches(evt) {
+      return evt.touches ||             // browser API
+             evt.originalEvent.touches; // jQuery
+    }    
+
+    function handleTouchStart(evt) {
+        const firstTouch = getTouches(evt)[0];                                      
+        xDown = firstTouch.clientX;                                      
+        yDown = firstTouch.clientY;                                      
+    };                                                
+
+    function handleTouchMove(evt) {
+        if ( ! xDown || ! yDown ) {
+            return;
+        }
+
+        var xUp = evt.touches[0].clientX;                                    
+        var yUp = evt.touches[0].clientY;
+
+        var xDiff = xDown - xUp;
+        var yDiff = yDown - yUp;
+
+        if ( Math.abs( xDiff ) > Math.abs( yDiff ) ) {/*most significant*/
+            if ( xDiff > 0 ) {
+                /* right swipe */ 
+                if (c < (sgv.graf.cols - 1)) {
+                    drawModule(c + 1, r, l);
+                }
+            } else {
+                /* left swipe */
+                if (c > 0) {
+                    drawModule(c - 1, r, l);
+                }
+            }                       
+        } else {
+            if ( yDiff > 0 ) {
+                /* down swipe */ 
+                if (r > 0) {
+                    drawModule(c, r - 1, l);
+                }
+            } else { 
+                /* up swipe */
+                if (r < (sgv.graf.rows - 1)) {
+                    drawModule(c, r + 1, l);
+                }
+            }                                                                 
+        }
+        /* reset values */
+        xDown = null;
+        yDown = null;                                             
+    };
 
     function onKeyDownX(event) {
         let key = event.key;
@@ -4598,8 +4743,8 @@ sgv.dlgCellView = new function () {
         ui.appendChild(content);
 
         ui.style.display = "none";
-        ui.style['top'] = '10vh';
-        ui.style['left'] = '10vh';
+        ui.style['top'] = (detectedOS==='android')?winS*0.05:'10vh';
+        ui.style['left'] = (detectedOS==='android')?winS*0.05:'10vh';
         return ui;
     }
     

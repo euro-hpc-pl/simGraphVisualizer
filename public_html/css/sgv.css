@@ -1,3 +1,10 @@
+:root {
+    --btn_size: 96px; /*5vw dla 1920px*/
+    --btn_aspect_ratio: 0.3;
+    --btn_font_size: 12px;
+    --tool_btn_size: 32px;
+}
+
 #sgvWorkspaceArea {
     float:none;
     clear:both;
@@ -112,10 +119,6 @@
 }
 
 
-:root {
-    --btn_size: 96px; /*5vw dla 1920px*/
-    --btn_aspect_ratio: 0.3;
-}
 
 
 button.sgvTransparentButton1 {
@@ -145,7 +148,7 @@ button.sgvTransparentButton1:hover {
 }
 
 button.sgvTransparentButton1 span {
-    font-size: calc(var(--btn_size) / 8);
+    font-size: var(--btn_font_size);
     text-align: center;
     vertical-align: top;
 }
@@ -170,10 +173,22 @@ button#cplClearButton {
     top:0px;
 }
 
+#sgvDlgCPL div#switch {
+    /*background: rgba(0, 1.0, 0, 0.5);*/
+    min-width: var(--ref_size);
+    height: calc( var(--btn_size) / 4 );
+    text-align: center;
+    vertical-align: top;
+    color: #fff;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-top: #aaa solid 1px;
+    cursor: pointer;
+}
 
 select#cplDispValues {
-    height: 24px;
-    width: 150px;
+    height: var(--tool_btn_size);
+    width: calc(6*var(--tool_btn_size));
     font-family: monospace;
     font-weight: bold;
     font-size: 18px;
@@ -184,8 +199,8 @@ select#cplDispValues {
 }
 
 input#cplAddScopeInput {
-    height: 20px;
-    width: 150px;
+    height: calc(0.8*var(--tool_btn_size));
+    width: calc(6*var(--tool_btn_size));
     font-family: monospace;
     font-weight: bold;
     font-size: 18px;
@@ -197,8 +212,8 @@ input#cplAddScopeInput {
 }
 
 input.sgvC {
-    height: 24px;
-    width: 24px;
+    height: var(--tool_btn_size);
+    width: var(--tool_btn_size);
     padding:0;
     text-align: center;
     vertical-align: middle;
@@ -209,6 +224,7 @@ input.sgvC {
     background-color: rgba(0,0,0,0.5);
     background-position: center center;
     background-repeat: no-repeat;
+    background-size: 70%;
 }
 
 input.sgvC#cplAcceptAddScope, input.sgvC#cplAddScope {
@@ -232,18 +248,6 @@ input.sgvC:hover {
     padding: 1px 0 0 1px;
 }
 
-#switch {
-    /*background: rgba(0, 1.0, 0, 0.5);*/
-    min-width: 564px;
-    height: 16px;
-    text-align: center;
-    vertical-align: top;
-    color: #fff;
-    border-bottom-left-radius: 10px;
-    border-bottom-right-radius: 10px;
-    border-top: #aaa solid 1px;
-    cursor: pointer;
-}
 
 #sgvMissingNodes {
     min-width: 200px;

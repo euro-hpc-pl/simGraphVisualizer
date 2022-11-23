@@ -24,7 +24,7 @@ const ScopePanel = (function(addButtons) {
         let createNew = true;
         if ((typeof scopeToEdit === 'string')&&(scopeToEdit!=='')) createNew = false;
         
-        let divNS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivNS"}, {'textContent': (createNew)?"add new scope: ":"edit scope: "});
+        let divNS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivNS"}, {'textContent': (detectedOS==='android')?'':(createNew)?"add new scope: ":"edit scope: "});
         
         let editAddScope = UI.tag("input", {'type': "text", 'id': "cplAddScopeInput", 'value': (createNew)?"newScope":scopeToEdit});
         divNS.appendChild(editAddScope);
@@ -71,7 +71,7 @@ const ScopePanel = (function(addButtons) {
     
     this.ui = UI.tag("div", {'class': "sgvSelectBox", 'id': "cplScope"});
     
-    divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': "current scope: "});
+    divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': (detectedOS==='android')?'':"current scope: "});
     this.ui.appendChild(divDS);
 
     let selectScope = UI.tag("select", {'id': "cplDispValues"});

@@ -19,20 +19,56 @@ var SPS = (function(scene) {
     defaultSphere.setEnabled(false);
     defaultCylinder.setEnabled(false);
     
-    function initX() {
-        NodeSPS.addShape(defaultSphere, 100);
-        EdgeSPS.addShape(defaultCylinder, 100);
+    function initX(nbN, nbE) {
+        if (typeof nbN !== 'number') nbN = 100;
+        if (typeof nbE !== 'number') nbE = 500;
 
+        NodeSPS.addShape(defaultSphere, nbN);
         NodeSPSmesh = NodeSPS.buildMesh();
+
+        for (let i=0; i<nbN; i++){
+            NodeSPS.particles[i].isVisible = false;
+        }
+
+        EdgeSPS.addShape(defaultCylinder, nbE);
         EdgeSPSmesh = EdgeSPS.buildMesh();
 
-        for (let i=0; i<100; i++){
-            NodeSPS.particles[i].isVisible = false;
+        for (let i=0; i<nbE; i++){
             EdgeSPS.particles[i].isVisible = false;
         }
 
         refreshX();
     };
+
+    function addSpaceForEdgesX(nb) {
+        if (typeof nb !== 'number') nb = 500;
+
+        let size = EdgeSPS.nbParticles;
+        
+        EdgeSPS.addShape(defaultCylinder, nb);
+        EdgeSPSmesh = EdgeSPS.buildMesh();
+
+        for (let i=size; i<(size+nb); i++){
+            EdgeSPS.particles[i].isVisible = false;
+        }
+        
+        //console.log('EdgeSPS: ',EdgeSPS.nbParticles);
+    }
+        
+    function addSpaceForNodesX(nb) {
+        if (typeof nb !== 'number') nb = 100;
+        
+        let size = NodeSPS.nbParticles;
+
+        NodeSPS.addShape(defaultSphere, nb);
+        NodeSPSmesh = NodeSPS.buildMesh();
+
+        for (let i=size; i<(size+nb); i++){
+            NodeSPS.particles[i].isVisible = false;
+        }
+
+        //console.log('NodeSPS: ',NodeSPS.nbParticles);
+    }
 
     function refreshNodesX() {
         NodeSPS.setParticles();
@@ -56,14 +92,7 @@ var SPS = (function(scene) {
 
         let id = nCnt++;
         let size = NodeSPS.nbParticles;
-        if (id>=size) {
-            NodeSPS.addShape(defaultSphere, 100);
-            NodeSPSmesh = NodeSPS.buildMesh();
-
-            for (let i=size; i<(size+100); i++){
-                NodeSPS.particles[i].isVisible = false;
-            }
-        }
+        if (id>=size) addSpaceForNodesX(100);
         return id;
     };
     
@@ -74,14 +103,7 @@ var SPS = (function(scene) {
 
         let id = eCnt++;
         let size = EdgeSPS.nbParticles;
-        if (id>=size) {
-            EdgeSPS.addShape(defaultCylinder, 100);
-            EdgeSPSmesh = EdgeSPS.buildMesh();
-
-            for (let i=size; i<(size+100); i++){
-                EdgeSPS.particles[i].isVisible = false;
-            }
-        }
+        if (id>=size) addSpaceForEdgesX(500);
         return id;
     };
 
@@ -132,7 +154,8 @@ var SPS = (function(scene) {
         p0.copyFrom(b);
         p0.addInPlace(vec.scale(length/2));
 
-        mesh.rotation = PitchYawRollToMoveBetweenPoints(b, e);
+        //mesh.rotation = PitchYawRollToMoveBetweenPoints(b, e);
+        mesh.rotation = BABYLON.Vector3.PitchYawRollToMoveBetweenPoints(b, e);
         mesh.position = p0;
         mesh.color = edgeColor;
         mesh.scaling = new BABYLON.Vector3( edgeWidth, length, edgeWidth );

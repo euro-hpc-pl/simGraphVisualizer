@@ -13,12 +13,12 @@ var concat = require('gulp-concat');
 var del = require('del');
 
 var srcfiles = [
+    "./src/helpers.js",
     "./src/SVG.js",
     "./src/Dispatcher.js",
     "./src/SPS.js",
     "./src/GraphDescr.js",
     "./src/TempGraphStructure.js",
-    "./src/helpers.js",
     "./src/label.js",
     "./src/node.js",
     "./src/edge.js",

@@ -91,20 +91,47 @@ function valueToEdgeWidth(val) {
     return 0.2 + ( val / max );
 }
 
+//function PitchYawRollToMoveBetweenPointsToRef(start, target, ref) {
+//    const diff = BABYLON.TmpVectors.Vector3[0];
+//    target.subtractToRef(start, diff);
+//    ref.y = Math.atan2(diff.x, diff.z) || 0;
+//    ref.x = Math.atan2(Math.sqrt(diff.x ** 2 + diff.z ** 2), diff.y) || 0;
+//    ref.z = 0;
+//    return ref;
+//}
 
+//function PitchYawRollToMoveBetweenPoints(start, target) {
+//    const ref = BABYLON.Vector3.Zero();
+//    return PitchYawRollToMoveBetweenPointsToRef(start, target, ref);
+//}
 
+var detectedOS = 'unknown';
 
-function PitchYawRollToMoveBetweenPointsToRef(start, target, ref) {
-    const diff = BABYLON.TmpVectors.Vector3[0];
-    target.subtractToRef(start, diff);
-    ref.y = Math.atan2(diff.x, diff.z) || 0;
-    ref.x = Math.atan2(Math.sqrt(diff.x ** 2 + diff.z ** 2), diff.y) || 0;
-    ref.z = 0;
-    return ref;
+function detectClient() {
+    let winH = window.innerHeight;
+    let winW = window.innerWidth;
+    
+    let winS = Math.min(winH, winW);
+    
+    var ua = navigator.userAgent.toLowerCase();
+    var isAndroid = ua.indexOf("android") > -1; //&& ua.indexOf("mobile");
+    var r = document.querySelector(':root');
+    if(isAndroid) {
+        detectedOS = 'android';
+        r.style.setProperty('--ref_size', winS+'px');
+        r.style.setProperty('--btn_size', (winS/8)+'px'); //96px
+        r.style.setProperty('--btn_aspect_ratio', '0.75');
+        r.style.setProperty('--btn_font_size', (winS/32)+'px');
+        r.style.setProperty('--tool_btn_size', (winS/12)+'px');
+    }
+    else {
+        r.style.setProperty('--ref_size', '800px');
+        r.style.setProperty('--btn_size', '96px'); //96px
+        r.style.setProperty('--btn_aspect_ratio', '0.3');
+        r.style.setProperty('--btn_font_size', '12px');
+        r.style.setProperty('--tool_btn_size', '32px');
+        //r.style.setProperty('--tool_btn_size', (winS/9)+'px');
+    }
 }
 
-function PitchYawRollToMoveBetweenPoints(start, target) {
-    const ref = BABYLON.Vector3.Zero();
-    return PitchYawRollToMoveBetweenPointsToRef(start, target, ref);
-}
-
+detectClient();

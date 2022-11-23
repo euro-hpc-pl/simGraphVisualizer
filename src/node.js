@@ -18,8 +18,8 @@
 "use strict";
 /* global BABYLON, greenMat, redMat, grayMat0, grayMat1, advancedTexture, sgv */
 
-const createLabel = function(id, position, scene, enabled) {
-    return new Label("q" + id, "q" + id, position, scene, enabled);
+const createLabel = function(id, position) {
+    return new Label("q" + id, "q" + id, position);
 };
 
 var Node = /** @class */ (function(graf, id, x, y, z, _values) {
@@ -61,7 +61,7 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
     this.dispose = function() {
         sgv.SPS.unbindNode(this);
         
-        if (label.plane!==null) {
+        if ((label!==null) && (label.plane!==null)) {
             label.plane.dispose();
 //            delete this.label.plane;
         }
@@ -76,7 +76,6 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         if (typeof b!== 'undefined') {
             this.labelIsVisible = b;
         }
-        
         label.setEnabled(this.labelIsVisible && this.parentGraph.labelsVisible);
     };
 
@@ -84,7 +83,6 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         if (typeof b!== 'undefined') {
             this.labelIsVisible = b;
         }
-
         label.setText(t, this.labelIsVisible && this.parentGraph.labelsVisible);
     };
 
@@ -171,13 +169,17 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         console.error("Can't bind NodeSPS");
     }
     else {
-        var label = createLabel(this.id, this.mesh.position, sgv.scene, false);
+        var label = createLabel(this.id, this.mesh.position);
     }
 
 });
 
-Node.create = (graf, x, y, z, i, j, k)=>{
-    let q = qD(x,y,z,i,j,k);
-    let pos = graf.calcPosition2(x, y, z, q.n0());
-    return new Node(graf, q.toNodeId(graf.rows, graf.cols), pos.x, pos.y, pos.z );
+Node.fromQDescr = (graf, qd)=>{
+    let pos = graf.calcPosition2(qd.x, qd.y, qd.z, qd.n0());
+    return new Node(graf, qd.toNodeId(graf.rows, graf.cols), pos.x, pos.y, pos.z );
 };
+
+Node.fromXYZIJK = (graf, x, y, z, i, j, k)=>{
+    return Node.fromQDescr(graf, qD(x,y,z,i,j,k));
+};
+

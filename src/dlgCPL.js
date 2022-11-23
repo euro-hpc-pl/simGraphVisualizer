@@ -6,7 +6,8 @@ sgv.dlgCPL = new function () {
     var switchableContent; 
     var selectionPanel, descriptionPanel;
     var scopePanel, slidersPanel;
-
+    var switchHandle;
+    
     var ui = createDialog();
 
     window.addEventListener('load', () => {
@@ -143,7 +144,7 @@ sgv.dlgCPL = new function () {
 
         
         ui.appendChild(switchableContent);
-        ui.appendChild( UI.tag( 'div', {'id': 'switch'}, {'innerHTML': '. . .'}, {'click': () => switchDialog()} ) );
+        ui.appendChild( switchHandle = UI.tag( 'div', {'id': 'switch'}, {'innerHTML': '. . .'}, {'click': () => switchDialog()} ) );
 
         ui.style.display = 'block';
 
@@ -187,6 +188,7 @@ sgv.dlgCPL = new function () {
         setModeSelection: setModeSelectionX,
         updateSliders: slidersPanel.refresh,
         addButton: descriptionPanel.addButton,
+        //quickInfo: (s)=>(switchHandle.innerHTML=s),
         addScope: scopePanel.addScope,
         delScope: scopePanel.delScope,
         selScope: scopePanel.selScope
