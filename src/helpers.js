@@ -105,7 +105,7 @@ function valueToEdgeWidth(val) {
 //    return PitchYawRollToMoveBetweenPointsToRef(start, target, ref);
 //}
 
-var detectedOS = 'unknown';
+var isMobile = false;
 
 function detectClient() {
 //    let winH = window.innerHeight;
@@ -113,33 +113,37 @@ function detectClient() {
 //    
 //    let winS = Math.min(winH, winW);
     
+    console.log(navigator.userAgent);
+    console.log(window.innerWidth, window.innerHeight);
+
     var ua = navigator.userAgent.toLowerCase();
-    var isAndroid = ua.indexOf("android") > -1; //&& ua.indexOf("mobile");
-//    var r = document.querySelector(':root');
-    if(isAndroid) {
-        detectedOS = 'android';
+    isMobile = ( ua.indexOf("android") > -1 )
+            || ( ua.indexOf("iphone") > -1 )
+            || ( ua.indexOf("ipad") > -1 );
+    
+//    if(isMobile) {
         
-        //<link href="css/style.css" rel="stylesheet">        
+//    var r = document.querySelector(':root');
 //        r.style.setProperty('--ref_size', winS+'px');
 //        r.style.setProperty('--btn_size', (winS/6)+'px'); //96px
 //        r.style.setProperty('--btn_aspect_ratio', '0.6');
 //        r.style.setProperty('--btn_font_size', (winS/40)+'px');
 //        r.style.setProperty('--tool_btn_size', (winS/12)+'px');
-    }
-    else {
+//    }
+//    else {
 //        r.style.setProperty('--ref_size', '800px');
 //        r.style.setProperty('--btn_size', '96px'); //96px
 //        r.style.setProperty('--btn_aspect_ratio', '0.4');
 //        r.style.setProperty('--btn_font_size', '12px');
 //        r.style.setProperty('--tool_btn_size', '32px');
         //r.style.setProperty('--tool_btn_size', (winS/9)+'px');
-    }
+//    }
 }
 
 detectClient();
 
 window.addEventListener('load', () => {
-    if (detectedOS === 'android') {
+    if (isMobile) {
         var linkElement = this.document.createElement('link');
         linkElement.setAttribute('rel', 'stylesheet');
         linkElement.setAttribute('type', 'text/css');

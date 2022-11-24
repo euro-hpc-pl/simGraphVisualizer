@@ -23,7 +23,23 @@ SVG.createSVG = (_id, _width, _height, _onClick ) => {
     svgView.setAttributeNS(null, "id", _id);
     svgView.setAttributeNS(null, "height", _height);
     svgView.setAttributeNS(null, "width", _width);
+    //svgView.setAttributeNS(null, "viewBox", "0 0 250 250");
+    
+    if (typeof _onClick === 'function') {
+        svgView.addEventListener('click', _onClick);
+    }
 
+    svgView.style.display = 'block';
+    return svgView;
+};
+
+SVG.createSVG2 = (_id, _width, _height, _onClick ) => {
+    let svgView = document.createElementNS(SVG.NS, "svg");
+    svgView.setAttributeNS(null, "id", _id);
+    //svgView.setAttributeNS(null, "height", _height);
+    //svgView.setAttributeNS(null, "width", _width);
+    svgView.setAttributeNS(null, "viewBox", "0 0 "+_width+" "+_height);
+    
     if (typeof _onClick === 'function') {
         svgView.addEventListener('click', _onClick);
     }

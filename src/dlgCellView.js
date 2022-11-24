@@ -8,18 +8,17 @@ sgv.dlgCellView = new function () {
 
     var prevFocused = null;
 
-    console.log(detectedOS);
-    console.log(navigator);
-    console.log(screen);
-    console.log(window);
+//    console.log(navigator);
+//    console.log(screen);
+//    console.log(window);
     
     let winH = window.innerHeight;
     let winW = window.innerWidth;
     
     let winS = Math.min(winH, winW)*0.9;
     
-    const _width = (detectedOS==='android')?winS:600;
-    const _height = (detectedOS==='android')?winS:600;
+    const _width = isMobile?winS:600;
+    const _height = isMobile?winS:600;
     const ctrX = _width / 2;
     const ctrY = _height / 2;
 
@@ -124,7 +123,7 @@ sgv.dlgCellView = new function () {
     function createUI() {
         r = c = l = 0;
 
-        let ui = UI.createEmptyWindow("sgvUIwindow", "sgvdlgCellView", "Cell view", true);
+        let ui = UI.createEmptyWindow("sgvUIwindow", "sgvCellView", "Cell view", true);
 
         ui.querySelector(".hidebutton").addEventListener('click', function () {
             hideDialogX();
@@ -241,15 +240,9 @@ sgv.dlgCellView = new function () {
 //        t[1][0].appendChild(leftButton);
 
 
-        let div = UI.tag('div');
-        div.style.width = 'fit-content';
-        div.style.height = 'fit-content';
-        div.style.background = '#fff';
-        div.style['border'] = '0';
-        div.style['margin'] = '0';
-        div.style['padding'] = '0';
+        let div = UI.tag('div',{'id':'svg'});
 
-        svgView = SVG.createSVG('svgView', _width, _height, (event) => {
+        svgView = SVG.createSVG2('svgView', _width, _height, (event) => {
             if (event.target.id === 'svgView') {
                 sgv.dlgNodeProperties.hide();
                 sgv.dlgEdgeProperties.hide();
@@ -288,8 +281,8 @@ sgv.dlgCellView = new function () {
         ui.appendChild(content);
 
         ui.style.display = "none";
-        ui.style['top'] = (detectedOS==='android')?winS*0.05:'10vh';
-        ui.style['left'] = (detectedOS==='android')?winS*0.05:'10vh';
+        ui.style['top'] = isMobile?winS*0.05:'10vh';
+        ui.style['left'] = isMobile?winS*0.05:'10vh';
         return ui;
     }
     

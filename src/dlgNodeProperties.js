@@ -9,17 +9,26 @@ sgv.dlgNodeProperties = new function() {
     var content, zeroInfo, svgView;
     var prevFocused=null;
     
-    const _width = 250;
-    const _height = 250;
+    var _width = 250;
+    var _height = 250;
 
     var ui = createUI();
 
     ui.addEventListener('keydown', onKeyDownX );
     
+    
     window.addEventListener('load',()=>{
         window.document.body.appendChild(ui);
         showDialog(0);
+        
+        window.addEventListener('orientationchange', sgv.dlgNodeProperties.onOrientationChange );
+        //new ResizeObserver(()=>console.log('resize')).observe(svgView);
     });
+
+    function onOrientationChange() {
+        
+        
+    }
 
     function createUI() {
         let ui = UI.createEmptyWindow("sgvUIwindow", "sgvNodeProperties", "Node properties", true);
@@ -31,7 +40,10 @@ sgv.dlgNodeProperties = new function() {
         hidNodeId = UI.newInput('hidden', '0', '', 'nodeId');
         ui.appendChild(hidNodeId);
 
-        var precontent = UI.tag("div", {'class':'content'});
+        var main = UI.tag("div", {'id':'main'});
+        ui.appendChild(main);
+        
+        var precontent = UI.tag("div", {'id':'nodeid', 'class':'content'});
 
         selectNodeId = UI.tag('select',{'id':'selectNodeId'});
         selectNodeId.appendChild(UI.tag('option',{'value':0,'selected':true},{'innerHTML':'-- id --'}));
@@ -41,27 +53,19 @@ sgv.dlgNodeProperties = new function() {
         precontent.appendChild(UI.tag('label',{'for':'selectNodeId'},{'innerHTML':'Node: '}));
         precontent.appendChild(selectNodeId);
 
-        ui.appendChild(precontent);
+        main.appendChild(precontent);
 
 
 
         let div = UI.tag('div', {'id':'svg'});
-        div.style.width = 'fit-content';
-        div.style.height = 'fit-content';
-        div.style.background = '#fff';
-        div.style['border'] = '0';
-        div.style['margin'] = '0';
-        div.style['padding'] = '0';
 
-        svgView = SVG.createSVG('svgView', _width, _height, (event) => {
+        svgView = SVG.createSVG2('svgView', _width, _height, (event) => {
             if (event.target.id === 'svgView') {
                 sgv.dlgEdgeProperties.hide();
             }
         });
         div.appendChild(svgView);
-        ui.appendChild(div);
-
-
+        main.appendChild(div);
 
         content = UI.tag("div", {'id':'tools', 'class':'content'});
 
@@ -95,7 +99,7 @@ sgv.dlgNodeProperties = new function() {
         content.appendChild(UI.tag('label',{'for':'nsSelectN'},{'innerHTML':'Scope: '}));
         content.appendChild(selectScope);
         
-        content.appendChild(document.createElement("br"));
+        //content.appendChild(document.createElement("br"));
 
         checkValueN = UI.newInput("checkbox", "", "", "valueCheckN");
         checkValueN.addEventListener('click', function () {
@@ -144,13 +148,13 @@ sgv.dlgNodeProperties = new function() {
         content.style['min-width'] = '240px'; 
         content.style['min-height'] = '105px'; 
 
-        ui.appendChild(content);
+        main.appendChild(content);
 
         zeroInfo = UI.tag("div", {'id':'zeroInfo', 'class':'content'});
         zeroInfo.innerHTML = "Select a node, please.";
         zeroInfo.style['min-width'] = '240px'; 
         zeroInfo.style['min-height'] = '105px'; 
-        ui.appendChild(zeroInfo);
+        main.appendChild(zeroInfo);
         
         return ui;
     }
@@ -283,7 +287,7 @@ sgv.dlgNodeProperties = new function() {
         
         UI.selectByKey( selectNodeId, nodeId );
 
-        if (detectedOS!=='android'){
+        if (!isMobile){
             if ((typeof x!=='undefined')&&(typeof y!=='undefined')) {
                 let xOffset = sgv.canvas.clientLeft;
 

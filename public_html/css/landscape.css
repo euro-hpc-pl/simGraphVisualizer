@@ -1,8 +1,39 @@
 :root {
-    --btn_size: 96px; /*5vw dla 1920px*/
-    --btn_aspect_ratio: 0.3;
-    --btn_font_size: 12px;
-    --tool_btn_size: 32px;
+    --ref_size: 60vw;
+    --full_width: 100vw;
+    --full_height: 100vh;
+    
+    --font_size: calc(0.025*var(--ref_size));
+    --btn_font_size: calc(0.025*var(--ref_size));
+
+    --btn_size: calc(0.18*var(--ref_size));
+    --btn_aspect_ratio: 0.6;
+
+    --btn_width: calc(0.18*var(--ref_size));
+    --btn_height: calc(0.6*var(--btn_width));
+    
+    --tool_btn_size: calc(0.05*var(--ref_size));
+}
+
+body {
+    font-family: sans-serif;
+    font-size: var(--font_size);
+}
+
+select, input, button {
+    font-family: sans-serif;
+    font-size: var(--font_size);
+}
+
+.sgvUIwindow .actionbutton {
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #ddd;
+    border: solid 1px #888;
+    margin: 2vh;
+    border-radius: 4vh;
+    width: var(--btn_width);
+    height: var(--btn_height);
+    font-size: var(--btn_font_size);
 }
 
 #sgvWorkspaceArea {
@@ -77,16 +108,18 @@
     color: #fff;
     border: solid 1px #000;
 }
-
+/*
 .sgvUIwindow .actionbutton {
-    width: 45%;
     margin-top: 15px;
-    /*margin-left: 25%;*/
     background-color: rgba(0, 0, 0, 0.5);
     color: #ddd;
     border: solid 1px #888;
     border-radius: 5px;
+    width: var(--btn_size);
+    height: calc(var(--btn_size) * var(--btn_aspect_ratio));
+    margin: calc(var(--btn_size) / 12.8);
 }
+*/
 
 .sgvUIwindow .setvaluebutton {
     background-color: #080;
@@ -119,12 +152,10 @@
 }
 
 
-
-
 button.sgvTransparentButton1 {
     width: var(--btn_size);
     height: calc(var(--btn_size) * var(--btn_aspect_ratio));
-    margin: calc(var(--btn_size) / 12.8);
+    margin: calc(var(--btn_size) / 20);
     padding: 0;
     background-color: rgba(0,0,0,0.5);
     color: white;
@@ -133,9 +164,9 @@ button.sgvTransparentButton1 {
     border-bottom: solid 1px #444;
     border-right: solid 1px #444;
     /* border-radius: calc(var(--btn_size) / 6.4); */
-    border-radius: 5px;
-    overflow: hidden;
+    border-radius: 4vh;
     text-align: center;
+    font-size: var(--btn_font_size);
     vertical-align: top;
 }
 
@@ -148,9 +179,11 @@ button.sgvTransparentButton1:hover {
 }
 
 button.sgvTransparentButton1 span {
-    font-size: var(--btn_font_size);
     text-align: center;
-    vertical-align: top;
+    vertical-align: middle;
+    font-size: var(--btn_font_size);
+    padding:0;
+    margin:0;
 }
 
 
@@ -164,108 +197,12 @@ button#cplClearButton {
     top:10px;
 }
 
-#sgvDlgCPL {
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    text-align: center;
-    width: fit-content;
-    height: fit-content;
-    top:0px;
-}
-
-#sgvDlgCPL div#switch {
-    /*background: rgba(0, 1.0, 0, 0.5);*/
-    min-width: var(--ref_size);
-    height: calc( var(--btn_size) / 4 );
-    text-align: center;
-    vertical-align: top;
-    color: #fff;
-    border-bottom-left-radius: 10px;
-    border-bottom-right-radius: 10px;
-    border-top: #aaa solid 1px;
-    cursor: pointer;
-}
-
-select#cplDispValues {
-    height: var(--tool_btn_size);
-    width: calc(6*var(--tool_btn_size));
-    font-family: monospace;
-    font-weight: bold;
-    font-size: 18px;
-    background-color: #000;
-    color: #ddd;
-    text-align: center;
-    vertical-align: middle;
-}
-
-input#cplAddScopeInput {
-    height: var(--tool_btn_size);
-    width: calc(6*var(--tool_btn_size));
-    font-family: monospace;
-    font-weight: bold;
-    font-size: 18px;
-    background-color: #000;
-    color: #ddd;
-    text-align: center;
-    vertical-align: middle;
-    margin:0;
-    padding: 0;
-    border: 0;
-}
-
-input.sgvC {
-    height: var(--tool_btn_size);
-    width: var(--tool_btn_size);
-    padding:0;
-    text-align: center;
-    vertical-align: middle;
-    border-top: #ddd solid 1px;
-    border-left: #ddd solid 1px;
-    border-bottom: #000 solid 1px;
-    border-right: #000 solid 1px;
-    background-color: rgba(0,0,0,0.5);
-    background-position: center center;
-    background-repeat: no-repeat;
-    background-size: 70%;
-}
-
-input.sgvC#cplAcceptAddScope, input.sgvC#cplAddScope {
-    background-image: url(pics/Add.png);
-}
-input.sgvC#cplSkipAddScope {
-    background-image: url(pics/Undo.ico);
-}
-input.sgvC#cplDelScope {
-    background-image: url(pics/Remove.ico);
-}
-input.sgvC#cplEditScope {
-    background-image: url(pics/Modify.ico);
-}
-
-input.sgvC:hover {
-    border-top: #000 solid 1px;
-    border-left: #000 solid 1px;
-    border-bottom: #ddd solid 1px;
-    border-right: #ddd solid 1px;
-    padding: 1px 0 0 1px;
-}
 
 
 #sgvMissingNodes {
     min-width: 200px;
     left:70px;
     top:200px;
-    display: none;
-}
-
-#wykresy {
-    /*position:relative;
-    float:right;
-    margin-right:20px;*/
-    left:1000px;
-    top:20px;
-    background-color: #fcc;
-    width: 400px;
     display: none;
 }
 
@@ -289,13 +226,12 @@ input.sgvC:hover {
     right: 0; 
     margin-left: auto; 
     margin-right: auto;     
-    width: 100%;
-
+    width: fit-content;
     bottom: 0;
     margin-top: auto;
     margin-bottom:0;
 
-    height: 252px;
+    height: fit-content;
     padding: 0;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
@@ -303,22 +239,28 @@ input.sgvC:hover {
 }
 
 #sgvConsole .content {
-    padding: 1px;
+    padding: 0;
     margin: 0;
+    border:0;
 }
 
 #sgvConsole #consoleHistory {
+    display: block;
     left: 0;
-    width: calc(100% - 6px);
-    height: 200px;
+    width: var(--ref_size);
+    height: calc(0.3*var(--ref_size));
+    margin:0;
     resize: none;
     background-color: rgba(0,0,0,0.5);
     color: #ddd;
 }
 
 #sgvConsole #commandline {
-    width: calc(100% - 8px);
+    display: block;
+    width: var(--ref_size);
+    margin:0;
     background-color: rgba(0,0,0,0.5);
+    resize: none;
     color: #ddd;
 }
 
@@ -330,13 +272,7 @@ input.sgvC:hover {
     display: none;
 }
 
-#sgvNodeProperties #svg{
-    background:#fff;
-}
 
-#sgvCellView #svg{
-    background:#fff;
-}
 .sgvTransparentPanel {
     position:fixed;
     left:0;
@@ -399,7 +335,7 @@ dialog.sgvModalDialog::backdrop {
 dialog#sgvDlgCreateGraph {
     background: rgba(0, 0, 0, 0.3);
     border-width: 1px;
-    border-radius: 10px;
+    border-radius: 4vh;
 }
 
 dialog.sgvModalDialog div#buttons {
@@ -409,22 +345,36 @@ dialog.sgvModalDialog div#buttons {
 dialog#sgvDlgCreateGraph .content {
     background: 0;
     color: #fff;
+    
+}
+
+dialog#sgvDlgCreateGraph select {
+    background: 0;
+    min-width: 10vh;
+    color: #fff;
+    font-size: var(--font_size);
 }
 
 dialog#sgvDlgCreateGraph .title {
     background-color: rgba(0, 0, 0, 0.5);
     color: #ddd;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
+    border-top-left-radius: 4vh;
+    border-top-right-radius: 4vh;
+    border-bottom: 1px solid #888;
+    font-size: var(--font-size);
+    padding:1vh;
 }
 
 dialog#sgvDlgCreateGraph .actionbutton {
     background-color: rgba(0, 0, 0, 0.5);
     color: #ddd;
     border: solid 1px #888;
-    border-radius: 5px;
+    border-radius: 4vh;
+    width: var(--btn_size);
+    height: calc(0.6*var(--btn_size));
+    margin: 2vh;
+    font-size: var(--btn_font_size);
 }
-
 
 dialog#sgvDlgAbout .content {
     background: #fff;
@@ -483,4 +433,173 @@ dialog#loaderSplash div.loader {
    -khtml-user-select: none; /* Konqueror HTML */
    -moz-user-select: none; /* Firefox */
    -ms-user-select: none; /* Internet Explorer/Edge */
+}
+
+    div#sgvNodeProperties {
+        display: block;
+        margin:auto;
+        background:#444;
+        width:fit-content;
+        height:fit-content;
+        max-height: 90vh;
+        overflow: scroll;
+        left:15vw;
+    }
+
+    div#sgvNodeProperties #main {
+        position:static;
+        width:70vw;
+        height:65vh;
+
+    }
+    
+    #sgvNodeProperties .hidebutton {
+        display: block;
+        position: absolute;
+        bottom:2vh;
+        width:60vh;
+        height: 10vh;
+        right:7vh;
+        font-size: 3vh;
+        color: #000;
+        border-color: #000;
+    }
+
+    #sgvNodeProperties .hidebutton #X {
+        display: none;
+    }
+    
+    #sgvNodeProperties .hidebutton #value:after {
+        display: inline;
+        font-size: 4vh;
+        font-weight: bold;
+        content: 'CLOSE';
+    }
+    
+    #sgvNodeProperties .delbutton {
+        display: block;
+        width:30vh;
+        height: 10vh;
+        font-size: 4vh;
+        font-weight: bold;
+    }
+    
+    #sgvNodeProperties #svg {
+        display: block;
+        margin: auto auto 1vh 1vh;
+        width: 70vh;
+        height: 70vh;
+        background: #fff;
+        float: left;
+    }
+
+    div#sgvNodeProperties #nodeid {
+        display: block;
+        
+        float: right;
+        width:30vh;
+        height: auto;
+        
+    }
+
+    div#sgvNodeProperties #tools {
+        display: block;
+        float: right;
+        margin-top: 2vh;
+        margin-right: 0;
+        width: 70vh;
+        height: fit-content;
+        
+    }
+
+    div#sgvNodeProperties input,select {
+            min-height: 2vh;
+            font-size: 3vh;
+            max-width: 40%;
+        }
+
+#sgvDlgCPL {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    text-align: center;
+    width: fit-content;
+    height: fit-content;
+    top:0px;
+}
+
+#sgvDlgCPL div#switch {
+    /*background: rgba(0, 1.0, 0, 0.5);*/
+    min-width: var(--ref_size);
+    height: calc( var(--btn_size) / 4 );
+    text-align: center;
+    vertical-align: top;
+    color: #fff;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-top: #aaa solid 1px;
+    cursor: pointer;
+}
+
+select#cplDispValues {
+    height: var(--tool_btn_size);
+    width: calc(6*var(--tool_btn_size));
+    background-color: #444;
+    color: #ddd;
+    text-align: center;
+    vertical-align: middle;
+    margin:0;
+    padding:0;
+}
+
+input#cplAddScopeInput {
+    height: var(--tool_btn_size);
+    width: calc(6*var(--tool_btn_size));
+    font-family: monospace;
+    font-weight: bold;
+    font-size: 3vw;
+    background-color: #444;
+    color: #ddd;
+    text-align: center;
+    vertical-align: middle;
+    margin:0;
+    padding: 0;
+    border: 0;
+}
+
+
+input.sgvC {
+    height: var(--tool_btn_size);
+    width: var(--tool_btn_size);
+    padding:0;
+    text-align: center;
+    vertical-align: middle;
+    border-top: #ddd solid 1px;
+    border-left: #ddd solid 1px;
+    border-bottom: #000 solid 1px;
+    border-right: #000 solid 1px;
+    background-color: rgba(0,0,0,0.5);
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: 70%;
+}
+
+input.sgvC#cplAcceptAddScope, input.sgvC#cplAddScope {
+    background-image: url(pics/Add.png);
+}
+input.sgvC#cplSkipAddScope {
+    background-image: url(pics/Undo.ico);
+}
+input.sgvC#cplDelScope {
+    background-image: url(pics/Remove.ico);
+}
+input.sgvC#cplEditScope {
+    background-image: url(pics/Modify.ico);
+}
+
+input.sgvC:hover {
+    border-top: #000 solid 1px;
+    border-left: #000 solid 1px;
+    border-bottom: #ddd solid 1px;
+    border-right: #ddd solid 1px;
+    padding: 1px 0 0 1px;
 }

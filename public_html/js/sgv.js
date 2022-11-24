@@ -105,7 +105,7 @@ function valueToEdgeWidth(val) {
 //    return PitchYawRollToMoveBetweenPointsToRef(start, target, ref);
 //}
 
-var detectedOS = 'unknown';
+var isMobile = false;
 
 function detectClient() {
 //    let winH = window.innerHeight;
@@ -113,33 +113,37 @@ function detectClient() {
 //    
 //    let winS = Math.min(winH, winW);
     
+    console.log(navigator.userAgent);
+    console.log(window.innerWidth, window.innerHeight);
+
     var ua = navigator.userAgent.toLowerCase();
-    var isAndroid = ua.indexOf("android") > -1; //&& ua.indexOf("mobile");
-//    var r = document.querySelector(':root');
-    if(isAndroid) {
-        detectedOS = 'android';
+    isMobile = ( ua.indexOf("android") > -1 )
+            || ( ua.indexOf("iphone") > -1 )
+            || ( ua.indexOf("ipad") > -1 );
+    
+//    if(isMobile) {
         
-        //<link href="css/style.css" rel="stylesheet">        
+//    var r = document.querySelector(':root');
 //        r.style.setProperty('--ref_size', winS+'px');
 //        r.style.setProperty('--btn_size', (winS/6)+'px'); //96px
 //        r.style.setProperty('--btn_aspect_ratio', '0.6');
 //        r.style.setProperty('--btn_font_size', (winS/40)+'px');
 //        r.style.setProperty('--tool_btn_size', (winS/12)+'px');
-    }
-    else {
+//    }
+//    else {
 //        r.style.setProperty('--ref_size', '800px');
 //        r.style.setProperty('--btn_size', '96px'); //96px
 //        r.style.setProperty('--btn_aspect_ratio', '0.4');
 //        r.style.setProperty('--btn_font_size', '12px');
 //        r.style.setProperty('--tool_btn_size', '32px');
         //r.style.setProperty('--tool_btn_size', (winS/9)+'px');
-    }
+//    }
 }
 
 detectClient();
 
 window.addEventListener('load', () => {
-    if (detectedOS === 'android') {
+    if (isMobile) {
         var linkElement = this.document.createElement('link');
         linkElement.setAttribute('rel', 'stylesheet');
         linkElement.setAttribute('type', 'text/css');
@@ -174,7 +178,23 @@ SVG.createSVG = (_id, _width, _height, _onClick ) => {
     svgView.setAttributeNS(null, "id", _id);
     svgView.setAttributeNS(null, "height", _height);
     svgView.setAttributeNS(null, "width", _width);
+    //svgView.setAttributeNS(null, "viewBox", "0 0 250 250");
+    
+    if (typeof _onClick === 'function') {
+        svgView.addEventListener('click', _onClick);
+    }
 
+    svgView.style.display = 'block';
+    return svgView;
+};
+
+SVG.createSVG2 = (_id, _width, _height, _onClick ) => {
+    let svgView = document.createElementNS(SVG.NS, "svg");
+    svgView.setAttributeNS(null, "id", _id);
+    //svgView.setAttributeNS(null, "height", _height);
+    //svgView.setAttributeNS(null, "width", _width);
+    svgView.setAttributeNS(null, "viewBox", "0 0 "+_width+" "+_height);
+    
     if (typeof _onClick === 'function') {
         svgView.addEventListener('click', _onClick);
     }
@@ -2282,10 +2302,11 @@ UI.createTitlebar = function (title, closebuttonVisible) {
     
     if (closebuttonVisible) {
         t.appendChild(
-                UI.tag( "input", {
-                        "type": "button",
-                        "value": '\u274C',
-                        "class": "hidebutton" } ) );
+                UI.tag( "button", {
+                        //"type": "button",
+                        //"value": '\u274C',
+                        "class": "hidebutton" },
+                    {"innerHTML": '<span id="X">\u274C</span><span id="value"></span>'}) );
     }
 
     t.appendChild( UI.tag( "span", { "class": "titleText" }, {"textContent": title}) );
@@ -3466,7 +3487,7 @@ const ScopePanel = (function(addButtons) {
         let createNew = true;
         if ((typeof scopeToEdit === 'string')&&(scopeToEdit!=='')) createNew = false;
         
-        let divNS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivNS"}, {'textContent': (detectedOS==='android')?'':(createNew)?"add new scope: ":"edit scope: "});
+        let divNS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivNS"}, {'textContent': isMobile?'':(createNew)?"add new scope: ":"edit scope: "});
         
         let editAddScope = UI.tag("input", {'type': "text", 'id': "cplAddScopeInput", 'value': (createNew)?"newScope":scopeToEdit});
         divNS.appendChild(editAddScope);
@@ -3513,7 +3534,7 @@ const ScopePanel = (function(addButtons) {
     
     this.ui = UI.tag("div", {'class': "sgvSelectBox", 'id': "cplScope"});
     
-    divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': (detectedOS==='android')?'':"current scope: "});
+    divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': isMobile?'':"current scope: "});
     this.ui.appendChild(divDS);
 
     let selectScope = UI.tag("select", {'id': "cplDispValues"});
@@ -4476,18 +4497,17 @@ sgv.dlgCellView = new function () {
 
     var prevFocused = null;
 
-    console.log(detectedOS);
-    console.log(navigator);
-    console.log(screen);
-    console.log(window);
+//    console.log(navigator);
+//    console.log(screen);
+//    console.log(window);
     
     let winH = window.innerHeight;
     let winW = window.innerWidth;
     
     let winS = Math.min(winH, winW)*0.9;
     
-    const _width = (detectedOS==='android')?winS:600;
-    const _height = (detectedOS==='android')?winS:600;
+    const _width = isMobile?winS:600;
+    const _height = isMobile?winS:600;
     const ctrX = _width / 2;
     const ctrY = _height / 2;
 
@@ -4592,7 +4612,7 @@ sgv.dlgCellView = new function () {
     function createUI() {
         r = c = l = 0;
 
-        let ui = UI.createEmptyWindow("sgvUIwindow", "sgvdlgCellView", "Cell view", true);
+        let ui = UI.createEmptyWindow("sgvUIwindow", "sgvCellView", "Cell view", true);
 
         ui.querySelector(".hidebutton").addEventListener('click', function () {
             hideDialogX();
@@ -4709,15 +4729,9 @@ sgv.dlgCellView = new function () {
 //        t[1][0].appendChild(leftButton);
 
 
-        let div = UI.tag('div');
-        div.style.width = 'fit-content';
-        div.style.height = 'fit-content';
-        div.style.background = '#fff';
-        div.style['border'] = '0';
-        div.style['margin'] = '0';
-        div.style['padding'] = '0';
+        let div = UI.tag('div',{'id':'svg'});
 
-        svgView = SVG.createSVG('svgView', _width, _height, (event) => {
+        svgView = SVG.createSVG2('svgView', _width, _height, (event) => {
             if (event.target.id === 'svgView') {
                 sgv.dlgNodeProperties.hide();
                 sgv.dlgEdgeProperties.hide();
@@ -4756,8 +4770,8 @@ sgv.dlgCellView = new function () {
         ui.appendChild(content);
 
         ui.style.display = "none";
-        ui.style['top'] = (detectedOS==='android')?winS*0.05:'10vh';
-        ui.style['left'] = (detectedOS==='android')?winS*0.05:'10vh';
+        ui.style['top'] = isMobile?winS*0.05:'10vh';
+        ui.style['left'] = isMobile?winS*0.05:'10vh';
         return ui;
     }
     
@@ -5529,17 +5543,26 @@ sgv.dlgNodeProperties = new function() {
     var content, zeroInfo, svgView;
     var prevFocused=null;
     
-    const _width = 250;
-    const _height = 250;
+    var _width = 250;
+    var _height = 250;
 
     var ui = createUI();
 
     ui.addEventListener('keydown', onKeyDownX );
     
+    
     window.addEventListener('load',()=>{
         window.document.body.appendChild(ui);
         showDialog(0);
+        
+        window.addEventListener('orientationchange', sgv.dlgNodeProperties.onOrientationChange );
+        //new ResizeObserver(()=>console.log('resize')).observe(svgView);
     });
+
+    function onOrientationChange() {
+        
+        
+    }
 
     function createUI() {
         let ui = UI.createEmptyWindow("sgvUIwindow", "sgvNodeProperties", "Node properties", true);
@@ -5551,7 +5574,10 @@ sgv.dlgNodeProperties = new function() {
         hidNodeId = UI.newInput('hidden', '0', '', 'nodeId');
         ui.appendChild(hidNodeId);
 
-        var precontent = UI.tag("div", {'class':'content'});
+        var main = UI.tag("div", {'id':'main'});
+        ui.appendChild(main);
+        
+        var precontent = UI.tag("div", {'id':'nodeid', 'class':'content'});
 
         selectNodeId = UI.tag('select',{'id':'selectNodeId'});
         selectNodeId.appendChild(UI.tag('option',{'value':0,'selected':true},{'innerHTML':'-- id --'}));
@@ -5561,27 +5587,19 @@ sgv.dlgNodeProperties = new function() {
         precontent.appendChild(UI.tag('label',{'for':'selectNodeId'},{'innerHTML':'Node: '}));
         precontent.appendChild(selectNodeId);
 
-        ui.appendChild(precontent);
+        main.appendChild(precontent);
 
 
 
         let div = UI.tag('div', {'id':'svg'});
-        div.style.width = 'fit-content';
-        div.style.height = 'fit-content';
-        div.style.background = '#fff';
-        div.style['border'] = '0';
-        div.style['margin'] = '0';
-        div.style['padding'] = '0';
 
-        svgView = SVG.createSVG('svgView', _width, _height, (event) => {
+        svgView = SVG.createSVG2('svgView', _width, _height, (event) => {
             if (event.target.id === 'svgView') {
                 sgv.dlgEdgeProperties.hide();
             }
         });
         div.appendChild(svgView);
-        ui.appendChild(div);
-
-
+        main.appendChild(div);
 
         content = UI.tag("div", {'id':'tools', 'class':'content'});
 
@@ -5615,7 +5633,7 @@ sgv.dlgNodeProperties = new function() {
         content.appendChild(UI.tag('label',{'for':'nsSelectN'},{'innerHTML':'Scope: '}));
         content.appendChild(selectScope);
         
-        content.appendChild(document.createElement("br"));
+        //content.appendChild(document.createElement("br"));
 
         checkValueN = UI.newInput("checkbox", "", "", "valueCheckN");
         checkValueN.addEventListener('click', function () {
@@ -5664,13 +5682,13 @@ sgv.dlgNodeProperties = new function() {
         content.style['min-width'] = '240px'; 
         content.style['min-height'] = '105px'; 
 
-        ui.appendChild(content);
+        main.appendChild(content);
 
         zeroInfo = UI.tag("div", {'id':'zeroInfo', 'class':'content'});
         zeroInfo.innerHTML = "Select a node, please.";
         zeroInfo.style['min-width'] = '240px'; 
         zeroInfo.style['min-height'] = '105px'; 
-        ui.appendChild(zeroInfo);
+        main.appendChild(zeroInfo);
         
         return ui;
     }
@@ -5803,7 +5821,7 @@ sgv.dlgNodeProperties = new function() {
         
         UI.selectByKey( selectNodeId, nodeId );
 
-        if (detectedOS!=='android'){
+        if (!isMobile){
             if ((typeof x!=='undefined')&&(typeof y!=='undefined')) {
                 let xOffset = sgv.canvas.clientLeft;
 

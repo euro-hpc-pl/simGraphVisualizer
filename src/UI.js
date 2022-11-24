@@ -95,10 +95,11 @@ UI.createTitlebar = function (title, closebuttonVisible) {
     
     if (closebuttonVisible) {
         t.appendChild(
-                UI.tag( "input", {
-                        "type": "button",
-                        "value": '\u274C',
-                        "class": "hidebutton" } ) );
+                UI.tag( "button", {
+                        //"type": "button",
+                        //"value": '\u274C',
+                        "class": "hidebutton" },
+                    {"innerHTML": '<span id="X">\u274C</span><span id="value"></span>'}) );
     }
 
     t.appendChild( UI.tag( "span", { "class": "titleText" }, {"textContent": title}) );
