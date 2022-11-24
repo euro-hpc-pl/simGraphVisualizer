@@ -3,8 +3,8 @@
     --full_width: 100vw;
     --full_height: 100vh;
     
-    --font_size: calc(0.025*var(--ref_size));
-    --btn_font_size: calc(0.025*var(--ref_size));
+    --font_size: calc(0.04*var(--ref_size));
+    --btn_font_size: calc(0.04*var(--ref_size));
 
     --btn_size: calc(0.18*var(--ref_size));
     --btn_aspect_ratio: 0.6;
@@ -159,12 +159,10 @@ button.sgvTransparentButton1 {
     padding: 0;
     background-color: rgba(0,0,0,0.5);
     color: white;
-    border-top: solid 1px #ddd;
-    border-left: solid 1px #ddd;
-    border-bottom: solid 1px #444;
-    border-right: solid 1px #444;
-    /* border-radius: calc(var(--btn_size) / 6.4); */
-    border-radius: 4vh;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #ddd #444 #444 #ddd;
+    border-radius: calc(0.125*var(--btn_size));
     text-align: center;
     font-size: var(--btn_font_size);
     vertical-align: top;
@@ -435,17 +433,139 @@ dialog#loaderSplash div.loader {
    -ms-user-select: none; /* Internet Explorer/Edge */
 }
 
+
+    #sgvCellView {
+        margin:auto;
+        background:#444;
+        border: 1px solid #fff;
+        width:80vw;
+        height:fit-content;
+        max-height: 90vh;
+        left:0.5vw;
+        top:0.5vw;
+    }
+
+    #sgvCellView .title {
+        background-color: rgba(0, 0, 0, 0.5);
+        color: #ddd;
+        border-top-left-radius: 4vh;
+        border-top-right-radius: 4vh;
+        border-bottom: 1px solid #888;
+        font-size: 4vh;
+        padding:1vh;
+    }
+
+    #sgvCellView .hidebutton {
+        display: block;
+        position: absolute;
+        bottom:1vw;
+        width:30vw;
+        height: 10vw;
+        right:2vw;
+        font-size: 2vw;
+        color: #000;
+        border-color: #000;
+    }
+
+    #sgvCellView .hidebutton #X {
+        display: none;
+    }
+    
+    #sgvCellView .hidebutton #value:after {
+        display: inline;
+        font-size: 3vw;
+        font-weight: bold;
+        content: 'CLOSE';
+    }
+    
+    #sgvCellView #svg {
+        display: block;
+        margin: auto auto 1vh 1vh;
+        width: 70vh;
+        height: 70vh;
+        background: #fff;
+        float: left;
+    }
+    
+    #sgvCellView #description {
+        display: block;
+        position: absolute;
+        left: 72vh;
+        float: right;
+        top: 15vh;
+        right: 1vh;
+        width: auto;
+        height: fit-content;
+        
+    }    
+    
+    div#sgvCellView input,select {
+            min-height: 2vw;
+            font-size: 3vw;
+            max-width: 40%; 
+        }
+    
+
+
     div#sgvNodeProperties {
         display: block;
         margin:auto;
         background:#444;
-        width:fit-content;
+        border: 1px solid #aaa;
+        width:80vw;
         height:fit-content;
         max-height: 90vh;
         overflow: scroll;
-        left:15vw;
+        left:10vw;
     }
 
+    #sgvEdgeProperties {
+        margin:auto;
+        background:#444;
+        border: 1px solid #aaa;
+        width:60vw;
+        height:50vh;
+        left:20vw;
+        bottom:10vh;
+    }
+     #sgvEdgeProperties .hidebutton {
+        display: block;
+        position: absolute;
+        bottom:2vh;
+        width:50vh;
+        height: 10vh;
+        right:7vh;
+        font-size: 3vh;
+        color: #000;
+        border-color: #000;
+    }
+
+    #sgvEdgeProperties .hidebutton #X {
+        display: none;
+    }
+    
+    #sgvEdgeProperties .hidebutton #value:after {
+        display: inline;
+        font-size: 4vh;
+        font-weight: bold;
+        content: 'CLOSE';
+    }
+     #sgvEdgeProperties .delbutton {
+        display: block;
+        width:30vh;
+        height: 10vh;
+        font-size: 4vh;
+        font-weight: bold;
+    }  
+#sgvNodeProperties .title {
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #ddd;
+    border-top-left-radius: 4vh;
+    border-top-right-radius: 4vh;
+    border-bottom: 1px solid #888;
+    font-size: 4vh;
+    padding:1vh;
+}
     div#sgvNodeProperties #main {
         position:static;
         width:70vw;
@@ -457,7 +577,7 @@ dialog#loaderSplash div.loader {
         display: block;
         position: absolute;
         bottom:2vh;
-        width:60vh;
+        width:50vh;
         height: 10vh;
         right:7vh;
         font-size: 3vh;
@@ -484,6 +604,13 @@ dialog#loaderSplash div.loader {
         font-weight: bold;
     }
     
+    #sgvNodeProperties #main {
+        width:100%;
+        margin:0;
+        padding:0;
+        height:fit-content;
+    }    
+    
     #sgvNodeProperties #svg {
         display: block;
         margin: auto auto 1vh 1vh;
@@ -495,26 +622,29 @@ dialog#loaderSplash div.loader {
 
     div#sgvNodeProperties #nodeid {
         display: block;
-        
+        position: absolute;
+        left: 72vh;
         float: right;
-        width:30vh;
+        width:auto;
         height: auto;
         
     }
 
-    div#sgvNodeProperties #tools {
+    #sgvNodeProperties #tools {
         display: block;
+        position: absolute;
+        left: 72vh;
         float: right;
-        margin-top: 2vh;
-        margin-right: 0;
-        width: 70vh;
+        top: 15vh;
+        right: 1vh;
+        width: auto;
         height: fit-content;
         
     }
 
-    div#sgvNodeProperties input,select {
+    #sgvNodeProperties input,select {
             min-height: 2vh;
-            font-size: 3vh;
+            font-size: 4vh;
             max-width: 40%;
         }
 

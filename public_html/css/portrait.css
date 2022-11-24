@@ -1,22 +1,15 @@
-@media (orientation: portrait) {
-    :root {
-        --ref_size: 99vw;
-    }
-}
-
-@media (orientation: landscape) {
-    :root {
-        --ref_size: 60vw;
-    }
-}
-
 :root {
+    --ref_size: 99vw;
     --full_width: 100vw;
     --full_height: 100vh;
-    --font_size: calc(0.025*var(--ref_size));
+    --font_size: calc(0.04*var(--ref_size));
     --btn_size: calc(0.18*var(--ref_size));
     --btn_aspect_ratio: 0.6;
-    --btn_font_size: calc(0.025*var(--ref_size));
+
+    --btn_width: calc(0.18*var(--ref_size));
+    --btn_height: calc(0.6*var(--btn_width));
+    
+    --btn_font_size: calc(0.04*var(--ref_size));
     --tool_btn_size: calc(0.05*var(--ref_size));
 }
 
@@ -153,12 +146,10 @@ button.sgvTransparentButton1 {
     padding: 0;
     background-color: rgba(0,0,0,0.5);
     color: white;
-    border-top: solid 1px #ddd;
-    border-left: solid 1px #ddd;
-    border-bottom: solid 1px #444;
-    border-right: solid 1px #444;
-    /* border-radius: calc(var(--btn_size) / 6.4); */
-    border-radius: 5px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #ddd #444 #444 #ddd;
+    border-radius: calc(0.125*var(--btn_size));
     text-align: center;
     vertical-align: top;
 }
@@ -439,20 +430,29 @@ dialog#loaderSplash div.loader {
         margin:auto;
         background:#444;
         width:99vw;
-        height:fit-content;
-        max-height: 90vh;
+        height:125vw;
         left:0.5vw;
         top:0.5vw;
     }
 
+    #sgvCellView .title {
+        background-color: rgba(0, 0, 0, 0.5);
+        color: #ddd;
+        border-top-left-radius: 4vh;
+        border-top-right-radius: 4vh;
+        border-bottom: 1px solid #888;
+        font-size: 4vw;
+        padding:1vh;
+    }
+    
     #sgvCellView .hidebutton {
         display: block;
         position: absolute;
-        bottom:1vw;
-        width:30vw;
-        height: 10vw;
-        left:2vw;
-        font-size: 2vw;
+        bottom:2vh;
+        width:20vw;
+        height: 12vw;
+        right:2vw;
+        font-size: 4vw;
         color: #000;
         border-color: #000;
     }
@@ -463,36 +463,65 @@ dialog#loaderSplash div.loader {
     
     #sgvCellView .hidebutton #value:after {
         display: inline;
-        font-size: 3vw;
+        font-size: 4vw;
         font-weight: bold;
         content: 'CLOSE';
     }
     
-    div#sgvCellView input,select {
-            min-height: 2vw;
-            font-size: 3vw;
-            max-width: 40%; 
-        }
+   #sgvCellView #svg {
+        display: block;
+        margin: auto 0 auto 0;
+        width: auto;
+        height: auto;
+        background: #fff;
+    }
     
+    #sgvCellView #description {
+        display: block;
+        position: absolute;
+        left: 2vw;
+        bottom: 4vh;
+        width: auto;
+        height: 5vh;
+        font-size: 4vw;
+        max-width: 65vw;
+    }     
+
+    #sgvCellView #description select {
+            font-size: 4vw;
+            min-width: 8vw; 
+        }
+        
+    #sgvCellView #description #selectScope {
+            margin-top: 2vh;
+        }
     
     #sgvNodeProperties {
         margin:auto;
         background:#444;
-        width:99vw;
-        height:fit-content;
-        max-height: 90vh;
-        left:0.5vw;
-        top:0.5vw;
+        width:90vw;
+        height:135vw;
+        left:5vw;
+        top:0;
+    }
+
+    #sgvEdgeProperties {
+        margin:auto;
+        background:#444;
+        width:90vw;
+        height:45vw;
+        left:5vw;
+        top:5vw;
     }
 
     #sgvNodeProperties .hidebutton {
         display: block;
         position: absolute;
         bottom:1vw;
-        width:30vw;
+        width:25vw;
         height: 10vw;
         left:2vw;
-        font-size: 2vw;
+        font-size: 4vw;
         color: #000;
         border-color: #000;
     }
@@ -501,10 +530,10 @@ dialog#loaderSplash div.loader {
         display: block;
         position: absolute;
         bottom:1vw;
-        width:30vw;
+        width:25vw;
         height: 10vw;
         right:2vw;
-        font-size: 3vw;
+        font-size: 4vw;
         font-weight: bold;
     }
 
@@ -514,7 +543,7 @@ dialog#loaderSplash div.loader {
     
     #sgvNodeProperties .hidebutton #value:after {
         display: inline;
-        font-size: 3vw;
+        font-size: 4vw;
         font-weight: bold;
         content: 'CLOSE';
     }
@@ -538,14 +567,14 @@ dialog#loaderSplash div.loader {
         display: block;
         width:auto;
         height:25vw;
-        font-size: 3vw;
+        font-size: 4vw;
     
     
     }
     
     div#sgvNodeProperties input,select {
             min-height: 2vw;
-            font-size: 3vw;
+            font-size: 4vw;
             max-width: 40%; 
         }
 

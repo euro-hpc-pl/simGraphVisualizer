@@ -1,4 +1,5 @@
 :root {
+    --ref_size: 600px;
     --btn_size: 96px; /*5vw dla 1920px*/
     --btn_aspect_ratio: 0.3;
     --btn_font_size: 12px;
@@ -334,9 +335,16 @@ input.sgvC:hover {
     background:#fff;
 }
 
+#sgvCellView{
+    background:#fff;
+    width: 80vmin;
+}
+
+
 #sgvCellView #svg{
     background:#fff;
 }
+
 .sgvTransparentPanel {
     position:fixed;
     left:0;

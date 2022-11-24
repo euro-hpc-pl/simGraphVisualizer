@@ -136,10 +136,12 @@ sgv.dlgEdgeProperties = new function() {
             btnSetE.disabled = "";
         }
 
-        if ((typeof x!=='undefined')&&(typeof y!=='undefined')) {
-            let xOffset = sgv.canvas.clientLeft;
-            ui.style.top = y + "px";
-            ui.style.left = (xOffset + x) + "px";
+        if (!isMobile){
+            if ((typeof x!=='undefined')&&(typeof y!=='undefined')) {
+                let xOffset = sgv.canvas.clientLeft;
+                ui.style.top = y + "px";
+                ui.style.left = (xOffset + x) + "px";
+            }
         }
 
         ui.style.display = "block";

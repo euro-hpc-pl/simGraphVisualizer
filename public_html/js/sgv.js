@@ -844,7 +844,7 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         },
         set(pos) {
             this.mesh.position.copyFrom(pos);
-            if (typeof label !== 'undefined') {
+            if (label.plane !== null) {
                 label.plane.position.copyFrom(pos);
             }
         }
@@ -4497,17 +4497,8 @@ sgv.dlgCellView = new function () {
 
     var prevFocused = null;
 
-//    console.log(navigator);
-//    console.log(screen);
-//    console.log(window);
-    
-    let winH = window.innerHeight;
-    let winW = window.innerWidth;
-    
-    let winS = Math.min(winH, winW)*0.9;
-    
-    const _width = isMobile?winS:600;
-    const _height = isMobile?winS:600;
+    const _width = 600;
+    const _height = 600;
     const ctrX = _width / 2;
     const ctrY = _height / 2;
 
@@ -4620,7 +4611,7 @@ sgv.dlgCellView = new function () {
 
         let content = UI.tag("div", {"class": "content", "id": "graphSelection"});
 
-        content.appendChild(UI.tag('div', {'id': 'description'}));
+        //content.appendChild(UI.tag('div', {'id': 'description'}));
         let g = UI.tag('div', {'id': 'description'});
 
         g.style['text-align'] = 'center';
@@ -4658,6 +4649,7 @@ sgv.dlgCellView = new function () {
         g.appendChild(UI.tag('label', {'for': 'graphLays'}, {'innerHTML': ' layer: '}));
         g.appendChild(selectGraphLays);
 
+//        selectScope = new ScopePanel(false);
         selectScope = UI.tag("select", {'id': "selectScope"});
         selectScope.addEventListener('change', () => {
             sgv.graf.displayValues(selectScope.value);
@@ -4770,8 +4762,8 @@ sgv.dlgCellView = new function () {
         ui.appendChild(content);
 
         ui.style.display = "none";
-        ui.style['top'] = isMobile?winS*0.05:'10vh';
-        ui.style['left'] = isMobile?winS*0.05:'10vh';
+//        ui.style['top'] = isMobile?winS*0.05:'10vh';
+//        ui.style['left'] = isMobile?winS*0.05:'10vh';
         return ui;
     }
     
@@ -5433,10 +5425,12 @@ sgv.dlgEdgeProperties = new function() {
             btnSetE.disabled = "";
         }
 
-        if ((typeof x!=='undefined')&&(typeof y!=='undefined')) {
-            let xOffset = sgv.canvas.clientLeft;
-            ui.style.top = y + "px";
-            ui.style.left = (xOffset + x) + "px";
+        if (!isMobile){
+            if ((typeof x!=='undefined')&&(typeof y!=='undefined')) {
+                let xOffset = sgv.canvas.clientLeft;
+                ui.style.top = y + "px";
+                ui.style.left = (xOffset + x) + "px";
+            }
         }
 
         ui.style.display = "block";
@@ -5549,19 +5543,16 @@ sgv.dlgNodeProperties = new function() {
     var ui = createUI();
 
     ui.addEventListener('keydown', onKeyDownX );
-    
+    hideDialog();
     
     window.addEventListener('load',()=>{
         window.document.body.appendChild(ui);
-        showDialog(0);
-        
         window.addEventListener('orientationchange', sgv.dlgNodeProperties.onOrientationChange );
         //new ResizeObserver(()=>console.log('resize')).observe(svgView);
     });
 
     function onOrientationChange() {
-        
-        
+        console.log('onOrientationChange()');
     }
 
     function createUI() {
