@@ -6,6 +6,15 @@
     --tool_btn_size: 32px;
 }
 
+/*
+input[type=checkbox] {
+    position: relative;
+    cursor: pointer;
+    width: 24px;
+    height: 24px; 
+}
+*/
+
 #sgvWorkspaceArea {
     float:none;
     clear:both;
@@ -34,12 +43,12 @@
     background: rgba(0, 0, 0, 0.3);
     border-width: 1px;
     border-radius: 10px;
-    
+
     user-select: none; /* supported by Chrome and Opera */
-   -webkit-user-select: none; /* Safari */
-   -khtml-user-select: none; /* Konqueror HTML */
-   -moz-user-select: none; /* Firefox */
-   -ms-user-select: none; /* Internet Explorer/Edge */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
 }
 
 .sgvUIwindow .content {
@@ -105,23 +114,6 @@
 }
 
 
-.sgvTransparentButton {
-    position:fixed;
-    left:0;
-    top:0;
-    z-index:100;
-    background-color: rgba(204,255,204,0.5);
-    color: white;
-    height: 48px;
-    width: 48px;
-    padding:1px;
-    border-width: 1px;
-    border-radius: 15px;
-}
-
-
-
-
 button.sgvTransparentButton1 {
     width: var(--btn_size);
     height: calc(var(--btn_size) * var(--btn_aspect_ratio));
@@ -129,36 +121,33 @@ button.sgvTransparentButton1 {
     padding: 0;
     background-color: rgba(0,0,0,0.5);
     color: white;
-    border-top: solid 1px #ddd;
-    border-left: solid 1px #ddd;
-    border-bottom: solid 1px #444;
-    border-right: solid 1px #444;
-    /* border-radius: calc(var(--btn_size) / 6.4); */
+    border-style: solid;
+    border-width: 1px;
+    border-color: #ddd #444 #444 #ddd;
     border-radius: 5px;
     overflow: hidden;
     text-align: center;
-    vertical-align: top;
-}
-
-button.sgvTransparentButton1:hover {
-    border-top: solid 1px #444;
-    border-left: solid 1px #444;
-    border-bottom: solid 1px #ddd;
-    border-right: solid 1px #ddd;
-    cursor: pointer;
-}
-
-button.sgvTransparentButton1 span {
     font-size: var(--btn_font_size);
-    text-align: center;
     vertical-align: top;
+
+    &:hover {
+        border-color: #444 #ddd #ddd #444;
+        cursor: pointer;
+    }
+
+    span {
+        font-size: var(--btn_font_size);
+        text-align: center;
+        vertical-align: top;
+    }
+
+    &#cplClearButton {
+        background-color: rgba(255,0,0,0.5);
+        color: white;
+    }
+
 }
 
-
-button#cplClearButton {
-    background-color: rgba(255,0,0,0.5);
-    color: white;
-}
 
 #sgvPanelSwitch {
     left:10px;
@@ -171,21 +160,26 @@ button#cplClearButton {
     text-align: center;
     width: fit-content;
     height: fit-content;
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
     top:0px;
+
+    #switch {
+        min-width: var(--ref_size);
+        height: calc( var(--btn_size) / 4 );
+        text-align: center;
+        vertical-align: top;
+        color: #fff;
+        border-bottom-left-radius: 10px;
+        border-bottom-right-radius: 10px;
+        border-top: #aaa solid 1px;
+        cursor: pointer;
+    }
 }
 
-#sgvDlgCPL div#switch {
-    /*background: rgba(0, 1.0, 0, 0.5);*/
-    min-width: var(--ref_size);
-    height: calc( var(--btn_size) / 4 );
-    text-align: center;
-    vertical-align: top;
-    color: #fff;
-    border-bottom-left-radius: 10px;
-    border-bottom-right-radius: 10px;
-    border-top: #aaa solid 1px;
-    cursor: pointer;
-}
 
 select#cplDispValues {
     height: var(--tool_btn_size);
@@ -214,7 +208,7 @@ input#cplAddScopeInput {
     border: 0;
 }
 
-input.sgvC {
+input.toolButton {
     height: var(--tool_btn_size);
     width: var(--tool_btn_size);
     padding:0;
@@ -230,20 +224,20 @@ input.sgvC {
     background-size: 70%;
 }
 
-input.sgvC#cplAcceptAddScope, input.sgvC#cplAddScope {
+input.toolButton#cplAcceptAddScope, input.toolButton#cplAddScope {
     background-image: url(pics/Add.png);
 }
-input.sgvC#cplSkipAddScope {
+input.toolButton#cplSkipAddScope {
     background-image: url(pics/Undo.ico);
 }
-input.sgvC#cplDelScope {
+input.toolButton#cplDelScope {
     background-image: url(pics/Remove.ico);
 }
-input.sgvC#cplEditScope {
+input.toolButton#cplEditScope {
     background-image: url(pics/Modify.ico);
 }
 
-input.sgvC:hover {
+input.toolButton:hover {
     border-top: #000 solid 1px;
     border-left: #000 solid 1px;
     border-bottom: #ddd solid 1px;
@@ -285,11 +279,11 @@ input.sgvC:hover {
 }
 
 #sgvConsole {
-    position: absolute; 
-    left: 0; 
-    right: 0; 
-    margin-left: auto; 
-    margin-right: auto;     
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
     width: 100%;
 
     bottom: 0;
@@ -329,17 +323,36 @@ input.sgvC:hover {
 
 #sgvNodeProperties {
     display: none;
+    height: 48vmin;
 }
 
 #sgvNodeProperties #svg{
     background:#fff;
 }
 
-#sgvCellView{
-    background:#fff;
-    width: 80vmin;
+#sgvNodeProperties #CloseButton {
+    position: absolute;
+    right:30px;
+    bottom: 0;
 }
 
+#sgvNodeProperties #DeleteButton {
+    position: absolute;
+    left:30px;
+    bottom: 0;
+    background-color: rgba(255,0,0,0.5);
+}
+
+
+#sgvCellView{
+    width: 60vmin;
+}
+
+#sgvCellView #CloseButton {
+    position: relative;
+    width: 90%;
+    left:4%;
+}
 
 #sgvCellView #svg{
     background:#fff;
@@ -379,7 +392,7 @@ input.sgvC:hover {
     top:130px;
 }
 
-#cplScope {
+#ScopePanel {
     text-align: center;
     padding: 5px;
     margin: 5px 0 5px 0;
@@ -453,42 +466,46 @@ dialog#sgvDlgAbout .content .info {
 
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 dialog#loaderSplash {
-  border:0;
-  text-align: center;
-  background: rgba(0, 0, 0, 0.0);
-  font-size: var(--font-size-fluid-2);
-  font-weight: var(--font-weight-6);
+    border:0;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.0);
+    font-size: var(--font-size-fluid-2);
+    font-weight: var(--font-weight-6);
 }
 
 dialog#loaderSplash span {
     color: #fff;
-  /*animation: wiggle 3s infinite;
-  display: inline-block;
-  transform-origin: 65%;*/
+    /*animation: wiggle 3s infinite;
+    display: inline-block;
+    transform-origin: 65%;*/
 }
 
 dialog#loaderSplash div.loader {
-  margin: auto;
-  border: 12px solid #f3f3f3; /* Light grey */
-  border-top: 12px solid blue;
-  border-right: 12px solid green;
-  border-bottom: 12px solid red;
-  border-left: 12px solid yellow;
-  border-radius: 50%;
-  width: 80px;
-  height: 80px;
-  animation: spin 2s linear infinite;
+    margin: auto;
+    border: 12px solid #f3f3f3; /* Light grey */
+    border-top: 12px solid blue;
+    border-right: 12px solid green;
+    border-bottom: 12px solid red;
+    border-left: 12px solid yellow;
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    animation: spin 2s linear infinite;
 }
 
 .disable-select {
     user-select: none; /* supported by Chrome and Opera */
-   -webkit-user-select: none; /* Safari */
-   -khtml-user-select: none; /* Konqueror HTML */
-   -moz-user-select: none; /* Firefox */
-   -ms-user-select: none; /* Internet Explorer/Edge */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
 }

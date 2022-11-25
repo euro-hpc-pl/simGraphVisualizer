@@ -108,49 +108,30 @@ function valueToEdgeWidth(val) {
 var isMobile = false;
 
 function detectClient() {
-//    let winH = window.innerHeight;
-//    let winW = window.innerWidth;
-//    
-//    let winS = Math.min(winH, winW);
-    
-    console.log(navigator.userAgent);
-    console.log(window.innerWidth, window.innerHeight);
-
-    var ua = navigator.userAgent.toLowerCase();
+    //console.log(navigator.userAgent);
+    let ua = navigator.userAgent.toLowerCase();
     isMobile = ( ua.indexOf("android") > -1 )
             || ( ua.indexOf("iphone") > -1 )
             || ( ua.indexOf("ipad") > -1 );
-    
-//    if(isMobile) {
-        
-//    var r = document.querySelector(':root');
-//        r.style.setProperty('--ref_size', winS+'px');
-//        r.style.setProperty('--btn_size', (winS/6)+'px'); //96px
-//        r.style.setProperty('--btn_aspect_ratio', '0.6');
-//        r.style.setProperty('--btn_font_size', (winS/40)+'px');
-//        r.style.setProperty('--tool_btn_size', (winS/12)+'px');
-//    }
-//    else {
-//        r.style.setProperty('--ref_size', '800px');
-//        r.style.setProperty('--btn_size', '96px'); //96px
-//        r.style.setProperty('--btn_aspect_ratio', '0.4');
-//        r.style.setProperty('--btn_font_size', '12px');
-//        r.style.setProperty('--tool_btn_size', '32px');
-        //r.style.setProperty('--tool_btn_size', (winS/9)+'px');
-//    }
 }
 
 detectClient();
 
 window.addEventListener('load', () => {
+    var r = document.querySelector(':root');
+    var linkElement = this.document.createElement('link');
+    linkElement.setAttribute('rel', 'stylesheet');
+    linkElement.setAttribute('type', 'text/css');
     if (isMobile) {
-        var linkElement = this.document.createElement('link');
-        linkElement.setAttribute('rel', 'stylesheet');
-        linkElement.setAttribute('type', 'text/css');
         linkElement.setAttribute('href', "css/mobile.css");
-
-        document.head.appendChild(linkElement);
+        r.style.setProperty('--isMobile', 1);
+        r.style.setProperty('@mobile', 1);
     }
+    else {
+        linkElement.setAttribute('href', "css/desktop.css");
+        r.style.setProperty('--isMobile', 0);
+    }
+    document.head.appendChild(linkElement);
 });
 
 /* 
@@ -3492,7 +3473,7 @@ const ScopePanel = (function(addButtons) {
         let editAddScope = UI.tag("input", {'type': "text", 'id': "cplAddScopeInput", 'value': (createNew)?"newScope":scopeToEdit});
         divNS.appendChild(editAddScope);
 
-        let btnAcceptAddScope = UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAcceptAddScope", 'value': ''});
+        let btnAcceptAddScope = UI.tag("input", {'type': "button", 'class': "toolButton", 'id': "cplAcceptAddScope", 'value': ''});
         btnAcceptAddScope.addEventListener('click', ()=>{
             if (createNew){
                 let scope = editAddScope.value;
@@ -3513,7 +3494,7 @@ const ScopePanel = (function(addButtons) {
         });
         divNS.appendChild(btnAcceptAddScope);
 
-        let btnSkipAddScope = UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplSkipAddScope", 'value': ''});
+        let btnSkipAddScope = UI.tag("input", {'type': "button", 'class': "toolButton", 'id': "cplSkipAddScope", 'value': ''});
         btnSkipAddScope.addEventListener('click', ()=>{
                     divNS.style.display = "none";
                     divDS.style.display = "block";
@@ -3532,7 +3513,7 @@ const ScopePanel = (function(addButtons) {
     
     if (typeof addButtons!=='boolean') addButtons = true;
     
-    this.ui = UI.tag("div", {'class': "sgvSelectBox", 'id': "cplScope"});
+    this.ui = UI.tag("div", {'class': "sgvSelectBox", 'id': "ScopePanel"});
     
     divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': isMobile?'':"current scope: "});
     this.ui.appendChild(divDS);
@@ -3545,7 +3526,7 @@ const ScopePanel = (function(addButtons) {
     divDS.appendChild(selectScope);
 
     if (addButtons) {
-        let btnEditScope = UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplEditScope", 'value': ''});
+        let btnEditScope = UI.tag("input", {'type': "button", 'class': "toolButton", 'id': "cplEditScope", 'value': ''});
         btnEditScope.addEventListener('click',()=>{
                     //divNS.style.display = "inline";
                     //divDS.style.display = "none";
@@ -3553,7 +3534,7 @@ const ScopePanel = (function(addButtons) {
         divDS.appendChild(btnEditScope);
 
 
-        let btnDelScope = UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplDelScope", 'value': ''});
+        let btnDelScope = UI.tag("input", {'type': "button", 'class': "toolButton", 'id': "cplDelScope", 'value': ''});
         btnDelScope.addEventListener('click',()=>{
                     let idx = sgv.graf.delScopeOfValues(selectScope.value);
 
@@ -3564,7 +3545,7 @@ const ScopePanel = (function(addButtons) {
                 });
         divDS.appendChild(btnDelScope);
 
-        let btnAddScope = UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAddScope", 'value': ''});
+        let btnAddScope = UI.tag("input", {'type': "button", 'class': "toolButton", 'id': "cplAddScope", 'value': ''});
         btnAddScope.addEventListener('click',()=>{
                     divNS.show();
                     divDS.style.display = "none";
@@ -3635,7 +3616,7 @@ const SlidersPanel = (function() {
     var sliderRedLimit, sliderGreenLimit;
     var spanRed, spanGreen;
 
-    this.ui = UI.tag('div', {'id': 'panelLimitSliders'});
+    this.ui = UI.tag('div', {'id': 'LimitSlidersPanel'});
 
     this.ui.appendChild(spanRed = UI.tag("span", {'id': 'spanRed'}, {'textContent': '-1.0'}));
 
@@ -3764,7 +3745,7 @@ sgv.dlgCPL = new function () {
     });
 
     function createDialog() {
-        let ui = UI.tag("dialog", {"class": "sgvUIwindow disable-select", "id": "sgvDlgCPL"});
+        let ui = UI.tag("div", {"class": "sgvUIwindow disable-select", "id": "sgvDlgCPL"});
 
         function SelectionPanel() {
             let btnShowConsole2, btnCreate, btnLoad;
@@ -3893,7 +3874,7 @@ sgv.dlgCPL = new function () {
 
         
         ui.appendChild(switchableContent);
-        ui.appendChild( switchHandle = UI.tag( 'div', {'id': 'switch'}, {'innerHTML': '. . .'}, {'click': () => switchDialog()} ) );
+        ui.appendChild( switchHandle = UI.tag( 'div', {'id': 'switch'}, {'innerHTML': '\u00B7 \u00B7 \u00B7'}, {'click': () => switchDialog()} ) );
 
         ui.style.display = 'block';
 
@@ -4609,10 +4590,24 @@ sgv.dlgCellView = new function () {
             hideDialogX();
         });
 
-        let content = UI.tag("div", {"class": "content", "id": "graphSelection"});
+        let content = UI.tag("div", {"class": "content", "id": "main"});
+
+
+        let div = UI.tag('div',{'id':'svg'});
+
+        svgView = SVG.createSVG2('svgView', _width, _height, (event) => {
+            if (event.target.id === 'svgView') {
+                sgv.dlgNodeProperties.hide();
+                sgv.dlgEdgeProperties.hide();
+            }
+        });
+        div.appendChild(svgView);
+        content.appendChild(div);
+
+
 
         //content.appendChild(UI.tag('div', {'id': 'description'}));
-        let g = UI.tag('div', {'id': 'description'});
+        let g = UI.tag('div', {'class':'tools', 'id': 'cellViewTools'});
 
         g.style['text-align'] = 'center';
 
@@ -4649,19 +4644,11 @@ sgv.dlgCellView = new function () {
         g.appendChild(UI.tag('label', {'for': 'graphLays'}, {'innerHTML': ' layer: '}));
         g.appendChild(selectGraphLays);
 
-//        selectScope = new ScopePanel(false);
-        selectScope = UI.tag("select", {'id': "selectScope"});
-        selectScope.addEventListener('change', () => {
-            sgv.graf.displayValues(selectScope.value);
-            sgv.dlgCPL.selScope(selectScope.value);
-            sgv.dlgCPL.updateSliders();
-            drawModule();
-        });
-        g.appendChild(UI.tag('label', {'for': 'selectScope'}, {'innerHTML': ' scope: '}));
-        g.appendChild(selectScope);
-
+        g.appendChild((selectScope = new ScopePanel()).ui);
 
         content.appendChild(g);
+        
+        content.appendChild(UI.createTransparentBtn1('CLOSE', 'CloseButton', ()=>{hideDialogX();}));
 
 //        const tbl = document.createElement("table");
 //        const tblBody = document.createElement("tbody");
@@ -4720,17 +4707,6 @@ sgv.dlgCellView = new function () {
 //        });
 //        t[1][0].appendChild(leftButton);
 
-
-        let div = UI.tag('div',{'id':'svg'});
-
-        svgView = SVG.createSVG2('svgView', _width, _height, (event) => {
-            if (event.target.id === 'svgView') {
-                sgv.dlgNodeProperties.hide();
-                sgv.dlgEdgeProperties.hide();
-            }
-        });
-        div.appendChild(svgView);
-        content.appendChild(div);
 
 //        t[1][1].appendChild(div);
 //        rightButton = UI.tag('button',{'class':''},{'innerHTML':'>'});
@@ -4938,7 +4914,8 @@ sgv.dlgCellView = new function () {
         UI.selectByKey(selectGraphCols, col);
         UI.selectByKey(selectGraphRows, row);
         UI.selectByKey(selectGraphLays, layer);
-        UI.selectByKey(selectScope, sgv.graf.currentScope);
+        selectScope.selScope(sgv.graf.currentScope);
+        //UI.selectByKey(selectScope, sgv.graf.currentScope);
 
         let offset = calcOffset(col, row, layer);
 
@@ -5039,10 +5016,11 @@ sgv.dlgCellView = new function () {
             selectGraphLays.disabled = '';
         }
 
-        UI.clearSelect(selectScope, true);
-        for (let s in sgv.graf.scopeOfValues)
-            selectScope.appendChild(UI.option(sgv.graf.scopeOfValues[s], sgv.graf.scopeOfValues[s]));
-        UI.selectByKey(selectScope, sgv.graf.currentScope);
+        selectScope.refresh();
+//        UI.clearSelect(selectScope, true);
+//        for (let s in sgv.graf.scopeOfValues)
+//            selectScope.appendChild(UI.option(sgv.graf.scopeOfValues[s], sgv.graf.scopeOfValues[s]));
+//        UI.selectByKey(selectScope, sgv.graf.currentScope);
 
         drawModule();
 
@@ -5360,22 +5338,17 @@ sgv.dlgEdgeProperties = new function() {
         });
         content.appendChild(btnSetE);
 
-        btnDeleteE = UI.newInput("button", "delete", "delbutton", "");
-        btnDeleteE.addEventListener('click', function () {
-            usunE();
-        });
-        content.appendChild(btnDeleteE);
-
-        content.style['min-width'] = '240px'; 
-        content.style['min-height'] = '105px'; 
-
+//        content.style['min-width'] = '240px'; 
+//        content.style['min-height'] = '105px'; 
 
         zeroInfo = UI.tag("div", {'class':'content'});
         zeroInfo.innerHTML = "Select an edge, please.";
-        zeroInfo.style['min-width'] = '240px'; 
-        zeroInfo.style['min-height'] = '105px'; 
+//        zeroInfo.style['min-width'] = '240px'; 
+//        zeroInfo.style['min-height'] = '105px'; 
         ui.appendChild(zeroInfo);
         
+        ui.appendChild(UI.createTransparentBtn1('CLOSE', 'CloseButton', ()=>{hideDialog();}));
+        ui.appendChild(UI.createTransparentBtn1('DELETE', 'DeleteButton', ()=>{usunE();}));
         
         return ui;
     };
@@ -5662,24 +5635,19 @@ sgv.dlgNodeProperties = new function() {
         });
         content.appendChild(btnConnectSelectN);
 
-        content.appendChild(document.createElement("br"));
-
-        btnDeleteNode = UI.newInput("button", "delete", "delbutton", "");
-        btnDeleteNode.addEventListener('click', function () {
-            usunN();
-        });
-        content.appendChild(btnDeleteNode);
-
-        content.style['min-width'] = '240px'; 
-        content.style['min-height'] = '105px'; 
+//        content.style['min-width'] = '240px'; 
+//        content.style['min-height'] = '105px'; 
 
         main.appendChild(content);
 
         zeroInfo = UI.tag("div", {'id':'zeroInfo', 'class':'content'});
         zeroInfo.innerHTML = "Select a node, please.";
-        zeroInfo.style['min-width'] = '240px'; 
-        zeroInfo.style['min-height'] = '105px'; 
+//        zeroInfo.style['min-width'] = '240px'; 
+//        zeroInfo.style['min-height'] = '105px'; 
         main.appendChild(zeroInfo);
+
+        main.appendChild(UI.createTransparentBtn1('CLOSE', 'CloseButton', ()=>{hideDialog();}));
+        main.appendChild(UI.createTransparentBtn1('DELETE', 'DeleteButton', ()=>{usunN();}));
         
         return ui;
     }
@@ -5754,6 +5722,7 @@ sgv.dlgNodeProperties = new function() {
         if ( nodeId === '0' ) {
             content.style.display = 'none';
             zeroInfo.style.display = 'block';
+            svgView.innerHTML = '';
             return;
         } else {
             zeroInfo.style.display = 'none';

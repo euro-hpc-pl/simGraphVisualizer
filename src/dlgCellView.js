@@ -120,10 +120,24 @@ sgv.dlgCellView = new function () {
             hideDialogX();
         });
 
-        let content = UI.tag("div", {"class": "content", "id": "graphSelection"});
+        let content = UI.tag("div", {"class": "content", "id": "main"});
+
+
+        let div = UI.tag('div',{'id':'svg'});
+
+        svgView = SVG.createSVG2('svgView', _width, _height, (event) => {
+            if (event.target.id === 'svgView') {
+                sgv.dlgNodeProperties.hide();
+                sgv.dlgEdgeProperties.hide();
+            }
+        });
+        div.appendChild(svgView);
+        content.appendChild(div);
+
+
 
         //content.appendChild(UI.tag('div', {'id': 'description'}));
-        let g = UI.tag('div', {'id': 'description'});
+        let g = UI.tag('div', {'class':'tools', 'id': 'cellViewTools'});
 
         g.style['text-align'] = 'center';
 
@@ -160,19 +174,11 @@ sgv.dlgCellView = new function () {
         g.appendChild(UI.tag('label', {'for': 'graphLays'}, {'innerHTML': ' layer: '}));
         g.appendChild(selectGraphLays);
 
-//        selectScope = new ScopePanel(false);
-        selectScope = UI.tag("select", {'id': "selectScope"});
-        selectScope.addEventListener('change', () => {
-            sgv.graf.displayValues(selectScope.value);
-            sgv.dlgCPL.selScope(selectScope.value);
-            sgv.dlgCPL.updateSliders();
-            drawModule();
-        });
-        g.appendChild(UI.tag('label', {'for': 'selectScope'}, {'innerHTML': ' scope: '}));
-        g.appendChild(selectScope);
-
+        g.appendChild((selectScope = new ScopePanel()).ui);
 
         content.appendChild(g);
+        
+        content.appendChild(UI.createTransparentBtn1('CLOSE', 'CloseButton', ()=>{hideDialogX();}));
 
 //        const tbl = document.createElement("table");
 //        const tblBody = document.createElement("tbody");
@@ -231,17 +237,6 @@ sgv.dlgCellView = new function () {
 //        });
 //        t[1][0].appendChild(leftButton);
 
-
-        let div = UI.tag('div',{'id':'svg'});
-
-        svgView = SVG.createSVG2('svgView', _width, _height, (event) => {
-            if (event.target.id === 'svgView') {
-                sgv.dlgNodeProperties.hide();
-                sgv.dlgEdgeProperties.hide();
-            }
-        });
-        div.appendChild(svgView);
-        content.appendChild(div);
 
 //        t[1][1].appendChild(div);
 //        rightButton = UI.tag('button',{'class':''},{'innerHTML':'>'});
@@ -449,7 +444,8 @@ sgv.dlgCellView = new function () {
         UI.selectByKey(selectGraphCols, col);
         UI.selectByKey(selectGraphRows, row);
         UI.selectByKey(selectGraphLays, layer);
-        UI.selectByKey(selectScope, sgv.graf.currentScope);
+        selectScope.selScope(sgv.graf.currentScope);
+        //UI.selectByKey(selectScope, sgv.graf.currentScope);
 
         let offset = calcOffset(col, row, layer);
 
@@ -550,10 +546,11 @@ sgv.dlgCellView = new function () {
             selectGraphLays.disabled = '';
         }
 
-        UI.clearSelect(selectScope, true);
-        for (let s in sgv.graf.scopeOfValues)
-            selectScope.appendChild(UI.option(sgv.graf.scopeOfValues[s], sgv.graf.scopeOfValues[s]));
-        UI.selectByKey(selectScope, sgv.graf.currentScope);
+        selectScope.refresh();
+//        UI.clearSelect(selectScope, true);
+//        for (let s in sgv.graf.scopeOfValues)
+//            selectScope.appendChild(UI.option(sgv.graf.scopeOfValues[s], sgv.graf.scopeOfValues[s]));
+//        UI.selectByKey(selectScope, sgv.graf.currentScope);
 
         drawModule();
 

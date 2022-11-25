@@ -15,7 +15,7 @@ sgv.dlgCPL = new function () {
     });
 
     function createDialog() {
-        let ui = UI.tag("dialog", {"class": "sgvUIwindow disable-select", "id": "sgvDlgCPL"});
+        let ui = UI.tag("div", {"class": "sgvUIwindow disable-select", "id": "sgvDlgCPL"});
 
         function SelectionPanel() {
             let btnShowConsole2, btnCreate, btnLoad;
@@ -144,7 +144,7 @@ sgv.dlgCPL = new function () {
 
         
         ui.appendChild(switchableContent);
-        ui.appendChild( switchHandle = UI.tag( 'div', {'id': 'switch'}, {'innerHTML': '. . .'}, {'click': () => switchDialog()} ) );
+        ui.appendChild( switchHandle = UI.tag( 'div', {'id': 'switch'}, {'innerHTML': '\u00B7 \u00B7 \u00B7'}, {'click': () => switchDialog()} ) );
 
         ui.style.display = 'block';
 

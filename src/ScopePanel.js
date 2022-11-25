@@ -29,7 +29,7 @@ const ScopePanel = (function(addButtons) {
         let editAddScope = UI.tag("input", {'type': "text", 'id': "cplAddScopeInput", 'value': (createNew)?"newScope":scopeToEdit});
         divNS.appendChild(editAddScope);
 
-        let btnAcceptAddScope = UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAcceptAddScope", 'value': ''});
+        let btnAcceptAddScope = UI.tag("input", {'type': "button", 'class': "toolButton", 'id': "cplAcceptAddScope", 'value': ''});
         btnAcceptAddScope.addEventListener('click', ()=>{
             if (createNew){
                 let scope = editAddScope.value;
@@ -50,7 +50,7 @@ const ScopePanel = (function(addButtons) {
         });
         divNS.appendChild(btnAcceptAddScope);
 
-        let btnSkipAddScope = UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplSkipAddScope", 'value': ''});
+        let btnSkipAddScope = UI.tag("input", {'type': "button", 'class': "toolButton", 'id': "cplSkipAddScope", 'value': ''});
         btnSkipAddScope.addEventListener('click', ()=>{
                     divNS.style.display = "none";
                     divDS.style.display = "block";
@@ -69,7 +69,7 @@ const ScopePanel = (function(addButtons) {
     
     if (typeof addButtons!=='boolean') addButtons = true;
     
-    this.ui = UI.tag("div", {'class': "sgvSelectBox", 'id': "cplScope"});
+    this.ui = UI.tag("div", {'class': "sgvSelectBox", 'id': "ScopePanel"});
     
     divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': isMobile?'':"current scope: "});
     this.ui.appendChild(divDS);
@@ -82,7 +82,7 @@ const ScopePanel = (function(addButtons) {
     divDS.appendChild(selectScope);
 
     if (addButtons) {
-        let btnEditScope = UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplEditScope", 'value': ''});
+        let btnEditScope = UI.tag("input", {'type': "button", 'class': "toolButton", 'id': "cplEditScope", 'value': ''});
         btnEditScope.addEventListener('click',()=>{
                     //divNS.style.display = "inline";
                     //divDS.style.display = "none";
@@ -90,7 +90,7 @@ const ScopePanel = (function(addButtons) {
         divDS.appendChild(btnEditScope);
 
 
-        let btnDelScope = UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplDelScope", 'value': ''});
+        let btnDelScope = UI.tag("input", {'type': "button", 'class': "toolButton", 'id': "cplDelScope", 'value': ''});
         btnDelScope.addEventListener('click',()=>{
                     let idx = sgv.graf.delScopeOfValues(selectScope.value);
 
@@ -101,7 +101,7 @@ const ScopePanel = (function(addButtons) {
                 });
         divDS.appendChild(btnDelScope);
 
-        let btnAddScope = UI.tag("input", {'type': "button", 'class': "sgvC", 'id': "cplAddScope", 'value': ''});
+        let btnAddScope = UI.tag("input", {'type': "button", 'class': "toolButton", 'id': "cplAddScope", 'value': ''});
         btnAddScope.addEventListener('click',()=>{
                     divNS.show();
                     divDS.style.display = "none";

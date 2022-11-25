@@ -20,7 +20,7 @@ const SlidersPanel = (function() {
     var sliderRedLimit, sliderGreenLimit;
     var spanRed, spanGreen;
 
-    this.ui = UI.tag('div', {'id': 'panelLimitSliders'});
+    this.ui = UI.tag('div', {'id': 'LimitSlidersPanel'});
 
     this.ui.appendChild(spanRed = UI.tag("span", {'id': 'spanRed'}, {'textContent': '-1.0'}));
 

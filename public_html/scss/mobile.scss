@@ -1,0 +1,44 @@
+@import url("portrait.css") (orientation: portrait);
+@import url("landscape.css") (orientation: landscape);
+
+/* ==================================================================*/
+/* Control Panel */
+
+
+#sgvDlgCPL {
+    @media (orientation: portrait) {
+        --rad: 5vw;
+        --swh: 0.5vw;
+    }
+    @media (orientation: landscape) {
+        --rad: 5vh;
+        --swh: 0.5vh;
+    }
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-left-radius: var(--rad);
+    border-bottom-right-radius: var(--rad);
+    text-align: center;
+    width: fit-content;
+    height: fit-content;
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    top:0px;
+
+    #switch {
+        min-width: var(--ref_size);
+        height: var(--rad);
+        border-bottom-left-radius: var(--rad);
+        border-bottom-right-radius: var(--rad);
+        border-top: #aaa solid var(--swh);
+        text-align: center;
+        vertical-align: top;
+        color: #fff;
+        cursor: pointer;
+        font-weight: bold;
+    }
+}
+

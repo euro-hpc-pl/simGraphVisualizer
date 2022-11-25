@@ -71,22 +71,17 @@ sgv.dlgEdgeProperties = new function() {
         });
         content.appendChild(btnSetE);
 
-        btnDeleteE = UI.newInput("button", "delete", "delbutton", "");
-        btnDeleteE.addEventListener('click', function () {
-            usunE();
-        });
-        content.appendChild(btnDeleteE);
-
-        content.style['min-width'] = '240px'; 
-        content.style['min-height'] = '105px'; 
-
+//        content.style['min-width'] = '240px'; 
+//        content.style['min-height'] = '105px'; 
 
         zeroInfo = UI.tag("div", {'class':'content'});
         zeroInfo.innerHTML = "Select an edge, please.";
-        zeroInfo.style['min-width'] = '240px'; 
-        zeroInfo.style['min-height'] = '105px'; 
+//        zeroInfo.style['min-width'] = '240px'; 
+//        zeroInfo.style['min-height'] = '105px'; 
         ui.appendChild(zeroInfo);
         
+        ui.appendChild(UI.createTransparentBtn1('CLOSE', 'CloseButton', ()=>{hideDialog();}));
+        ui.appendChild(UI.createTransparentBtn1('DELETE', 'DeleteButton', ()=>{usunE();}));
         
         return ui;
     };

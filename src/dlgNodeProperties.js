@@ -134,24 +134,19 @@ sgv.dlgNodeProperties = new function() {
         });
         content.appendChild(btnConnectSelectN);
 
-        content.appendChild(document.createElement("br"));
-
-        btnDeleteNode = UI.newInput("button", "delete", "delbutton", "");
-        btnDeleteNode.addEventListener('click', function () {
-            usunN();
-        });
-        content.appendChild(btnDeleteNode);
-
-        content.style['min-width'] = '240px'; 
-        content.style['min-height'] = '105px'; 
+//        content.style['min-width'] = '240px'; 
+//        content.style['min-height'] = '105px'; 
 
         main.appendChild(content);
 
         zeroInfo = UI.tag("div", {'id':'zeroInfo', 'class':'content'});
         zeroInfo.innerHTML = "Select a node, please.";
-        zeroInfo.style['min-width'] = '240px'; 
-        zeroInfo.style['min-height'] = '105px'; 
+//        zeroInfo.style['min-width'] = '240px'; 
+//        zeroInfo.style['min-height'] = '105px'; 
         main.appendChild(zeroInfo);
+
+        main.appendChild(UI.createTransparentBtn1('CLOSE', 'CloseButton', ()=>{hideDialog();}));
+        main.appendChild(UI.createTransparentBtn1('DELETE', 'DeleteButton', ()=>{usunN();}));
         
         return ui;
     }
@@ -226,6 +221,7 @@ sgv.dlgNodeProperties = new function() {
         if ( nodeId === '0' ) {
             content.style.display = 'none';
             zeroInfo.style.display = 'block';
+            svgView.innerHTML = '';
             return;
         } else {
             zeroInfo.style.display = 'none';
