@@ -15,6 +15,7 @@ sgv.dlgEdgeProperties = new function() {
     
     window.addEventListener('load',()=>{
         window.document.body.appendChild(ui);
+        hideDialog();
     });
 
     function createUI() {

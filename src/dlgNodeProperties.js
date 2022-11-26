@@ -15,11 +15,11 @@ sgv.dlgNodeProperties = new function() {
     var ui = createUI();
 
     ui.addEventListener('keydown', onKeyDownX );
-    hideDialog();
     
     window.addEventListener('load',()=>{
         window.document.body.appendChild(ui);
-        window.addEventListener('orientationchange', sgv.dlgNodeProperties.onOrientationChange );
+        hideDialog();
+//        window.addEventListener('orientationchange', sgv.dlgNodeProperties.onOrientationChange );
         //new ResizeObserver(()=>console.log('resize')).observe(svgView);
     });
 
