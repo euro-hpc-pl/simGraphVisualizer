@@ -105,6 +105,14 @@ const Chimera = /** @class */ (function (gSize) {
 
     };
 
+    this.modulePositionTEST = function( x, y, z ) {
+        let d = 50.0;
+        let mX = (d * ( ( this.rows - 1 ) / 2.0 ))-(d * x);
+        let mY = (d * y) - (d * ( ( this.cols - 1 ) / 2.0 ));
+        let mZ = ( d * z ) - (d*((this.layers - 1) / 2.0));
+        return new BABYLON.Vector3(mX, mZ, mY);
+    };
+
     this.modulePosition = function( x, y, z ) {
         let d = 50.0;
         let mX = (d * ( ( this.cols - 1 ) / 2.0 ))-(d * y);

@@ -109,11 +109,17 @@ var isMobile = false;
 
 function detectClient() {
     //console.log(navigator.userAgent);
+    //if(navigator.userAgent.match(/(Android|iPod|iPhone|iPad|BlackBerry|IEMobile|Opera Mini)/)) {}
     let ua = navigator.userAgent.toLowerCase();
     isMobile = ( ua.indexOf("android") > -1 )
+            || ( ua.indexOf("blackberry") > -1 )
+            || ( ua.indexOf("iemobile") > -1 )
+            || ( ua.indexOf("opera mini") > -1 )
             || ( ua.indexOf("iphone") > -1 )
+            || ( ua.indexOf("ipod") > -1 )
             || ( ua.indexOf("ipad") > -1 );
 }
+
 
 detectClient();
 

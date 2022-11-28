@@ -1,0 +1,59 @@
+/*
+Copyright 2022 pojdulos.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+/*
+    Created on : 28 lis 2022, 12:13:11
+    Author     : pojdulos
+*/
+
+button.sgvTransparentButton1 {
+    width: var(--btn_size);
+    height: calc(var(--btn_size) * var(--btn_aspect_ratio));
+    margin: calc(var(--btn_size) / 20);
+    padding: 0;
+    background-color: rgba(0,0,0,0.5);
+    color: white;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #ddd #444 #444 #ddd;
+    text-align: center;
+    font-size: var(--btn_font_size);
+    vertical-align: top;
+    @if $isMobile {
+        border-radius: calc(0.125*var(--btn_size));
+    }
+    @else {
+        border-radius: 5px;
+        overflow: hidden;
+    }
+
+    &:hover {
+        border-color: #444 #ddd #ddd #444;
+        cursor: pointer;
+    }
+
+    span {
+        text-align: center;
+        vertical-align: middle;
+        font-size: var(--btn_font_size);
+        padding:0;
+        margin:0;
+    }
+
+    &#cplClearButton {
+        background-color: rgba(255,0,0,0.5);
+        color: white;
+    }
+}

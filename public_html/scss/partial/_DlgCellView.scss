@@ -1,0 +1,120 @@
+/* ==================================================================*/
+/* Cell View */
+#sgvCellView {
+    @if $isMobile {
+        border-radius: 0;
+        border: 1px solid #fff;
+        margin:auto;
+        background:#444;
+        left:0.5vw;
+        top:0.5vw;
+        @media (orientation: portrait) {
+            width:99vw;
+            height:125vw;
+        }
+        @media (orientation: landscape) {
+            width:80vw;
+            height:fit-content;
+            max-height: 90vh;
+        }
+    }
+    @else {
+        width: 60vmin;
+    }
+
+    .title {
+        @if $isMobile {
+            background-color: rgba(0, 0, 0, 0.5);
+            color: #ddd;
+            border-radius: 0;
+            border-bottom: 1px solid #888;
+            @media (orientation: portrait) {
+                font-size: 4vw;
+                padding:1vh;
+            }
+            @media (orientation: landscape) {
+                font-size: 4vh;
+                padding:1vh;
+            }
+        }
+    }
+
+    .hidebutton {
+        @if $isMobile {
+            display: none;
+        }
+    }
+
+    #svg {
+        background: #fff;
+        @if $isMobile {
+            display: block;
+            @media (orientation: portrait) {
+                margin: auto 0 auto 0;
+                width: auto;
+                height: auto;
+            }
+            @media (orientation: landscape) {
+                margin: auto auto 1vh 1vh;
+                width: 70vh;
+                height: 70vh;
+                float: left;
+            }
+        }
+    }
+
+    #cellViewTools {
+        @if $isMobile {
+            width: auto;
+            @media (orientation: portrait) {
+                display: block;
+                left: 2vw;
+                bottom: 4vh;
+                height: 5vh;
+                font-size: 3vw;
+                max-width: 65vw;
+                margin-top:1vw;
+            }
+            @media (orientation: landscape) {
+                display: inline-block;
+                margin-left: 2vw;
+                height: fit-content;
+                color: #ddd;
+                font-size: 4vh;
+            }
+
+            #ScopePanel {
+                margin-top: 1vh;
+
+                #cplDivDS:before {
+                    content: 'current scope: ';
+                }
+            }
+
+            select {
+                min-width: 8vw;
+                @media (orientation: portrait) {
+                    font-size: 3vw;
+                }
+                @media (orientation: landscape) {
+                    font-size: 4vh;
+                }
+            }
+        }
+    }
+
+    #CloseButton {
+        @if $isMobile {
+            position: absolute;
+            bottom: 1vw;
+            right: 1vw;
+        }
+        @else {
+            position: relative;
+            width: 90%;
+            left:4%;
+
+        }
+    }
+}
+

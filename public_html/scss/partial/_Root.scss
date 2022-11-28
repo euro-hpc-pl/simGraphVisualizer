@@ -1,0 +1,61 @@
+:root {
+    @if $isMobile {
+        @media (orientation: landscape) {
+            --ref_size: 60vw;
+            --tool_btn_size: calc(0.05*var(--ref_size));
+        }
+        @media (orientation: portrait) {
+            --ref_size: 99vw;
+            --tool_btn_size: calc(0.06*var(--ref_size));
+        }
+
+        --font_size: calc(0.04*var(--ref_size));
+        --btn_font_size: calc(0.04*var(--ref_size));
+
+        --btn_size: calc(0.18*var(--ref_size));
+        --btn_aspect_ratio: 0.6;
+
+        --btn_width: calc(0.18*var(--ref_size));
+        --btn_height: calc(0.6*var(--btn_width));
+    }
+    @else {
+        --ref_size: 600px;
+        --btn_size: 96px; /*5vw dla 1920px*/
+        --btn_aspect_ratio: 0.3;
+        --font_size: 12px;
+        --btn_font_size: 12px;
+        --tool_btn_size: 32px;
+    }
+}
+
+body {
+    font-family: sans-serif;
+    font-size: var(--font_size);
+}
+
+select, option, input {
+    font-family: sans-serif;
+    font-size: var(--font_size);
+}
+
+button, input[type=button] {
+    font-family: sans-serif;
+    font-size: var(--btn_font_size);
+}
+
+.disable-select {
+    user-select: none; /* supported by Chrome and Opera */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+}
+
+
+#sgvMissingNodes {
+    min-width: 200px;
+    left:70px;
+    top:200px;
+    display: none;
+}
+

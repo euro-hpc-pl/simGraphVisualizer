@@ -1,0 +1,65 @@
+/*
+Copyright 2022 pojdulos.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+/*
+    Created on : 28 lis 2022, 12:00:13
+    Author     : pojdulos
+*/
+
+/* ==================================================================*/
+/* Edge Properties */
+
+#sgvEdgeProperties {
+    @if $isMobile {
+        margin:auto;
+        background:#444;
+        border-radius: 0;
+        border: 1px solid #fff;
+        @media (orientation: portrait) {
+            width:90vw;
+            height:45vw;
+            left:5vw;
+            top:5vw;
+        }
+        @media (orientation: landscape) {
+            width:60vw;
+            height:50vh;
+            left:20vw;
+            bottom:10vh;
+        }
+
+        .hidebutton {
+            display: none;
+        }
+
+        #CloseButton {
+            @media (orientation: landscape) {
+                position: absolute;
+                right:4vh;
+                bottom:4vh;
+            }
+        }
+
+        #DeleteButton {
+            @media (orientation: landscape) {
+                position: absolute;
+                left:4vh;
+                bottom:4vh;
+                background-color: rgba(255,0,0,0.5);
+            }
+        }
+    }
+}
+

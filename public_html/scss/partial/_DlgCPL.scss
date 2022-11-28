@@ -1,0 +1,61 @@
+/*
+Copyright 2022 pojdulos.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+/*
+    Created on : 28 lis 2022, 11:44:50
+    Author     : pojdulos
+*/
+
+/* ==================================================================*/
+/* Control Panel */
+#sgvDlgCPL {
+    @if $isMobile {
+        @media (orientation: portrait) {
+            --rad: 5vw;
+            --swh: 0.5vw;
+        }
+        @media (orientation: landscape) {
+            --rad: 5vh;
+            --swh: 0.5vh;
+        }
+    }
+    @else {
+        --rad: 16px;
+        --swh: 2px;
+    }
+    border-radius: 0 0 var(--rad) var(--rad);
+    text-align: center;
+    width: fit-content;
+    height: fit-content;
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    top:0px;
+
+    #switch {
+        min-width: var(--ref_size);
+        height: var(--rad);
+        border-radius: 0 0 var(--rad) var(--rad);
+        border-top: #aaa solid var(--swh);
+        text-align: center;
+        vertical-align: top;
+        color: #fff;
+        cursor: pointer;
+        font-weight: bold;
+    }
+}
+

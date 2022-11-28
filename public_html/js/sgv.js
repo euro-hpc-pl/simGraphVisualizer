@@ -109,11 +109,17 @@ var isMobile = false;
 
 function detectClient() {
     //console.log(navigator.userAgent);
+    //if(navigator.userAgent.match(/(Android|iPod|iPhone|iPad|BlackBerry|IEMobile|Opera Mini)/)) {}
     let ua = navigator.userAgent.toLowerCase();
     isMobile = ( ua.indexOf("android") > -1 )
+            || ( ua.indexOf("blackberry") > -1 )
+            || ( ua.indexOf("iemobile") > -1 )
+            || ( ua.indexOf("opera mini") > -1 )
             || ( ua.indexOf("iphone") > -1 )
+            || ( ua.indexOf("ipod") > -1 )
             || ( ua.indexOf("ipad") > -1 );
 }
+
 
 detectClient();
 
@@ -1911,6 +1917,14 @@ const Chimera = /** @class */ (function (gSize) {
             }
         }
 
+    };
+
+    this.modulePositionTEST = function( x, y, z ) {
+        let d = 50.0;
+        let mX = (d * ( ( this.rows - 1 ) / 2.0 ))-(d * x);
+        let mY = (d * y) - (d * ( ( this.cols - 1 ) / 2.0 ));
+        let mZ = ( d * z ) - (d*((this.layers - 1) / 2.0));
+        return new BABYLON.Vector3(mX, mZ, mY);
     };
 
     this.modulePosition = function( x, y, z ) {

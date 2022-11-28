@@ -8,6 +8,19 @@ html, body {
     font-family: sans-serif;
 }
 
+/*body:before {
+    content: 'TEST';
+    @media handheld {
+        content: 'HANDHELD'
+    }
+    @media only screen and (min-device-width : 320px) and (max-device-width : 480px) {
+        content: 'mobile portrait';
+    }
+    @media only screen and (min-device-height : 320px) and (max-device-height : 480px) {
+        content: 'mobile landscape';
+    }
+}*/
+
 #workspaceDIV {
     float:none;
     clear:both;
@@ -16,173 +29,20 @@ html, body {
     margin: 0;
 }
 
-
-#LimitSlidersPanel {
-    margin-top:0;
-    /*border-top: 1px solid #000;*/
-    border-bottom: 1px solid #000;
-
-    input[type=range] {
-        -webkit-appearance: none;
-        margin: 0;
-        padding: 0;
-        width: 34%;
-        height: 0.7em;
-        background: rgba(0,0,0,0);
-
-        &:focus {
-            outline: none;
-
-            &::-webkit-slider-runnable-track {
-                background: #ff00ff;
-            }
-
-            &::-webkit-slider-runnable-progress {
-                background: #000;
-            }
-
-            /*
-            &::-ms-fill-lower { background: rgba(255,0,0,0.5); }
-            &::-ms-fill-upper { background: rgba(0,255,0,0.5); }
-            */
-        }
-
-        &::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-            animate: 0.2s;
-            box-shadow: 1px 1px 1px #000000;
-            background: #808000;
-            border-radius: 5px;
-            border: 1px solid #000000;
-        }
-
-        &::-webkit-slider-thumb {
-            box-shadow: 1px 1px 1px #000000;
-            border: 1px solid #000000;
-            height: 1em;
-            width: 0.6em;
-            border-radius: 0;
-            background: #FFFFFF;
-            cursor: pointer;
-            -webkit-appearance: none;
-            margin-top: -6px;
-        }
-
-        &::-moz-range-track {
-            width: 100%;
-            height: 10px;
-            cursor: pointer;
-            animate: 0.2s;
-            box-shadow: 1px 1px 1px #000000;
-            background: #ffff00;
-            border-radius: 5px;
-            border: 1px solid #000000;
-        }
-
-        /* &::-moz-range-progress { background-color: red; }*/
-
-        &::-moz-range-thumb {
-            box-shadow: 1px 1px 1px #000000;
-            border: 1px solid #000000;
-            height: 20px;
-            width: 9px;
-            border-radius: 5px;
-            background: #FFFFFF;
-            cursor: pointer;
-        }
-
-        &::-ms-track {
-            width: 100%;
-            height: 10px;
-            cursor: pointer;
-            animate: 0.2s;
-            background: transparent;
-            border-color: transparent;
-            color: transparent;
-        }
-
-        /*
-        &::-ms-fill-lower {
-            background: #ff0000;
-            border: 1px solid #000000;
-            border-radius: 10px;
-            box-shadow: 1px 1px 1px #000000;
-        }
-
-        &::-ms-fill-upper {
-            background: #00ff00;
-            border: 1px solid #000000;
-            border-radius: 10px;
-            box-shadow: 1px 1px 1px #000000;
-        }
-        */
-
-        &::-ms-thumb {
-            box-shadow: 1px 1px 1px #000000;
-            border: 1px solid #000000;
-            height: 20px;
-            width: 9px;
-            border-radius: 5px;
-            background: #FFFFFF;
-            cursor: pointer;
-        }
-
-        &:disabled {
-            &::-webkit-slider-runnable-track {
-                background: rgba(128,128,128,0.5) !important;
-            }
-
-            &::-moz-range-track {
-                background: rgba(128,128,128,0.5) !important;
-            }
-
-            &::-webkit-slider-thumb {
-                display: none;
-            }
-
-            &::-moz-range-thumb {
-                display: none;
-            }
-        }
-
-        &#redLimit {
-            &::-webkit-slider-runnable-track {
-                background: rgba(255,0,0,0.5);
-            }
-
-            &::-moz-range-track {
-                background: rgba(255,0,0,0.5);
-            }
-        }
-
-        &#greenLimit {
-            &::-webkit-slider-runnable-track {
-                background: rgba(0,255,0,0.5);
-            }
-
-            &::-moz-range-track {
-                background: rgba(0,255,0,0.5);
-            }
-        }
-    }
-
-    span {
-        display: inline-block;
-        width: 10%;
-
-        &#spanRed {
-            background-color: rgba(255,0,0,0.5);
-        }
-
-        &#spanZero {
-            background-color: rgba(0,0,0,0.5);
-        }
-
-        &#spanGreen {
-            background-color: rgba(0,255,0,0.5);
-        }
-    }
+#sgvWorkspaceArea {
+    float:none;
+    clear:both;
+    width:100%;
+    height:100%;
+    margin: 0;
 }
+
+#sgvRenderCanvas {
+    position:relative;
+    height: 100%;
+    width: 100%;
+    object-fit:cover;
+    /*touch-action: none;*/
+}
+
 

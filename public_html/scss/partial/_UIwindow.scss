@@ -1,0 +1,123 @@
+/*
+Copyright 2022 pojdulos.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+/*
+    Created on : 28 lis 2022, 12:39:50
+    Author     : pojdulos
+*/
+
+.sgvUIwindow {
+    position:fixed;
+    left:0;
+    top:0;
+    z-index:100;
+    width: fit-content;
+    height: fit-content;
+    padding:1px;
+    display: block;
+    background: rgba(0, 0, 0, 0.3);
+    border-width: 1px;
+    border-radius: 10px;
+
+    user-select: none; /* supported by Chrome and Opera */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+
+    .title {
+        background-color: rgba(0, 0, 0, 0.5);
+        color: #ddd;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+        text-align: center;
+        font-family:sans-serif;
+        font-weight:bold;
+    }
+
+    .content {
+        padding: 4px;
+        background: 0;
+        color: #fff;
+        height: auto;
+        width: auto;
+    }
+
+    .hidebutton {
+        float: right;
+        background-color: #aaa;
+        color: #f00;
+        padding:1px;
+        font-weight:normal;
+        font-size: 10px;
+        border: 1px solid #ff0000;
+        border-radius: 5px;
+    }
+
+    .delbutton {
+        width: 100%;
+        margin-top: 15px;
+        background-color: #f00;
+        color: #fff;
+        border: solid 1px #000;
+    }
+
+    .actionbutton {
+        @if $isMobile {
+            background-color: rgba(0, 0, 0, 0.5);
+            color: #ddd;
+            border: solid 1px #888;
+            @media (orientation: portrait) {
+                margin-top: 15px;
+                border-radius: 5px;
+                width: var(--btn_size);
+                height: calc(var(--btn_size) * var(--btn_aspect_ratio));
+                margin: calc(var(--btn_size) / 12.8);
+            }
+            @media (orientation: landscape) {
+                margin: 2vh;
+                border-radius: 4vh;
+                width: var(--btn_width);
+                height: var(--btn_height);
+                font-size: var(--btn_font_size);
+            }
+        }
+        @else {
+            width: 45%;
+            margin-top: 15px;
+            /*margin-left: 25%;*/
+            background-color: rgba(0, 0, 0, 0.5);
+            color: #ddd;
+            border: solid 1px #888;
+            border-radius: 5px;
+        }
+    }
+
+    .setvaluebutton {
+        background-color: #080;
+        color: #fff;
+
+        &:disabled {
+            background-color: #888;
+            color: #aaa;
+        }
+    }
+
+    #wagaN:disabled {
+        background-color: #ddd;
+        color: #ccc;
+    }
+}
+

@@ -1,0 +1,169 @@
+/* ==================================================================*/
+/* Node Properties */
+#sgvNodeProperties {
+    @if $isMobile {
+        display: block;
+        margin:auto;
+        background:#444;
+        border-radius: 0;
+        border: 1px solid #fff;
+        @media (orientation: portrait) {
+            width:98vw;
+            height:140vw;
+            left:1vw;
+            top:0;
+        }
+        @media (orientation: landscape) {
+            width:80vw;
+            height:fit-content;
+            max-height: 90vh;
+            overflow: scroll;
+            left:10vw;
+        }
+    }
+    @else {
+        display: none;
+        height: 45vmin;
+    }
+
+    .title {
+        @if $isMobile {
+            background-color: rgba(0, 0, 0, 0.5);
+            color: #ddd;
+            border-radius: 0;
+            border-bottom: 1px solid #888;
+            font-size: 4vh;
+            padding:1vh;
+        }
+    }
+
+    .hidebutton {
+        @if $isMobile {
+            display: none;
+        }
+    }
+
+    #main {
+        @if $isMobile {
+            width:100%;
+            margin:0;
+            padding:0;
+            height:fit-content;
+        }
+    }
+
+    #CloseButton {
+        position: absolute;
+        @if $isMobile {
+            @media (orientation: portrait) {
+                right:2vw;
+                bottom: 2vw;
+            }
+            @media (orientation: landscape) {
+                right:4vh;
+                bottom:4vh;
+            }
+        }
+        @else {
+            position: absolute;
+            right:30px;
+            bottom: 0;
+        }
+    }
+
+    #DeleteButton {
+        position: absolute;
+        background-color: rgba(255,0,0,0.5);
+        @if $isMobile {
+            @media (orientation: portrait) {
+                left:2vw;
+                bottom: 2vw;
+            }
+            @media (orientation: landscape) {
+                left:74vh;
+                bottom:4vh;
+            }
+        }
+        @else {
+            left:30px;
+            bottom: 0;
+        }
+    }
+
+    #svg {
+        background: #fff;
+        @if $isMobile {
+            display: block;
+            @media (orientation: portrait) {
+                margin: auto;
+                width: auto;
+                height: auto;
+            }
+            @media (orientation: landscape) {
+                margin: auto auto 1vh 1vh;
+                width: 70vh;
+                height: 70vh;
+                float: left;
+            }
+        }
+    }
+
+    #tools,#zeroInfo {
+        @if $isMobile {
+            display: block;
+            width:auto;
+            @media (orientation: portrait) {
+                height:25vw;
+                font-size: 4vw;
+            }
+            @media (orientation: landscape) {
+                position: absolute;
+                float: right;
+                left: 72vh;
+                top: 15vh;
+                right: 1vh;
+                height: fit-content;
+            }
+        }
+    }
+
+    #tools {
+        @if $isMobile {
+            checkbox {
+                @media (orientation: portrait) {
+                    min-height: 2vw;
+                    font-size: 3vw;
+                    max-width: 40%;
+                }
+            }
+        }
+    }
+
+    input,select {
+        @if $isMobile {
+            max-width: 40%;
+            @media (orientation: portrait) {
+                min-height: 2vw;
+                font-size: 4vw;
+            }
+            @media (orientation: landscape) {
+                min-height: 2vh;
+                font-size: 4vh;
+            }
+        }
+    }
+
+    #nodeid {
+        @if $isMobile {
+            @media (orientation: landscape) {
+                display: block;
+                position: absolute;
+                left: 72vh;
+                float: right;
+                width:auto;
+                height: auto;
+
+            }
+        }
+    }
+}
