@@ -1,0 +1,753 @@
+:root {
+  --ref_size: 600px;
+  --btn_size: 96px; /*5vw dla 1920px*/
+  --btn_aspect_ratio: 0.3;
+  --font_size: 12px;
+  --btn_font_size: 12px;
+  --tool_btn_size: 32px;
+}
+
+body {
+  font-family: sans-serif;
+  font-size: var(--font_size);
+}
+
+select, option, input {
+  font-family: sans-serif;
+  font-size: var(--font_size);
+}
+
+button, input[type=button] {
+  font-family: sans-serif;
+  font-size: var(--btn_font_size);
+}
+
+.disable-select {
+  user-select: none; /* supported by Chrome and Opera */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+}
+
+#sgvMissingNodes {
+  min-width: 200px;
+  left: 70px;
+  top: 200px;
+  display: none;
+}
+
+/*
+Copyright 2022 pojdulos.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+/*
+    Created on : 28 lis 2022, 12:39:50
+    Author     : pojdulos
+*/
+.sgvUIwindow {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 100;
+  width: fit-content;
+  height: fit-content;
+  padding: 1px;
+  display: block;
+  background: rgba(0, 0, 0, 0.3);
+  border-width: 1px;
+  border-radius: 10px;
+  user-select: none; /* supported by Chrome and Opera */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+}
+.sgvUIwindow .title {
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #ddd;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  text-align: center;
+  font-family: sans-serif;
+  font-weight: bold;
+}
+.sgvUIwindow .content {
+  padding: 4px;
+  background: 0;
+  color: #fff;
+  height: auto;
+  width: auto;
+}
+.sgvUIwindow .hidebutton {
+  float: right;
+  background-color: #aaa;
+  color: #f00;
+  padding: 1px;
+  font-weight: normal;
+  font-size: 10px;
+  border: 1px solid #ff0000;
+  border-radius: 5px;
+}
+.sgvUIwindow .delbutton {
+  width: 100%;
+  margin-top: 15px;
+  background-color: #f00;
+  color: #fff;
+  border: solid 1px #000;
+}
+.sgvUIwindow .actionbutton {
+  width: 45%;
+  margin-top: 15px;
+  /*margin-left: 25%;*/
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #ddd;
+  border: solid 1px #888;
+  border-radius: 5px;
+}
+.sgvUIwindow .setvaluebutton {
+  background-color: #080;
+  color: #fff;
+}
+.sgvUIwindow .setvaluebutton:disabled {
+  background-color: #888;
+  color: #aaa;
+}
+.sgvUIwindow #wagaN:disabled {
+  background-color: #ddd;
+  color: #ccc;
+}
+
+/*
+Copyright 2022 pojdulos.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+/*
+    Created on : 28 lis 2022, 12:13:11
+    Author     : pojdulos
+*/
+button.sgvTransparentButton1 {
+  width: var(--btn_size);
+  height: calc(var(--btn_size) * var(--btn_aspect_ratio));
+  margin: calc(var(--btn_size) / 20);
+  padding: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #ddd #444 #444 #ddd;
+  text-align: center;
+  font-size: var(--btn_font_size);
+  vertical-align: top;
+  border-radius: 5px;
+  overflow: hidden;
+}
+button.sgvTransparentButton1:hover {
+  border-color: #444 #ddd #ddd #444;
+  cursor: pointer;
+}
+button.sgvTransparentButton1 span {
+  text-align: center;
+  vertical-align: middle;
+  font-size: var(--btn_font_size);
+  padding: 0;
+  margin: 0;
+}
+button.sgvTransparentButton1#cplClearButton {
+  background-color: rgba(255, 0, 0, 0.5);
+  color: white;
+}
+
+#LimitSlidersPanel {
+  margin-top: 0;
+  /*border-top: 1px solid #000;*/
+  border-bottom: 1px solid #000;
+}
+#LimitSlidersPanel input[type=range] {
+  -webkit-appearance: none;
+  margin: 0;
+  padding: 0;
+  width: 34%;
+  height: 0.7em;
+  background: rgba(0, 0, 0, 0);
+  /* &::-moz-range-progress { background-color: red; }*/
+  /*
+  &::-ms-fill-lower {
+      background: #ff0000;
+      border: 1px solid #000000;
+      border-radius: 10px;
+      box-shadow: 1px 1px 1px #000000;
+  }
+
+  &::-ms-fill-upper {
+      background: #00ff00;
+      border: 1px solid #000000;
+      border-radius: 10px;
+      box-shadow: 1px 1px 1px #000000;
+  }
+  */
+}
+#LimitSlidersPanel input[type=range]:focus {
+  outline: none;
+  /*
+  &::-ms-fill-lower { background: rgba(255,0,0,0.5); }
+  &::-ms-fill-upper { background: rgba(0,255,0,0.5); }
+  */
+}
+#LimitSlidersPanel input[type=range]:focus::-webkit-slider-runnable-track {
+  background: #ff00ff;
+}
+#LimitSlidersPanel input[type=range]:focus::-webkit-slider-runnable-progress {
+  background: #000;
+}
+#LimitSlidersPanel input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  animate: 0.2s;
+  box-shadow: 1px 1px 1px #000000;
+  background: #808000;
+  border-radius: 5px;
+  border: 1px solid #000000;
+}
+#LimitSlidersPanel input[type=range]::-webkit-slider-thumb {
+  box-shadow: 1px 1px 1px #000000;
+  border: 1px solid #000000;
+  height: 1em;
+  width: 0.6em;
+  border-radius: 0;
+  background: #FFFFFF;
+  cursor: pointer;
+  -webkit-appearance: none;
+  margin-top: -6px;
+}
+#LimitSlidersPanel input[type=range]::-moz-range-track {
+  width: 100%;
+  height: 10px;
+  cursor: pointer;
+  animate: 0.2s;
+  box-shadow: 1px 1px 1px #000000;
+  background: #ffff00;
+  border-radius: 5px;
+  border: 1px solid #000000;
+}
+#LimitSlidersPanel input[type=range]::-moz-range-thumb {
+  box-shadow: 1px 1px 1px #000000;
+  border: 1px solid #000000;
+  height: 20px;
+  width: 9px;
+  border-radius: 5px;
+  background: #FFFFFF;
+  cursor: pointer;
+}
+#LimitSlidersPanel input[type=range]::-ms-track {
+  width: 100%;
+  height: 10px;
+  cursor: pointer;
+  animate: 0.2s;
+  background: transparent;
+  border-color: transparent;
+  color: transparent;
+}
+#LimitSlidersPanel input[type=range]::-ms-thumb {
+  box-shadow: 1px 1px 1px #000000;
+  border: 1px solid #000000;
+  height: 20px;
+  width: 9px;
+  border-radius: 5px;
+  background: #FFFFFF;
+  cursor: pointer;
+}
+#LimitSlidersPanel input[type=range]:disabled::-webkit-slider-runnable-track {
+  background: rgba(128, 128, 128, 0.5) !important;
+}
+#LimitSlidersPanel input[type=range]:disabled::-moz-range-track {
+  background: rgba(128, 128, 128, 0.5) !important;
+}
+#LimitSlidersPanel input[type=range]:disabled::-webkit-slider-thumb {
+  display: none;
+}
+#LimitSlidersPanel input[type=range]:disabled::-moz-range-thumb {
+  display: none;
+}
+#LimitSlidersPanel input[type=range]#redLimit::-webkit-slider-runnable-track {
+  background: rgba(255, 0, 0, 0.5);
+}
+#LimitSlidersPanel input[type=range]#redLimit::-moz-range-track {
+  background: rgba(255, 0, 0, 0.5);
+}
+#LimitSlidersPanel input[type=range]#greenLimit::-webkit-slider-runnable-track {
+  background: rgba(0, 255, 0, 0.5);
+}
+#LimitSlidersPanel input[type=range]#greenLimit::-moz-range-track {
+  background: rgba(0, 255, 0, 0.5);
+}
+#LimitSlidersPanel span {
+  display: inline-block;
+  width: 10%;
+}
+#LimitSlidersPanel span#spanRed {
+  background-color: rgba(255, 0, 0, 0.5);
+}
+#LimitSlidersPanel span#spanZero {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+#LimitSlidersPanel span#spanGreen {
+  background-color: rgba(0, 255, 0, 0.5);
+}
+
+/*
+Copyright 2022 pojdulos.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+/*
+    Created on : 28 lis 2022, 11:12:00
+    Author     : pojdulos
+*/
+/* ==================================================================*/
+/* ScopePanel */
+#ScopePanel {
+  text-align: center;
+  padding: 5px;
+  margin: 5px 0 5px 0;
+  border-top: 1px solid black;
+  border-bottom: 1px solid black;
+}
+#ScopePanel select {
+  height: var(--tool_btn_size);
+  width: calc(6 * var(--tool_btn_size));
+  text-align: center;
+  vertical-align: middle;
+  font-family: monospace;
+  font-weight: bold;
+  font-size: 18px;
+  background-color: #000;
+  color: #ddd;
+}
+#ScopePanel #cplAddScopeInput {
+  height: var(--tool_btn_size);
+  width: calc(6 * var(--tool_btn_size));
+  color: #ddd;
+  text-align: center;
+  vertical-align: middle;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-family: monospace;
+  font-weight: bold;
+  font-size: 18px;
+  background-color: #000;
+}
+#ScopePanel .toolButton {
+  height: var(--tool_btn_size);
+  width: var(--tool_btn_size);
+  padding: 0;
+  text-align: center;
+  vertical-align: middle;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #ddd #000 #000 #ddd;
+  background-color: rgba(0, 0, 0, 0.5);
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 70%;
+}
+#ScopePanel .toolButton:hover {
+  border-color: #000 #ddd #ddd #000;
+  padding: 1px 0 0 1px;
+}
+#ScopePanel .toolButton#cplAcceptAddScope, #ScopePanel .toolButton#cplAddScope {
+  background-image: url(pics/Add.png);
+}
+#ScopePanel .toolButton#cplSkipAddScope {
+  background-image: url(pics/Undo.png);
+}
+#ScopePanel .toolButton#cplDelScope {
+  background-image: url(pics/Remove.png);
+}
+#ScopePanel .toolButton#cplEditScope {
+  background-image: url(pics/Modify.png);
+}
+
+/*
+Copyright 2022 pojdulos.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+/*
+    Created on : 28 lis 2022, 11:44:50
+    Author     : pojdulos
+*/
+/* ==================================================================*/
+/* Control Panel */
+#sgvDlgCPL {
+  --rad: 16px;
+  --swh: 2px;
+  border-radius: 0 0 var(--rad) var(--rad);
+  text-align: center;
+  width: fit-content;
+  height: fit-content;
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
+  top: 0px;
+}
+#sgvDlgCPL #switch {
+  min-width: var(--ref_size);
+  height: var(--rad);
+  border-radius: 0 0 var(--rad) var(--rad);
+  border-top: #aaa solid var(--swh);
+  text-align: center;
+  vertical-align: top;
+  color: #fff;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* ==================================================================*/
+/* Cell View */
+#sgvCellView {
+  width: 60vmin;
+}
+#sgvCellView #svg {
+  background: #fff;
+}
+#sgvCellView #CloseButton {
+  position: relative;
+  width: 90%;
+  left: 4%;
+}
+
+/* ==================================================================*/
+/* Node Properties */
+#sgvNodeProperties {
+  display: none;
+  height: 45vmin;
+}
+#sgvNodeProperties #CloseButton {
+  position: absolute;
+  position: absolute;
+  right: 30px;
+  bottom: 0;
+}
+#sgvNodeProperties #DeleteButton {
+  position: absolute;
+  background-color: rgba(255, 0, 0, 0.5);
+  left: 30px;
+  bottom: 0;
+}
+#sgvNodeProperties #svg {
+  background: #fff;
+}
+/*
+Copyright 2022 pojdulos.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+/*
+    Created on : 28 lis 2022, 12:00:13
+    Author     : pojdulos
+*/
+/* ==================================================================*/
+/* Edge Properties */
+/*
+Copyright 2022 pojdulos.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+/*
+    Created on : 28 lis 2022, 12:01:14
+    Author     : pojdulos
+*/
+/* ==================================================================*/
+/* sgvConsole */
+#sgvConsole {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
+  width: fit-content;
+  bottom: 0;
+  margin-top: auto;
+  margin-bottom: 0;
+  height: fit-content;
+  padding: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  display: none;
+}
+#sgvConsole .content {
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+#sgvConsole #consoleHistory {
+  display: block;
+  left: 0;
+  width: var(--ref_size);
+  height: calc(0.3 * var(--ref_size));
+  margin: 0;
+  resize: none;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #ddd;
+}
+#sgvConsole #commandline {
+  display: block;
+  width: var(--ref_size);
+  margin: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  resize: none;
+  color: #ddd;
+}
+
+#sgvConsole {
+  width: 100%;
+  height: 252px;
+}
+#sgvConsole .content {
+  padding: 1px;
+}
+#sgvConsole #consoleHistory {
+  width: calc(100% - 6px);
+  height: 200px;
+}
+#sgvConsole #commandline {
+  width: calc(100% - 8px);
+}
+
+/*
+Copyright 2022 pojdulos.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+/*
+    Created on : 28 lis 2022, 11:56:33
+    Author     : pojdulos
+*/
+/* ==================================================================*/
+/* MODAL DIALOGS */
+dialog.sgvModalDialog {
+  width: fit-content;
+  height: fit-content;
+  transition: transform var(--ease-elastic-4);
+  transform: translateY(calc(var(--hide, 1) * 100vmin));
+}
+dialog.sgvModalDialog[open] {
+  --hide: 0;
+}
+dialog.sgvModalDialog::backdrop {
+  background: hsla(0deg, 0%, 10%, 0.5);
+  backdrop-filter: blur(2px);
+}
+dialog.sgvModalDialog #buttons {
+  text-align: center;
+}
+
+/* ==================================================================*/
+/* Create Graph DIALOG */
+dialog#sgvDlgCreateGraph {
+  background: rgba(0, 0, 0, 0.3);
+  border-width: 1px;
+  border-radius: 10px;
+}
+dialog#sgvDlgCreateGraph .title {
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #ddd;
+  border-bottom: 1px solid #888;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+dialog#sgvDlgCreateGraph .content {
+  background: 0;
+  color: #fff;
+}
+dialog#sgvDlgCreateGraph select {
+  background: 0;
+  color: #fff;
+}
+@media (orientation: portrait) {
+  dialog#sgvDlgCreateGraph select {
+    min-width: 8vw;
+    font-family: sans-serif;
+    font-size: 4vw;
+  }
+}
+@media (orientation: landscape) {
+  dialog#sgvDlgCreateGraph select {
+    min-width: 10vh;
+    font-size: var(--font_size);
+  }
+}
+dialog#sgvDlgCreateGraph .actionbutton {
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #ddd;
+  border: solid 1px #888;
+  border-radius: 5px;
+}
+
+/*
+Copyright 2022 pojdulos.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+/*
+    Created on : 28 lis 2022, 11:41:40
+    Author     : pojdulos
+*/
+/* ==================================================================*/
+/* About DIALOG */
+#sgvDlgAbout .content {
+  background: #fff;
+  color: #000;
+  font-family: sans-serif, arial;
+}
+#sgvDlgAbout .content .content .info {
+  background: 0;
+  border-top: 2px solid #888;
+  border-bottom: 2px solid #888;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding: 25px;
+  color: #888;
+  font-family: sans-serif, arial;
+}
+
+/*
+Copyright 2022 pojdulos.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+/*
+    Created on : 28 lis 2022, 11:40:02
+    Author     : pojdulos
+*/
+/* ==================================================================*/
+/* Loader Splash DIALOG */
+dialog#loaderSplash {
+  border: 0;
+  text-align: center;
+  background: rgba(0, 0, 0, 0);
+  font-size: var(--font-size-fluid-2);
+  font-weight: var(--font-weight-6);
+}
+dialog#loaderSplash span {
+  color: #fff;
+  /*animation: wiggle 3s infinite;
+  display: inline-block;
+  transform-origin: 65%;*/
+}
+dialog#loaderSplash .loader {
+  margin: auto;
+  border: 20px solid #f3f3f3; /* Light grey */
+  border-color: blue green red yellow;
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  animation: spin 2s linear infinite;
+}
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/*# sourceMappingURL=desktop.css.map */
