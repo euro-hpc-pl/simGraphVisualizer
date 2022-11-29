@@ -4,15 +4,16 @@
  * and open the template in the editor.
  */
 
-var gulp = require('gulp');
-var less = require('gulp-less');
-var path = require('path');
-var uglify = require('gulp-uglify');
-var rename = require('gulp-rename');
-var concat = require('gulp-concat');
-var del = require('del');
+const gulp = require('gulp');
+const less = require('gulp-less');
+const path = require('path');
+const uglify = require('gulp-uglify');
+const rename = require('gulp-rename');
+const concat = require('gulp-concat');
+const sass = require('gulp-sass')(require('sass'));
+const del = require('del');
 
-var srcfiles = [
+const srcfiles = [
     "./src/helpers.js",
     "./src/SVG.js",
     "./src/Dispatcher.js",
@@ -46,12 +47,12 @@ var srcfiles = [
     "./src/dlgLoaderSplash.js"
 ];
 
-var dstdir = "./public_html/js/";
-var dstfile = "sgv.js";
+const dstdir = "./public_html/js/";
+const dstfile = "sgv.js";
 
 gulp.task('copyToElectron', function() {
-    return gulp.src(dstdir+dstfile)
-        .pipe(gulp.dest('../desktopSGV/views/home/js'));
+    return gulp.src('./public_html/**/*.{html,js,map,css,jpg,gif,ico,gif,png}')
+        .pipe(gulp.dest('../desktopSGV/views/home/'));
 });
 
 gulp.task('minimize', function() {
@@ -65,6 +66,12 @@ gulp.task('merge', function () {
     return gulp.src(srcfiles)
         .pipe(concat(dstfile))
         .pipe(gulp.dest(dstdir));
+});
+
+gulp.task('recompile-CSS', () => {
+    return gulp.src('./public_html/scss/**/*.scss')
+        .pipe(sass().on('error', sass.logError))
+        .pipe(gulp.dest('./public_html/css/'));
 });
 
 gulp.task('build', gulp.series('merge', 'minimize', 'copyToElectron'));

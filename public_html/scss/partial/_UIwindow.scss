@@ -39,12 +39,25 @@ limitations under the License.
 
     .title {
         background-color: rgba(0, 0, 0, 0.5);
-        color: #ddd;
         border-top-left-radius: 8px;
         border-top-right-radius: 8px;
         text-align: center;
-        font-family:sans-serif;
-        font-weight:bold;
+        padding: 5px;
+
+        .titleText {
+            color: #ddd;
+        }
+        
+        .hidebutton {
+            float: right;
+            background-color: #aaa;
+            color: #f00;
+            padding:1px;
+            font-weight:normal;
+            font-size: 10px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+        }
     }
 
     .content {
@@ -55,16 +68,6 @@ limitations under the License.
         width: auto;
     }
 
-    .hidebutton {
-        float: right;
-        background-color: #aaa;
-        color: #f00;
-        padding:1px;
-        font-weight:normal;
-        font-size: 10px;
-        border: 1px solid #ff0000;
-        border-radius: 5px;
-    }
 
     .delbutton {
         width: 100%;

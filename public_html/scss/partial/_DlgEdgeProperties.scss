@@ -39,26 +39,48 @@ limitations under the License.
             left:20vw;
             bottom:10vh;
         }
-
-        .hidebutton {
-            display: none;
+    }
+    @else {
+        height: auto;
+        text-align: center;
+    }
+    
+    .title {
+        .titleText {
+            
         }
+        
+        .hidebutton {
+            @if $isMobile {
+                display: none;
+            }
+        }
+    }
 
-        #CloseButton {
+    #CloseButton {
+        @if $isMobile {
             @media (orientation: landscape) {
                 position: absolute;
                 right:4vh;
                 bottom:4vh;
             }
         }
+        @else {
+            display: none;
+        }
+    }
 
-        #DeleteButton {
+    #DeleteButton {
+        background-color: rgba(255,0,0,0.5);
+        @if $isMobile {
             @media (orientation: landscape) {
                 position: absolute;
                 left:4vh;
                 bottom:4vh;
-                background-color: rgba(255,0,0,0.5);
             }
+        }
+        @else {
+            width:80%;
         }
     }
 }

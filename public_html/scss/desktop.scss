@@ -1,5 +1,6 @@
+@use 'partial/Root' with ( $isMobile: false );
+
 $isMobile: false;
-@import 'partial/Root';
 @import 'partial/UIwindow';
 @import 'partial/TransparentButton';
 @import 'partial/LimitSlidersPanel';

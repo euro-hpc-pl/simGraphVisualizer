@@ -30,21 +30,24 @@ Dispatcher.graphCreated = ()=>{
 };
 
 Dispatcher.graphChanged = ()=>{
-    sgv.dlgCPL.updateSliders();
+    sgv.dlgCPL.refresh();
     sgv.dlgCellView.refresh();
     sgv.dlgNodeProperties.refresh();
+    sgv.dlgEdgeProperties.refresh();
     sgv.SPS.refresh();
 };
 
 Dispatcher.currentScopeChanged = ()=>{
-    sgv.dlgCPL.updateSliders();
+    sgv.dlgCPL.refresh();
     sgv.dlgCellView.refresh();
     sgv.dlgNodeProperties.refresh();
+    sgv.dlgEdgeProperties.refresh();
     sgv.SPS.refresh();
 };
 
 Dispatcher.viewModeChanged = ()=>{
     sgv.dlgCellView.refresh();
     sgv.dlgNodeProperties.refresh();
+    sgv.dlgEdgeProperties.refresh();
     sgv.SPS.refresh();
 };

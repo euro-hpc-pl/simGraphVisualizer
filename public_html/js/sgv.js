@@ -292,22 +292,25 @@ Dispatcher.graphCreated = ()=>{
 };
 
 Dispatcher.graphChanged = ()=>{
-    sgv.dlgCPL.updateSliders();
+    sgv.dlgCPL.refresh();
     sgv.dlgCellView.refresh();
     sgv.dlgNodeProperties.refresh();
+    sgv.dlgEdgeProperties.refresh();
     sgv.SPS.refresh();
 };
 
 Dispatcher.currentScopeChanged = ()=>{
-    sgv.dlgCPL.updateSliders();
+    sgv.dlgCPL.refresh();
     sgv.dlgCellView.refresh();
     sgv.dlgNodeProperties.refresh();
+    sgv.dlgEdgeProperties.refresh();
     sgv.SPS.refresh();
 };
 
 Dispatcher.viewModeChanged = ()=>{
     sgv.dlgCellView.refresh();
     sgv.dlgNodeProperties.refresh();
+    sgv.dlgEdgeProperties.refresh();
     sgv.SPS.refresh();
 };
 
@@ -3475,7 +3478,7 @@ FileIO.loadGraph2 = function(name,data) {
 
 /* global UI, sgv */
 
-const ScopePanel = (function(addButtons) {
+const ScopePanel = (function(addButtons,lbl) {
     let divNS, divDS;
     
     function EditPanel(scopeToEdit) {
@@ -3529,13 +3532,17 @@ const ScopePanel = (function(addButtons) {
     
     this.ui = UI.tag("div", {'class': "sgvSelectBox", 'id': "ScopePanel"});
     
-    divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': isMobile?'':"current scope: "});
+    //divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': isMobile?'':"current scope: "});
+    divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"});
     this.ui.appendChild(divDS);
 
+    if (typeof lbl==='string') {
+        divDS.appendChild(UI.tag("label", {'for': "cplDispValues"}, {'innerHTML':lbl}));
+    }
+    
     let selectScope = UI.tag("select", {'id': "cplDispValues"});
     selectScope.addEventListener('change', () => {
         sgv.graf.displayValues(selectScope.value);
-        sgv.dlgCPL.updateSliders();
     });
     divDS.appendChild(selectScope);
 
@@ -3587,6 +3594,10 @@ const ScopePanel = (function(addButtons) {
         if (i > -1) {
             selectScope.selectedIndex = i;
         }
+    };
+    
+    this.getScope = ()=> {
+        return selectScope.value;
     };
     
     this.refresh = () => {
@@ -3855,7 +3866,7 @@ sgv.dlgCPL = new function () {
 
             divDesc.append(
                 InfoBlock().ui,
-                (scopePanel = new ScopePanel).ui,
+                (scopePanel = new ScopePanel(true,'current scope: ')).ui,
                 (slidersPanel = new SlidersPanel).ui,
                 ButtonPanel().ui);
 
@@ -3924,6 +3935,11 @@ sgv.dlgCPL = new function () {
         descriptionPanel.show();
     }
 
+    function refreshX() {
+        slidersPanel.refresh();
+        scopePanel.refresh();
+    }
+    
     return {
         showPanel: showDialog,
         hidePanel: hideDialog,
@@ -3935,8 +3951,10 @@ sgv.dlgCPL = new function () {
         //quickInfo: (s)=>(switchHandle.innerHTML=s),
         addScope: scopePanel.addScope,
         delScope: scopePanel.delScope,
-        selScope: scopePanel.selScope
+        selScope: scopePanel.selScope,
+        refresh: refreshX
     };
+    
 };
 
 
@@ -5324,43 +5342,31 @@ sgv.dlgEdgeProperties = new function() {
         content = UI.tag("div", {'class':'content'});
         ui.appendChild(content);
 
-        content.appendChild(UI.tag('label',{'for':'nsSelectE'},{'innerHTML':'Scope: '}));
 
-        selectScope = UI.tag('select',{'id':'nsSelectE'});
-        selectScope.addEventListener('change', function () {
-            changeScopeE();
-        });
-        content.appendChild(selectScope);
+        content.appendChild((selectScope = new ScopePanel(false, 'scope: ')).ui);
 
-
-        content.appendChild(document.createElement("br"));
-
+        var valueBlock = UI.tag("div", {'id':'ValueBlock'});
         checkValueE = UI.newInput("checkbox", "", "", "valueCheckE");
         checkValueE.addEventListener('click', function () {
             activateE();
         });
-        content.appendChild(checkValueE);
+        valueBlock.appendChild(checkValueE);
 
         editWagaE = UI.newInput("number", "0", "", "wagaE");
         editWagaE.addEventListener('change', function () {
             edycjaE();
         });
-        content.appendChild(editWagaE);
+        valueBlock.appendChild(editWagaE);
 
         btnSetE = UI.newInput("button", "set", "setvaluebutton", "setE");
         btnSetE.addEventListener('click', function () {
             edycjaE();
         });
-        content.appendChild(btnSetE);
-
-//        content.style['min-width'] = '240px'; 
-//        content.style['min-height'] = '105px'; 
-
-        zeroInfo = UI.tag("div", {'class':'content'});
-        zeroInfo.innerHTML = "Select an edge, please.";
-//        zeroInfo.style['min-width'] = '240px'; 
-//        zeroInfo.style['min-height'] = '105px'; 
-        ui.appendChild(zeroInfo);
+        
+        valueBlock.appendChild(btnSetE);
+        content.appendChild(valueBlock);
+        
+        ui.appendChild(zeroInfo = UI.tag("div", {'class':'content'}, {'innerHTML': "Select an edge, please."}));
         
         ui.appendChild(UI.createTransparentBtn1('CLOSE', 'CloseButton', ()=>{hideDialog();}));
         ui.appendChild(UI.createTransparentBtn1('DELETE', 'DeleteButton', ()=>{usunE();}));
@@ -5391,14 +5397,7 @@ sgv.dlgEdgeProperties = new function() {
         }
         UI.selectByKey( selectEdgeId, edgeId );
 
-        UI.clearSelect(selectScope, true);
-        for (const key in sgv.graf.scopeOfValues) {
-            let opt = UI.tag('option',{'value':key},{'innerHTML':sgv.graf.scopeOfValues[key]});
-            if ( sgv.graf.currentScope === sgv.graf.scopeOfValues[key]) {
-                opt.selected = "selected";
-            }
-            selectScope.appendChild(opt);
-        }
+        selectScope.refresh();
 
         let currentValue = sgv.graf.edgeValue(edgeId);
         if ((currentValue===null)||isNaN(currentValue)) {
@@ -5504,24 +5503,117 @@ sgv.dlgEdgeProperties = new function() {
         Dispatcher.graphChanged();
     };
 
+    function refreshX() {
+        if (ui.style.display === "block") showDialog();
+    };
+
     return {
         show: showDialog,
         hide: hideDialog,
-        ui: ui,
+        refresh: refreshX,
         isVisible: () => {
             return (ui!==null)&&(ui.style.display === "block");
         }
     };
 };
 
-/* global UI, sgv, Edge, Dispatcher */
+/* global UI, sgv, Edge, Dispatcher, SVG */
+
+const ValuePanel = (function() {
+    var btnSetN, checkValueN, editWagaN;
+    var nodeId, scope;
+    
+    var valueBlock = UI.tag("div", {'id':'ValueBlock'});
+
+    checkValueN = UI.newInput("checkbox", "", "", "valueCheckN");
+    checkValueN.addEventListener('click', function (e) {
+        activateN(e.target.checked);
+    });
+    valueBlock.appendChild(checkValueN);
+
+    editWagaN = UI.newInput("number", "0", "", "wagaN");
+    editWagaN.addEventListener('change', function () {
+        edycjaN();
+    });
+    valueBlock.appendChild(editWagaN);
+
+    btnSetN = UI.newInput("button", "set", "setvaluebutton", "setN");
+    btnSetN.addEventListener('click', function () {
+        edycjaN();
+    });
+    valueBlock.appendChild(btnSetN);
+
+    function edycjaN() {
+        let val = parseFloat(editWagaN.value.replace(/,/g, '.'));
+        sgv.graf.setNodeValue(nodeId, val, scope);
+        Dispatcher.graphChanged();
+    };
+
+    function activateN(isActive) {
+        if (isActive) {
+            editWagaN.disabled = "";
+            btnSetN.disabled = "";
+            let val = parseFloat(editWagaN.value.replace(/,/g, '.'));
+            if (isNaN(val)) {
+                val=0;
+                editWagaN.value = val;
+            }
+            console.log(val);
+            sgv.graf.setNodeValue(nodeId, val, scope);
+        } else {
+            editWagaN.disabled = "disabled";
+            btnSetN.disabled = "disabled";
+            sgv.graf.delNodeValue(nodeId, scope);
+        }
+        Dispatcher.graphChanged();
+    };
+
+    function showX() {
+        let currentValue = sgv.graf.nodeValue(nodeId, scope);
+        if ((currentValue===null)||isNaN(currentValue)) {
+            checkValueN.checked = "";
+            editWagaN.value = null;
+            editWagaN.disabled = "disabled";
+            btnSetN.disabled = "disabled";
+        } else {
+            checkValueN.checked = "checked";
+            editWagaN.value = currentValue;
+            editWagaN.disabled = "";
+            btnSetN.disabled = "";
+        }
+    }
+    
+    function setNodeX(id) {
+        nodeId = id;
+        showX();
+    }
+
+    function setScopeX(sc) {
+        scope = sc;
+        showX();
+    }
+
+    function setX(id, sc) {
+        nodeId = id;
+        scope = sc;
+        showX();
+    }
+
+    return {
+        ui: valueBlock,
+        setNode: setNodeX,
+        setScope: setScopeX,
+        show: setX
+    };
+});
 
 sgv.dlgNodeProperties = new function() {
    
     var hidNodeId;
-    var selectNodeId, selectScope, checkValueN, editWagaN;
-    var btnSetN, btnConnectN, selectDestN, btnConnectSelectN;
+    var selectNodeId, selectScope;
+    var btnConnectN, selectDestN, btnConnectSelectN;
     var checkLabelN, editLabelN;
+    var valuePanel;
     var content, zeroInfo, svgView;
     var prevFocused=null;
     
@@ -5582,7 +5674,8 @@ sgv.dlgNodeProperties = new function() {
 
         content = UI.tag("div", {'id':'tools', 'class':'content'});
 
-        var labelBlock = UI.tag("div");
+
+        var labelBlock = UI.tag("div", {'id':'LabelBlock'});
         checkLabelN = UI.newInput("checkbox", "", "", "checkLabelN");
         checkLabelN.addEventListener('click', function (e) {
             let checked = e.target.checked;
@@ -5601,68 +5694,40 @@ sgv.dlgNodeProperties = new function() {
         
         content.appendChild(labelBlock);
 
-
-        selectScope = UI.tag('select',{'id':'nsSelectN'});
-        selectScope.addEventListener('change', function () {
-            sgv.graf.displayValues(selectScope.value);
-            sgv.dlgCPL.selScope(selectScope.value);
-            sgv.dlgCPL.updateSliders();
-            changeScopeN();
-        });
-        content.appendChild(UI.tag('label',{'for':'nsSelectN'},{'innerHTML':'Scope: '}));
-        content.appendChild(selectScope);
+        content.appendChild((selectScope = new ScopePanel(false, 'scope: ')).ui);
+        content.appendChild((valuePanel = new ValuePanel()).ui);
         
-        //content.appendChild(document.createElement("br"));
-
-        checkValueN = UI.newInput("checkbox", "", "", "valueCheckN");
-        checkValueN.addEventListener('click', function () {
-            activateN();
-        });
-        content.appendChild(checkValueN);
-        
-        editWagaN = UI.newInput("number", "0", "", "wagaN");
-        editWagaN.addEventListener('change', function () {
-            edycjaN();
-        });
-        content.appendChild(editWagaN);
-        
-        btnSetN = UI.newInput("button", "set", "setvaluebutton", "setN");
-        btnSetN.addEventListener('click', function () {
-            edycjaN();
-        });
-        content.appendChild(btnSetN);
-        
-        
-        content.appendChild(document.createElement("br"));
+        var connectBlock = UI.tag("div", {'id':'ConnectBlock'});
         
         btnConnectN = UI.newInput("button", "connect to...", "", "connectN");
         btnConnectN.addEventListener('click', function () {
             connectNodes();
         });
-        content.appendChild(btnConnectN);
+        connectBlock.appendChild(btnConnectN);
 
         selectDestN = UI.tag('select',{'id':'destN'});
-        content.appendChild(selectDestN);
+        connectBlock.appendChild(selectDestN);
 
         btnConnectSelectN = UI.newInput("button", "^", "", "connectSelectN");
         btnConnectSelectN.addEventListener('click', function () {
             connectSelectN();
         });
-        content.appendChild(btnConnectSelectN);
+        connectBlock.appendChild(btnConnectSelectN);
 
-//        content.style['min-width'] = '240px'; 
-//        content.style['min-height'] = '105px'; 
+        content.appendChild(connectBlock);
 
         main.appendChild(content);
 
-        zeroInfo = UI.tag("div", {'id':'zeroInfo', 'class':'content'});
-        zeroInfo.innerHTML = "Select a node, please.";
-//        zeroInfo.style['min-width'] = '240px'; 
-//        zeroInfo.style['min-height'] = '105px'; 
+        zeroInfo = UI.tag("div", {'id':'zeroInfo', 'class':'content'}, {'innerHTML': "Select a node, please."});
         main.appendChild(zeroInfo);
 
-        main.appendChild(UI.createTransparentBtn1('CLOSE', 'CloseButton', ()=>{hideDialog();}));
-        main.appendChild(UI.createTransparentBtn1('DELETE', 'DeleteButton', ()=>{usunN();}));
+        main.appendChild(UI.createTransparentBtn1('DELETE', 'DeleteButton', ()=>{
+            usunN();
+        }));
+        
+        main.appendChild(UI.createTransparentBtn1('CLOSE', 'CloseButton', ()=>{
+            hideDialog();
+        }));
         
         return ui;
     }
@@ -5712,7 +5777,7 @@ sgv.dlgNodeProperties = new function() {
             nodeId = hidNodeId.value;
         }
  
-        UI.selectByKey(selectScope, sgv.graf.currentScope);
+        selectScope.selScope(sgv.graf.currentScope);
         
         svgView.innerHTML = '';
         if ((nodeId) in sgv.graf.nodes) {
@@ -5748,38 +5813,8 @@ sgv.dlgNodeProperties = new function() {
 
         drawNode(nodeId);
 
-        editLabelN.value = sgv.graf.nodes[nodeId].getLabel();
-        if ( sgv.graf.nodes[nodeId].isLabelVisible() ) {
-            checkLabelN.checked = "checked";
-            editLabelN.disabled = "";
-        } else {
-            checkLabelN.checked = "";
-            editLabelN.disabled = "disabled";
-        }
-
-        UI.clearSelect(selectScope, true);
-        for (const key in sgv.graf.scopeOfValues) {
-            selectScope.appendChild(UI.option(sgv.graf.scopeOfValues[key], sgv.graf.scopeOfValues[key]),( sgv.graf.currentScope === sgv.graf.scopeOfValues[key]));
-            //var opt = UI.tag('option',{'value':key},{'innerHTML':sgv.graf.scopeOfValues[key]});
-            //if ( sgv.graf.currentScope === sgv.graf.scopeOfValues[key]) {
-            //    opt.selected = "selected";
-            //}
-            //selectScope.appendChild(opt);
-        }
-
-
-        let currentValue = sgv.graf.nodeValue(nodeId);
-        if ((currentValue===null)||isNaN(currentValue)) {
-            ui.querySelector("#valueCheckN").checked = "";
-            ui.querySelector("#wagaN").value = null;
-            ui.querySelector("#wagaN").disabled = "disabled";
-            ui.querySelector("#setN").disabled = "disabled";
-        } else {
-            ui.querySelector("#valueCheckN").checked = "checked";
-            ui.querySelector("#wagaN").value = currentValue;
-            ui.querySelector("#wagaN").disabled = "";
-            ui.querySelector("#setN").disabled = "";
-        }
+        selectScope.refresh();
+        valuePanel.show(nodeId, sgv.graf.currentScope);
 
         UI.clearSelect(selectDestN, true);
         UI.clearSelect(selectNodeId, false);
@@ -5834,63 +5869,13 @@ sgv.dlgNodeProperties = new function() {
     
 
     function usunN() {
-        sgv.graf.delNode(hidNodeId.value);
-        ui.style.display = "none";
+        let val = hidNodeId.value;
+        hidNodeId.value = 0;
+        sgv.graf.delNode(val);
+        hideDialog();
     };
 
 
-    function changeScopeN() {
-        console.log('changeScopeN: ' + event.target.value);
-
-        let nodeId = ui.querySelector("#nodeId").value;
-
-        //let currentValue = sgv.graf.nodeValue(nodeId,sgv.graf.scopeOfValues[event.target.value]);
-        let currentValue = sgv.graf.nodeValue(nodeId, event.target.value);
-        if ((currentValue===null)||isNaN(currentValue)) {
-            console.log('NULL');
-            ui.querySelector("#valueCheckN").checked = "";
-            ui.querySelector("#wagaN").value = null;
-            ui.querySelector("#wagaN").disabled = "disabled";
-            ui.querySelector("#setN").disabled = "disabled";
-        } else {
-            console.log('NOT NULL');
-            ui.querySelector("#valueCheckN").checked = "checked";
-            ui.querySelector("#wagaN").value = currentValue;
-            ui.querySelector("#wagaN").disabled = "";
-            ui.querySelector("#setN").disabled = "";
-        }
-    };
-
-
-    function edycjaN() {
-        let id = ui.querySelector("#nodeId").value;
-        let val = parseFloat(ui.querySelector("#wagaN").value.replace(/,/g, '.'));
-        let scope = sgv.graf.scopeOfValues[ui.querySelector("#nsSelectN").value];
-        sgv.graf.setNodeValue(id, val, scope);
-        //ui.style.display = "none";
-        Dispatcher.graphChanged();
-    };
-
-    function activateN() {
-        let scope = sgv.graf.scopeOfValues[ui.querySelector("#nsSelectN").value];
-        let isActive = ui.querySelector("#valueCheckN").checked;
-        if (isActive) {
-            ui.querySelector("#wagaN").disabled = "";
-            ui.querySelector("#setN").disabled = "";
-            let val = parseFloat(ui.querySelector("#wagaN").value.replace(/,/g, '.'));
-            if (val==="") {
-                val=0;
-                ui.querySelector("#wagaN").value = val;
-            }
-            sgv.graf.setNodeValue(ui.querySelector("#nodeId").value, val, scope);
-        } else {
-            ui.querySelector("#wagaN").disabled = "disabled";
-            ui.querySelector("#setN").disabled = "disabled";
-            sgv.graf.delNodeValue(ui.querySelector("#nodeId").value, scope);
-        }
-        Dispatcher.graphChanged();
-    };
-    
     function connectSelectN() {
         sgv.nodeToConnect = parseInt(ui.querySelector("#nodeId").value, 10);
         ui.style.display = "none";
@@ -5906,10 +5891,14 @@ sgv.dlgNodeProperties = new function() {
         }
     };
     
+    function refreshX() {
+        if (ui.style.display === "block") showDialog();
+    };
+    
     return {
         show: showDialog,
         hide: hideDialog,
-        refresh: drawNode,
+        refresh: refreshX,
         isVisible: () => {
             return (ui!==null)&&(ui.style.display === "block");
         }

@@ -17,7 +17,7 @@
 
 /* global UI, sgv */
 
-const ScopePanel = (function(addButtons) {
+const ScopePanel = (function(addButtons,lbl) {
     let divNS, divDS;
     
     function EditPanel(scopeToEdit) {
@@ -71,13 +71,17 @@ const ScopePanel = (function(addButtons) {
     
     this.ui = UI.tag("div", {'class': "sgvSelectBox", 'id': "ScopePanel"});
     
-    divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': isMobile?'':"current scope: "});
+    //divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': isMobile?'':"current scope: "});
+    divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"});
     this.ui.appendChild(divDS);
 
+    if (typeof lbl==='string') {
+        divDS.appendChild(UI.tag("label", {'for': "cplDispValues"}, {'innerHTML':lbl}));
+    }
+    
     let selectScope = UI.tag("select", {'id': "cplDispValues"});
     selectScope.addEventListener('change', () => {
         sgv.graf.displayValues(selectScope.value);
-        sgv.dlgCPL.updateSliders();
     });
     divDS.appendChild(selectScope);
 
@@ -129,6 +133,10 @@ const ScopePanel = (function(addButtons) {
         if (i > -1) {
             selectScope.selectedIndex = i;
         }
+    };
+    
+    this.getScope = ()=> {
+        return selectScope.value;
     };
     
     this.refresh = () => {

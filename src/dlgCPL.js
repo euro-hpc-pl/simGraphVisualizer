@@ -111,7 +111,7 @@ sgv.dlgCPL = new function () {
 
             divDesc.append(
                 InfoBlock().ui,
-                (scopePanel = new ScopePanel).ui,
+                (scopePanel = new ScopePanel(true,'current scope: ')).ui,
                 (slidersPanel = new SlidersPanel).ui,
                 ButtonPanel().ui);
 
@@ -180,6 +180,11 @@ sgv.dlgCPL = new function () {
         descriptionPanel.show();
     }
 
+    function refreshX() {
+        slidersPanel.refresh();
+        scopePanel.refresh();
+    }
+    
     return {
         showPanel: showDialog,
         hidePanel: hideDialog,
@@ -191,7 +196,9 @@ sgv.dlgCPL = new function () {
         //quickInfo: (s)=>(switchHandle.innerHTML=s),
         addScope: scopePanel.addScope,
         delScope: scopePanel.delScope,
-        selScope: scopePanel.selScope
+        selScope: scopePanel.selScope,
+        refresh: refreshX
     };
+    
 };
 

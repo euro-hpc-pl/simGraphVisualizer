@@ -1,24 +1,22 @@
 :root {
-  --ref_size: 600px;
-  --btn_size: 96px; /*5vw dla 1920px*/
+  --ref_size: 64em;
+  --btn_size: 8em;
   --btn_aspect_ratio: 0.3;
-  --font_size: 12px;
-  --btn_font_size: 12px;
-  --tool_btn_size: 32px;
+  --font_size: 1em;
+  --btn_font_size: 1em;
+  --tool_btn_size: 2em;
 }
 
-body {
+html, body {
   font-family: sans-serif;
   font-size: var(--font_size);
 }
 
-select, option, input {
-  font-family: sans-serif;
+select, option, input, label {
   font-size: var(--font_size);
 }
 
 button, input[type=button] {
-  font-family: sans-serif;
   font-size: var(--btn_font_size);
 }
 
@@ -76,21 +74,15 @@ limitations under the License.
 }
 .sgvUIwindow .title {
   background-color: rgba(0, 0, 0, 0.5);
-  color: #ddd;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
   text-align: center;
-  font-family: sans-serif;
-  font-weight: bold;
+  padding: 5px;
 }
-.sgvUIwindow .content {
-  padding: 4px;
-  background: 0;
-  color: #fff;
-  height: auto;
-  width: auto;
+.sgvUIwindow .title .titleText {
+  color: #ddd;
 }
-.sgvUIwindow .hidebutton {
+.sgvUIwindow .title .hidebutton {
   float: right;
   background-color: #aaa;
   color: #f00;
@@ -99,6 +91,13 @@ limitations under the License.
   font-size: 10px;
   border: 1px solid #ff0000;
   border-radius: 5px;
+}
+.sgvUIwindow .content {
+  padding: 4px;
+  background: 0;
+  color: #fff;
+  height: auto;
+  width: auto;
 }
 .sgvUIwindow .delbutton {
   width: 100%;
@@ -306,7 +305,9 @@ button.sgvTransparentButton1#cplClearButton {
 }
 #LimitSlidersPanel span {
   display: inline-block;
-  width: 10%;
+  min-width: 3em;
+  max-width: 10%;
+  margin: 0.5em;
 }
 #LimitSlidersPanel span#spanRed {
   background-color: rgba(255, 0, 0, 0.5);
@@ -466,24 +467,37 @@ limitations under the License.
 /* ==================================================================*/
 /* Node Properties */
 #sgvNodeProperties {
-  display: none;
-  height: 45vmin;
+  height: auto;
+  text-align: center;
 }
-#sgvNodeProperties #CloseButton {
-  position: absolute;
-  position: absolute;
-  right: 30px;
-  bottom: 0;
-}
-#sgvNodeProperties #DeleteButton {
-  position: absolute;
-  background-color: rgba(255, 0, 0, 0.5);
-  left: 30px;
-  bottom: 0;
-}
-#sgvNodeProperties #svg {
+#sgvNodeProperties #main #svg {
   background: #fff;
+  min-width: 25em;
+  min-height: 25em;
 }
+#sgvNodeProperties #main #tools #LabelBlock {
+  padding: 0.3em;
+  border-top: 1px solid #000;
+}
+#sgvNodeProperties #main #tools #ValueBlock {
+  padding: 0.3em;
+  border-bottom: 1px solid #000;
+}
+#sgvNodeProperties #main #tools #ValueBlock:before {
+  content: "value: ";
+}
+#sgvNodeProperties #main #tools #ConnectBlock {
+  padding: 0.3em;
+  border-bottom: 1px solid #000;
+}
+#sgvNodeProperties #main #CloseButton {
+  display: none;
+}
+#sgvNodeProperties #main #DeleteButton {
+  background-color: rgba(255, 0, 0, 0.5);
+  width: 80%;
+}
+
 /*
 Copyright 2022 pojdulos.
 
@@ -505,6 +519,18 @@ limitations under the License.
 */
 /* ==================================================================*/
 /* Edge Properties */
+#sgvEdgeProperties {
+  height: auto;
+  text-align: center;
+}
+#sgvEdgeProperties #CloseButton {
+  display: none;
+}
+#sgvEdgeProperties #DeleteButton {
+  background-color: rgba(255, 0, 0, 0.5);
+  width: 80%;
+}
+
 /*
 Copyright 2022 pojdulos.
 
@@ -749,5 +775,3 @@ dialog#loaderSplash .loader {
     transform: rotate(360deg);
   }
 }
-
-/*# sourceMappingURL=desktop.css.map */

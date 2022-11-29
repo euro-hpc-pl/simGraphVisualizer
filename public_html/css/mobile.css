@@ -19,18 +19,16 @@
   }
 }
 
-body {
+html, body {
   font-family: sans-serif;
   font-size: var(--font_size);
 }
 
-select, option, input {
-  font-family: sans-serif;
+select, option, input, label {
   font-size: var(--font_size);
 }
 
 button, input[type=button] {
-  font-family: sans-serif;
   font-size: var(--btn_font_size);
 }
 
@@ -88,21 +86,15 @@ limitations under the License.
 }
 .sgvUIwindow .title {
   background-color: rgba(0, 0, 0, 0.5);
-  color: #ddd;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
   text-align: center;
-  font-family: sans-serif;
-  font-weight: bold;
+  padding: 5px;
 }
-.sgvUIwindow .content {
-  padding: 4px;
-  background: 0;
-  color: #fff;
-  height: auto;
-  width: auto;
+.sgvUIwindow .title .titleText {
+  color: #ddd;
 }
-.sgvUIwindow .hidebutton {
+.sgvUIwindow .title .hidebutton {
   float: right;
   background-color: #aaa;
   color: #f00;
@@ -111,6 +103,13 @@ limitations under the License.
   font-size: 10px;
   border: 1px solid #ff0000;
   border-radius: 5px;
+}
+.sgvUIwindow .content {
+  padding: 4px;
+  background: 0;
+  color: #fff;
+  height: auto;
+  width: auto;
 }
 .sgvUIwindow .delbutton {
   width: 100%;
@@ -496,16 +495,17 @@ limitations under the License.
   background: #444;
   left: 0.5vw;
   top: 0.5vw;
+  font-size: 1em;
 }
 @media (orientation: portrait) {
   #sgvCellView {
     width: 99vw;
-    height: 125vw;
+    height: auto;
   }
 }
 @media (orientation: landscape) {
   #sgvCellView {
-    width: 80vw;
+    width: auto;
     height: fit-content;
     max-height: 90vh;
   }
@@ -556,21 +556,15 @@ limitations under the License.
 @media (orientation: portrait) {
   #sgvCellView #cellViewTools {
     display: block;
-    left: 2vw;
-    bottom: 4vh;
-    height: 5vh;
-    font-size: 3vw;
-    max-width: 65vw;
-    margin-top: 1vw;
+    padding: 1em;
   }
 }
 @media (orientation: landscape) {
   #sgvCellView #cellViewTools {
     display: inline-block;
-    margin-left: 2vw;
+    padding: 1em;
     height: fit-content;
     color: #ddd;
-    font-size: 4vh;
   }
 }
 #sgvCellView #cellViewTools #ScopePanel {
@@ -580,22 +574,24 @@ limitations under the License.
   content: "current scope: ";
 }
 #sgvCellView #cellViewTools select {
-  min-width: 8vw;
+  min-width: 6vw;
 }
 @media (orientation: portrait) {
   #sgvCellView #cellViewTools select {
-    font-size: 3vw;
+    /*                    font-size: 3vw;*/
   }
 }
 @media (orientation: landscape) {
   #sgvCellView #cellViewTools select {
-    font-size: 4vh;
+    /*                    font-size: 4vh;*/
   }
 }
-#sgvCellView #CloseButton {
-  position: absolute;
-  bottom: 1vw;
-  right: 1vw;
+@media (orientation: landscape) {
+  #sgvCellView #CloseButton {
+    position: absolute;
+    bottom: 1vw;
+    right: 1vw;
+  }
 }
 
 /* ==================================================================*/
@@ -606,6 +602,7 @@ limitations under the License.
   background: #444;
   border-radius: 0;
   border: 1px solid #fff;
+  font-size: 1em;
 }
 @media (orientation: portrait) {
   #sgvNodeProperties {
@@ -625,112 +622,28 @@ limitations under the License.
   }
 }
 #sgvNodeProperties .title {
-  background-color: rgba(0, 0, 0, 0.5);
-  color: #ddd;
   border-radius: 0;
   border-bottom: 1px solid #888;
-  font-size: 4vh;
   padding: 1vh;
 }
-#sgvNodeProperties .hidebutton {
+#sgvNodeProperties .title .titleText {
+  font-size: 1em;
+}
+#sgvNodeProperties .title .hidebutton {
   display: none;
 }
-#sgvNodeProperties #main {
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  height: fit-content;
-}
-#sgvNodeProperties #CloseButton {
-  position: absolute;
-}
-@media (orientation: portrait) {
-  #sgvNodeProperties #CloseButton {
-    right: 2vw;
-    bottom: 2vw;
-  }
-}
-@media (orientation: landscape) {
-  #sgvNodeProperties #CloseButton {
-    right: 4vh;
-    bottom: 4vh;
-  }
-}
-#sgvNodeProperties #DeleteButton {
-  position: absolute;
-  background-color: rgba(255, 0, 0, 0.5);
-}
-@media (orientation: portrait) {
-  #sgvNodeProperties #DeleteButton {
-    left: 2vw;
-    bottom: 2vw;
-  }
-}
-@media (orientation: landscape) {
-  #sgvNodeProperties #DeleteButton {
-    left: 74vh;
-    bottom: 4vh;
-  }
-}
-#sgvNodeProperties #svg {
-  background: #fff;
-  display: block;
-}
-@media (orientation: portrait) {
-  #sgvNodeProperties #svg {
-    margin: auto;
-    width: auto;
-    height: auto;
-  }
-}
-@media (orientation: landscape) {
-  #sgvNodeProperties #svg {
-    margin: auto auto 1vh 1vh;
-    width: 70vh;
-    height: 70vh;
-    float: left;
-  }
-}
-#sgvNodeProperties #tools, #sgvNodeProperties #zeroInfo {
-  display: block;
-  width: auto;
-}
-@media (orientation: portrait) {
-  #sgvNodeProperties #tools, #sgvNodeProperties #zeroInfo {
-    height: 25vw;
-    font-size: 4vw;
-  }
-}
-@media (orientation: landscape) {
-  #sgvNodeProperties #tools, #sgvNodeProperties #zeroInfo {
-    position: absolute;
-    float: right;
-    left: 72vh;
-    top: 15vh;
-    right: 1vh;
-    height: fit-content;
-  }
-}
-@media (orientation: portrait) {
-  #sgvNodeProperties #tools checkbox {
-    min-height: 2vw;
-    font-size: 3vw;
-    max-width: 40%;
-  }
-}
-#sgvNodeProperties input, #sgvNodeProperties select {
+#sgvNodeProperties input, #sgvNodeProperties select, #sgvNodeProperties label {
   max-width: 40%;
 }
 @media (orientation: portrait) {
-  #sgvNodeProperties input, #sgvNodeProperties select {
+  #sgvNodeProperties input, #sgvNodeProperties select, #sgvNodeProperties label {
     min-height: 2vw;
     font-size: 4vw;
   }
 }
 @media (orientation: landscape) {
-  #sgvNodeProperties input, #sgvNodeProperties select {
+  #sgvNodeProperties input, #sgvNodeProperties select, #sgvNodeProperties label {
     min-height: 2vh;
-    font-size: 4vh;
   }
 }
 @media (orientation: landscape) {
@@ -741,6 +654,118 @@ limitations under the License.
     float: right;
     width: auto;
     height: auto;
+  }
+}
+#sgvNodeProperties #nodeid select {
+  font-size: 1em;
+}
+@media (orientation: landscape) {
+  #sgvNodeProperties #nodeid select {
+    width: 8em;
+  }
+}
+#sgvNodeProperties #main {
+  font-size: 1em;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  height: fit-content;
+  text-align: center;
+}
+#sgvNodeProperties #main #svg {
+  background: #fff;
+  display: block;
+}
+@media (orientation: portrait) {
+  #sgvNodeProperties #main #svg {
+    margin: auto;
+    width: auto;
+    height: auto;
+  }
+}
+@media (orientation: landscape) {
+  #sgvNodeProperties #main #svg {
+    margin: auto auto 1vh 1vh;
+    width: 70vh;
+    height: 70vh;
+    float: left;
+  }
+}
+#sgvNodeProperties #main #tools, #sgvNodeProperties #main #zeroInfo {
+  display: block;
+  width: auto;
+}
+@media (orientation: portrait) {
+  #sgvNodeProperties #main #tools, #sgvNodeProperties #main #zeroInfo {
+    height: 25vw;
+  }
+}
+@media (orientation: landscape) {
+  #sgvNodeProperties #main #tools, #sgvNodeProperties #main #zeroInfo {
+    position: absolute;
+    float: right;
+    left: 72vh;
+    top: 15vh;
+    right: 1vh;
+    height: fit-content;
+  }
+}
+@media (orientation: landscape) {
+  #sgvNodeProperties #main #tools {
+    position: absolute;
+    top: 3.5em;
+  }
+}
+@media (orientation: portrait) {
+  #sgvNodeProperties #main #tools checkbox {
+    min-height: 2vw;
+    max-width: 40%;
+  }
+}
+#sgvNodeProperties #main #tools #LabelBlock {
+  padding: 0.3em;
+  border-top: 1px solid #000;
+}
+#sgvNodeProperties #main #tools #ValueBlock {
+  padding: 0.3em;
+  border-bottom: 1px solid #000;
+}
+#sgvNodeProperties #main #tools #ValueBlock:before {
+  content: "value: ";
+}
+#sgvNodeProperties #main #tools #ConnectBlock {
+  padding: 0.3em;
+  border-bottom: 1px solid #000;
+}
+#sgvNodeProperties #main #CloseButton {
+  position: absolute;
+}
+@media (orientation: portrait) {
+  #sgvNodeProperties #main #CloseButton {
+    right: 2vw;
+    bottom: 2vw;
+  }
+}
+@media (orientation: landscape) {
+  #sgvNodeProperties #main #CloseButton {
+    right: 0;
+    bottom: 0;
+  }
+}
+#sgvNodeProperties #main #DeleteButton {
+  background-color: rgba(255, 0, 0, 0.5);
+  position: absolute;
+}
+@media (orientation: portrait) {
+  #sgvNodeProperties #main #DeleteButton {
+    left: 2vw;
+    bottom: 2vw;
+  }
+}
+@media (orientation: landscape) {
+  #sgvNodeProperties #main #DeleteButton {
+    left: 74vh;
+    bottom: 0;
   }
 }
 
@@ -787,7 +812,7 @@ limitations under the License.
     bottom: 10vh;
   }
 }
-#sgvEdgeProperties .hidebutton {
+#sgvEdgeProperties .title .hidebutton {
   display: none;
 }
 @media (orientation: landscape) {
@@ -797,12 +822,14 @@ limitations under the License.
     bottom: 4vh;
   }
 }
+#sgvEdgeProperties #DeleteButton {
+  background-color: rgba(255, 0, 0, 0.5);
+}
 @media (orientation: landscape) {
   #sgvEdgeProperties #DeleteButton {
     position: absolute;
     left: 4vh;
     bottom: 4vh;
-    background-color: rgba(255, 0, 0, 0.5);
   }
 }
 
@@ -1081,5 +1108,3 @@ dialog#loaderSplash .loader {
     transform: rotate(360deg);
   }
 }
-
-/*# sourceMappingURL=mobile.css.map */

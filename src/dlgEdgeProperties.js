@@ -43,43 +43,31 @@ sgv.dlgEdgeProperties = new function() {
         content = UI.tag("div", {'class':'content'});
         ui.appendChild(content);
 
-        content.appendChild(UI.tag('label',{'for':'nsSelectE'},{'innerHTML':'Scope: '}));
 
-        selectScope = UI.tag('select',{'id':'nsSelectE'});
-        selectScope.addEventListener('change', function () {
-            changeScopeE();
-        });
-        content.appendChild(selectScope);
+        content.appendChild((selectScope = new ScopePanel(false, 'scope: ')).ui);
 
-
-        content.appendChild(document.createElement("br"));
-
+        var valueBlock = UI.tag("div", {'id':'ValueBlock'});
         checkValueE = UI.newInput("checkbox", "", "", "valueCheckE");
         checkValueE.addEventListener('click', function () {
             activateE();
         });
-        content.appendChild(checkValueE);
+        valueBlock.appendChild(checkValueE);
 
         editWagaE = UI.newInput("number", "0", "", "wagaE");
         editWagaE.addEventListener('change', function () {
             edycjaE();
         });
-        content.appendChild(editWagaE);
+        valueBlock.appendChild(editWagaE);
 
         btnSetE = UI.newInput("button", "set", "setvaluebutton", "setE");
         btnSetE.addEventListener('click', function () {
             edycjaE();
         });
-        content.appendChild(btnSetE);
-
-//        content.style['min-width'] = '240px'; 
-//        content.style['min-height'] = '105px'; 
-
-        zeroInfo = UI.tag("div", {'class':'content'});
-        zeroInfo.innerHTML = "Select an edge, please.";
-//        zeroInfo.style['min-width'] = '240px'; 
-//        zeroInfo.style['min-height'] = '105px'; 
-        ui.appendChild(zeroInfo);
+        
+        valueBlock.appendChild(btnSetE);
+        content.appendChild(valueBlock);
+        
+        ui.appendChild(zeroInfo = UI.tag("div", {'class':'content'}, {'innerHTML': "Select an edge, please."}));
         
         ui.appendChild(UI.createTransparentBtn1('CLOSE', 'CloseButton', ()=>{hideDialog();}));
         ui.appendChild(UI.createTransparentBtn1('DELETE', 'DeleteButton', ()=>{usunE();}));
@@ -110,14 +98,7 @@ sgv.dlgEdgeProperties = new function() {
         }
         UI.selectByKey( selectEdgeId, edgeId );
 
-        UI.clearSelect(selectScope, true);
-        for (const key in sgv.graf.scopeOfValues) {
-            let opt = UI.tag('option',{'value':key},{'innerHTML':sgv.graf.scopeOfValues[key]});
-            if ( sgv.graf.currentScope === sgv.graf.scopeOfValues[key]) {
-                opt.selected = "selected";
-            }
-            selectScope.appendChild(opt);
-        }
+        selectScope.refresh();
 
         let currentValue = sgv.graf.edgeValue(edgeId);
         if ((currentValue===null)||isNaN(currentValue)) {
@@ -223,10 +204,14 @@ sgv.dlgEdgeProperties = new function() {
         Dispatcher.graphChanged();
     };
 
+    function refreshX() {
+        if (ui.style.display === "block") showDialog();
+    };
+
     return {
         show: showDialog,
         hide: hideDialog,
-        ui: ui,
+        refresh: refreshX,
         isVisible: () => {
             return (ui!==null)&&(ui.style.display === "block");
         }

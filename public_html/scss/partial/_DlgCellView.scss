@@ -8,12 +8,14 @@
         background:#444;
         left:0.5vw;
         top:0.5vw;
+        font-size: 1em;
+
         @media (orientation: portrait) {
             width:99vw;
-            height:125vw;
+            height:auto;
         }
         @media (orientation: landscape) {
-            width:80vw;
+            width:auto;
             height:fit-content;
             max-height: 90vh;
         }
@@ -66,21 +68,16 @@
     #cellViewTools {
         @if $isMobile {
             width: auto;
+
             @media (orientation: portrait) {
                 display: block;
-                left: 2vw;
-                bottom: 4vh;
-                height: 5vh;
-                font-size: 3vw;
-                max-width: 65vw;
-                margin-top:1vw;
+                padding: 1em;
             }
             @media (orientation: landscape) {
                 display: inline-block;
-                margin-left: 2vw;
+                padding: 1em;
                 height: fit-content;
                 color: #ddd;
-                font-size: 4vh;
             }
 
             #ScopePanel {
@@ -92,12 +89,12 @@
             }
 
             select {
-                min-width: 8vw;
+                min-width: 6vw;
                 @media (orientation: portrait) {
-                    font-size: 3vw;
+                    /*                    font-size: 3vw;*/
                 }
                 @media (orientation: landscape) {
-                    font-size: 4vh;
+                    /*                    font-size: 4vh;*/
                 }
             }
         }
@@ -105,9 +102,11 @@
 
     #CloseButton {
         @if $isMobile {
-            position: absolute;
-            bottom: 1vw;
-            right: 1vw;
+            @media (orientation: landscape) {
+                position: absolute;
+                bottom: 1vw;
+                right: 1vw;
+            }
         }
         @else {
             position: relative;

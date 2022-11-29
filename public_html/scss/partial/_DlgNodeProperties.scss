@@ -7,6 +7,7 @@
         background:#444;
         border-radius: 0;
         border: 1px solid #fff;
+        font-size: 1em;
         @media (orientation: portrait) {
             width:98vw;
             height:140vw;
@@ -22,124 +23,31 @@
         }
     }
     @else {
-        display: none;
-        height: 45vmin;
+        height: auto;
+        text-align: center;
     }
 
     .title {
         @if $isMobile {
-            background-color: rgba(0, 0, 0, 0.5);
-            color: #ddd;
             border-radius: 0;
             border-bottom: 1px solid #888;
-            font-size: 4vh;
             padding:1vh;
         }
-    }
 
-    .hidebutton {
-        @if $isMobile {
-            display: none;
-        }
-    }
-
-    #main {
-        @if $isMobile {
-            width:100%;
-            margin:0;
-            padding:0;
-            height:fit-content;
-        }
-    }
-
-    #CloseButton {
-        position: absolute;
-        @if $isMobile {
-            @media (orientation: portrait) {
-                right:2vw;
-                bottom: 2vw;
-            }
-            @media (orientation: landscape) {
-                right:4vh;
-                bottom:4vh;
+        .titleText {
+            @if $isMobile {
+                font-size: 1em;
             }
         }
-        @else {
-            position: absolute;
-            right:30px;
-            bottom: 0;
-        }
-    }
 
-    #DeleteButton {
-        position: absolute;
-        background-color: rgba(255,0,0,0.5);
-        @if $isMobile {
-            @media (orientation: portrait) {
-                left:2vw;
-                bottom: 2vw;
-            }
-            @media (orientation: landscape) {
-                left:74vh;
-                bottom:4vh;
-            }
-        }
-        @else {
-            left:30px;
-            bottom: 0;
-        }
-    }
-
-    #svg {
-        background: #fff;
-        @if $isMobile {
-            display: block;
-            @media (orientation: portrait) {
-                margin: auto;
-                width: auto;
-                height: auto;
-            }
-            @media (orientation: landscape) {
-                margin: auto auto 1vh 1vh;
-                width: 70vh;
-                height: 70vh;
-                float: left;
+        .hidebutton {
+            @if $isMobile {
+                display: none;
             }
         }
     }
 
-    #tools,#zeroInfo {
-        @if $isMobile {
-            display: block;
-            width:auto;
-            @media (orientation: portrait) {
-                height:25vw;
-                font-size: 4vw;
-            }
-            @media (orientation: landscape) {
-                position: absolute;
-                float: right;
-                left: 72vh;
-                top: 15vh;
-                right: 1vh;
-                height: fit-content;
-            }
-        }
-    }
-
-    #tools {
-        @if $isMobile {
-            checkbox {
-                @media (orientation: portrait) {
-                    min-height: 2vw;
-                    font-size: 3vw;
-                    max-width: 40%;
-                }
-            }
-        }
-    }
-
-    input,select {
+    input,select,label {
         @if $isMobile {
             max-width: 40%;
             @media (orientation: portrait) {
@@ -148,8 +56,9 @@
             }
             @media (orientation: landscape) {
                 min-height: 2vh;
-                font-size: 4vh;
             }
+        }
+        @else {
         }
     }
 
@@ -160,10 +69,153 @@
                 position: absolute;
                 left: 72vh;
                 float: right;
-                width:auto;
+                width: auto;
                 height: auto;
 
             }
         }
+
+
+        select {
+            @if $isMobile {
+                font-size: 1em;
+                @media (orientation: landscape) {
+                    width:8em;
+                }
+            }
+        }
     }
+
+    #main {
+        @if $isMobile {
+            font-size: 1em;
+            width:100%;
+            margin:0;
+            padding:0;
+            height:fit-content;
+            text-align: center;
+        }
+
+        #svg {
+            background: #fff;
+            @if $isMobile {
+                display: block;
+                @media (orientation: portrait) {
+                    margin: auto;
+                    width: auto;
+                    height: auto;
+                }
+                @media (orientation: landscape) {
+                    margin: auto auto 1vh 1vh;
+                    width: 70vh;
+                    height: 70vh;
+                    float: left;
+                }
+            }
+            @else {
+                min-width: 25em;
+                min-height: 25em;
+            }
+        }
+
+        #tools,#zeroInfo {
+            @if $isMobile {
+                display: block;
+                width:auto;
+                @media (orientation: portrait) {
+                    height:25vw;
+                }
+                @media (orientation: landscape) {
+                    position: absolute;
+                    float: right;
+                    left: 72vh;
+                    top: 15vh;
+                    right: 1vh;
+                    height: fit-content;
+                }
+            }
+            @else {
+            }
+        }
+
+        #tools {
+            @if $isMobile {
+                @media (orientation: landscape) {
+                    position: absolute;
+                    top: 3.5em;
+                }
+            }
+
+            checkbox {
+                @if $isMobile {
+                    @media (orientation: portrait) {
+                        min-height: 2vw;
+                        max-width: 40%;
+                    }
+                }
+            }
+
+            #LabelBlock {
+                padding: 0.3em;
+                border-top: 1px solid #000;
+            }
+
+            #ValueBlock {
+                padding: 0.3em;
+                border-bottom: 1px solid #000;
+                @if $isMobile {
+
+                }
+
+                &:before {
+                    content: 'value: '
+                }
+            }
+
+            #ConnectBlock {
+                padding: 0.3em;
+                border-bottom: 1px solid #000;
+            }
+        }
+
+        #CloseButton {
+            @if $isMobile {
+                position: absolute;
+                @media (orientation: portrait) {
+                    right:2vw;
+                    bottom: 2vw;
+                }
+                @media (orientation: landscape) {
+                    right:0;
+                    bottom:0;
+                }
+            }
+            @else {
+                display: none;
+            }
+        }
+
+        #DeleteButton {
+            background-color: rgba(255,0,0,0.5);
+            @if $isMobile {
+                position: absolute;
+                @media (orientation: portrait) {
+                    left:2vw;
+                    bottom: 2vw;
+                }
+                @media (orientation: landscape) {
+                    left:74vh;
+                    bottom:0;
+                }
+            }
+            @else {
+                width:80%;
+            }
+        }
+    }
+
+
+
+
+
 }

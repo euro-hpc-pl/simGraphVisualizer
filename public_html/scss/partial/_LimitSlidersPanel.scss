@@ -151,7 +151,15 @@
 
     span {
         display: inline-block;
-        width: 10%;
+        
+        @if $isMobile {
+            width: 10%;
+        }
+        @else {
+            min-width: 3em;
+            max-width: 10%;
+            margin: 0.5em;
+        }
 
         &#spanRed {
             background-color: rgba(255,0,0,0.5);
