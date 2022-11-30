@@ -50,10 +50,10 @@ const srcfiles = [
 const dstdir = "./public_html/js/";
 const dstfile = "sgv.js";
 
-gulp.task('copyToElectron', function() {
-    return gulp.src('./public_html/**/*.{html,js,map,css,jpg,gif,ico,gif,png}')
-        .pipe(gulp.dest('../desktopSGV/views/home/'));
-});
+//gulp.task('copyToElectron', function() {
+//    return gulp.src('./public_html/**/*.{html,js,map,css,jpg,gif,ico,gif,png}')
+//        .pipe(gulp.dest('./electronApp/views/home/'));
+//});
 
 gulp.task('minimize', function() {
     return gulp.src(dstdir+dstfile)
@@ -68,13 +68,14 @@ gulp.task('merge', function () {
         .pipe(gulp.dest(dstdir));
 });
 
-gulp.task('recompile-CSS', () => {
-    return gulp.src('./public_html/scss/**/*.scss')
-        .pipe(sass().on('error', sass.logError))
-        .pipe(gulp.dest('./public_html/css/'));
-});
+//gulp.task('recompile-CSS', () => {
+//    return gulp.src('./public_html/scss/**/*.scss')
+//        .pipe(sass().on('error', sass.logError))
+//        .pipe(gulp.dest('./public_html/css/'));
+//});
 
-gulp.task('build', gulp.series('merge', 'minimize', 'copyToElectron'));
+//gulp.task('build', gulp.series('merge', 'minimize', 'copyToElectron'));
+gulp.task('build', gulp.series('merge', 'minimize'));
 
 gulp.task('clean', function() {
     return del([dstdir+"*.*"]);

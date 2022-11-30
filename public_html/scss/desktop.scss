@@ -1,15 +1,13 @@
 @use 'partial/Root' with ( $isMobile: false );
-
-$isMobile: false;
-@import 'partial/UIwindow';
-@import 'partial/TransparentButton';
-@import 'partial/LimitSlidersPanel';
-@import 'partial/ScopePanel';
-@import 'partial/DlgCPL';
-@import 'partial/DlgCellView';
-@import 'partial/DlgNodeProperties';
-@import 'partial/DlgEdgeProperties';
-@import 'partial/DlgConsole';
-@import 'partial/ModalDialogs';
-@import 'partial/DlgAbout';
-@import 'partial/LoaderSplash';
+@use 'partial/UIwindow' with ( $isMobile: false );
+@use 'partial/TransparentButton' with ( $isMobile: false );
+@use 'partial/LimitSlidersPanel' with ( $isMobile: false );
+@use 'partial/ScopePanel' with ( $isMobile: false );
+@use 'partial/DlgCPL' with ( $isMobile: false );
+@use 'partial/DlgCellView' with ( $isMobile: false );
+@use 'partial/DlgNodeProperties' with ( $isMobile: false );
+@use 'partial/DlgEdgeProperties' with ( $isMobile: false );
+@use 'partial/DlgConsole' with ( $isMobile: false );
+@use 'partial/ModalDialogs' with ( $isMobile: false );
+@use 'partial/DlgAbout' with ( $isMobile: false );
+@use 'partial/LoaderSplash' with ( $isMobile: false ); 

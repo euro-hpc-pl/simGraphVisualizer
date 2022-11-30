@@ -1,28 +1,71 @@
 {
     "name": "simGraphVisualizer",
     "version": "1.0.0",
-    "description": "",
+    "description": "test",
     "author": "Dariusz Pojda <dpojda@iitis.pl>",
     "license": "Apache-2.0",
+    "main": "scripts/main.js",
+    "scripts": {
+        "start": "electron-forge start",
+        "watch": "nodemon --exec electron .",
+        "package": "electron-forge package",
+        "make": "electron-forge make"
+    },
     "dependencies": {
+        "axios": "^0.25.0",
+        "babylonjs": "^5.32.1",
+        "babylonjs-gui": "^5.32.1",
+        "bulma": "^0.9.3",
+        "got": "^12.0.1",
+        "jquery": "^3.6.0",
+        "nodemon": "^2.0.9"
+    },
+    "devDependencies": {
         "del": "6.0.0",
         "gulp": "^4.0.2",
         "gulp-concat": "",
         "gulp-less": "",
         "gulp-rename": "",
         "gulp-uglify": "",
-        "sass": ""
+        "sass": "",
+        "gulp-sass": "^5.1.0",
+        "@electron-forge/cli": "^6.0.0-beta.57",
+        "@electron-forge/maker-deb": "^6.0.0-beta.57",
+        "@electron-forge/maker-rpm": "^6.0.0-beta.57",
+        "@electron-forge/maker-squirrel": "^6.0.0-beta.57",
+        "@electron-forge/maker-zip": "^6.0.0-beta.57",
+        "electron": "^13.6.9",
+        "electron-builder": "^22.11.7"
     },
-    "directories": {
-        "doc": "./docs",
-        "lib": "./js",
-        "src": "./src"
-    },
-    "browserslist": [
-        "IE 11"
-    ],
-    "sideEffects": false,
-    "devDependencies": {
-        "gulp-sass": "^5.1.0"
+    "config": {
+        "forge": {
+            "packagerConfig": {
+                "ignore": ["src", "public_html/scss", "nbproject", "testfiles", ".gitignore", "gulpfile.js"],
+                "asar": true,
+                "prune": true
+            },
+            "makers": [
+                {
+                    "name": "@electron-forge/maker-squirrel",
+                    "config": {
+                        "name": "electron-start"
+                    }
+                },
+                {
+                    "name": "@electron-forge/maker-zip",
+                    "platforms": [
+                        "darwin"
+                    ]
+                },
+                {
+                    "name": "@electron-forge/maker-deb",
+                    "config": {}
+                },
+                {
+                    "name": "@electron-forge/maker-rpm",
+                    "config": {}
+                }
+            ]
+        }
     }
 }
