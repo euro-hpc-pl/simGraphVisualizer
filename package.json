@@ -18,29 +18,37 @@
         "bulma": "^0.9.3",
         "got": "^12.0.1",
         "jquery": "^3.6.0",
-        "nodemon": "^2.0.9"
+        "nodemon": "^2.0.9",
+        "rpmbuild": "^0.0.23"
     },
     "devDependencies": {
-        "del": "6.0.0",
-        "gulp": "^4.0.2",
-        "gulp-concat": "",
-        "gulp-less": "",
-        "gulp-rename": "",
-        "gulp-uglify": "",
-        "sass": "",
-        "gulp-sass": "^5.1.0",
         "@electron-forge/cli": "^6.0.0-beta.57",
         "@electron-forge/maker-deb": "^6.0.0-beta.57",
         "@electron-forge/maker-rpm": "^6.0.0-beta.57",
         "@electron-forge/maker-squirrel": "^6.0.0-beta.57",
         "@electron-forge/maker-zip": "^6.0.0-beta.57",
+        "del": "6.0.0",
         "electron": "^13.6.9",
-        "electron-builder": "^22.11.7"
+        "electron-builder": "^22.11.7",
+        "gulp": "^4.0.2",
+        "gulp-concat": "",
+        "gulp-less": "",
+        "gulp-rename": "",
+        "gulp-sass": "^5.1.0",
+        "gulp-uglify": "",
+        "sass": ""
     },
     "config": {
         "forge": {
             "packagerConfig": {
-                "ignore": ["src", "public_html/scss", "nbproject", "testfiles", ".gitignore", "gulpfile.js"],
+                "ignore": [
+                    "src",
+                    "public_html/scss",
+                    "nbproject",
+                    "testfiles",
+                    ".gitignore",
+                    "gulpfile.js"
+                ],
                 "asar": true,
                 "prune": true
             },
