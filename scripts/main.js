@@ -16,6 +16,8 @@ const menu = require(path.join(app.getAppPath(), 'scripts/workers/mainMenu.js'))
 
 const isMac = process.platform === 'darwin';
 
+const extBinDir = 'd:\\test\\';
+
 var mainWindow;
 let icounter = 0;
 function createWindow() {
@@ -66,10 +68,10 @@ app.on("window-all-closed", function () {
 
 
 ipcMain.handle("runExternal", (event, data) => {
-    dataFile.save("h:\\test\\sentFile.txt", data);
+    dataFile.save(extBinDir+"sentFile.txt", data);
 
-    child_process.chdir = "h:\\test\\";
-    run_script("python", ["h:\\test\\externalProg.py", "-i h:\\test\\sentFile.txt", "-o h:\\test\\resultFile.txt"], null);
+    child_process.chdir = extBinDir;
+    run_script("python", ["bin/externalProg.py", "-i "+extBinDir+"sentFile.txt", "-o "+extBinDir+"resultFile.txt"], null);
 });
 
 ipcMain.handle("saveStringToFile", (event, string, fileName) => {
@@ -126,7 +128,7 @@ function run_script(command, args, callback) {
         switch (code) {
             case 0:
                 console.log("end of process!");
-                let mydata = dataFile.load("h:\\test\\resultFile.txt");
+                let mydata = dataFile.load(extBinDir+"resultFile.txt");
                 mainWindow.webContents.send('externalResult', mydata);
                 //              dialog.showMessageBox({
                 //                  title: 'Title',
