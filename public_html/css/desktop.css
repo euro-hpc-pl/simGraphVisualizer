@@ -531,8 +531,8 @@ dialog#sgvDlgCreateGraph .content {
   color: #fff;
 }
 dialog#sgvDlgCreateGraph select {
-  background: 0;
-  color: #fff;
+  background-color: #002;
+  color: #ff8;
 }
 @media (orientation: portrait) {
   dialog#sgvDlgCreateGraph select {

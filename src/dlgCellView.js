@@ -322,6 +322,9 @@ sgv.dlgCellView = new function () {
 
         let q = QbDescr.fromNodeId(id, sgv.graf.rows, sgv.graf.cols);
         drawModule(q.x, q.y, q.z);
+        
+        let rect = event.target.getBoundingClientRect();
+        sgv.dlgNodeProperties.show(id, rect.x, rect.y);
     }
     
 

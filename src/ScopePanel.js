@@ -15,10 +15,53 @@
  */
 
 
-/* global UI, sgv */
+/* global UI, sgv, Dispatcher */
 
 const ScopePanel = (function(addButtons,lbl) {
     let divNS, divDS;
+    
+    this.addScope = (scope, idx) => {
+        selectScope.add(UI.option(scope, scope));
+        selectScope.selectedIndex = idx;
+    };
+    
+    this.delScope = (scope, idx2) => {
+        let i = UI.findOption(selectScope, scope);
+        if (i > -1) {
+            selectScope.remove(i);
+        }
+        selectScope.selectedIndex = idx2;
+    };
+
+    this.selScope = (scope)=>{
+        let i = UI.findOption(selectScope, scope);
+        if (i > -1) {
+            selectScope.selectedIndex = i;
+        }
+    };
+    
+    this.getScope = ()=> {
+        return selectScope.value;
+    };
+
+    this.getScopeIndex = ()=> {
+        return selectScope.selectedIndex;
+    };
+    
+    this.refresh = () => {
+        if (sgv.graf !== null) {
+            UI.clearSelect(selectScope, true);
+            for (const key in sgv.graf.scopeOfValues) {
+                let scope = sgv.graf.scopeOfValues[key];
+                let opt = UI.option(scope, scope);
+                if (sgv.graf.currentScope === sgv.graf.scopeOfValues[key]) {
+                    opt.selected = "selected";
+                }
+                selectScope.appendChild(opt);
+            }
+        }
+    };
+    
     
     function EditPanel(scopeToEdit) {
         let createNew = true;
@@ -34,12 +77,8 @@ const ScopePanel = (function(addButtons,lbl) {
             if (createNew){
                 let scope = editAddScope.value;
                 let idx = sgv.graf.addScopeOfValues(scope);
-
-                if (idx >= 0) {
-                    selectScope.add(UI.option(scope, scope));
-                    selectScope.selectedIndex = idx;
-                    sgv.graf.displayValues(scope);
-                }
+                
+                Dispatcher.graphChanged();
             }
             else {
                 //edit existing
@@ -86,23 +125,18 @@ const ScopePanel = (function(addButtons,lbl) {
     divDS.appendChild(selectScope);
 
     if (addButtons) {
-        let btnEditScope = UI.tag("input", {'type': "button", 'class': "toolButton", 'id': "cplEditScope", 'value': ''});
-        btnEditScope.addEventListener('click',()=>{
-                    //divNS.style.display = "inline";
-                    //divDS.style.display = "none";
-                });
-        divDS.appendChild(btnEditScope);
+//        let btnEditScope = UI.tag("input", {'type': "button", 'class': "toolButton", 'id': "cplEditScope", 'value': ''});
+//        btnEditScope.addEventListener('click',()=>{
+//                });
+//        divDS.appendChild(btnEditScope);
 
 
         let btnDelScope = UI.tag("input", {'type': "button", 'class': "toolButton", 'id': "cplDelScope", 'value': ''});
         btnDelScope.addEventListener('click',()=>{
-                    let idx = sgv.graf.delScopeOfValues(selectScope.value);
+            let idx = sgv.graf.delScopeOfValues(this.getScope());
+            Dispatcher.graphChanged();
+        });
 
-                    if (idx >= 0) {
-                        selectScope.remove(selectScope.selectedIndex);
-                        selectScope.selectedIndex = idx;
-                    }
-                });
         divDS.appendChild(btnDelScope);
 
         let btnAddScope = UI.tag("input", {'type': "button", 'class': "toolButton", 'id': "cplAddScope", 'value': ''});
@@ -115,43 +149,6 @@ const ScopePanel = (function(addButtons,lbl) {
         this.ui.appendChild((divNS = EditPanel()).ui);
     }    
 
-    this.addScope = (scope, idx) => {
-        selectScope.add(UI.option(scope, scope));
-        selectScope.selectedIndex = idx;
-    };
-    
-    this.delScope = (scope, idx2) => {
-        let i = UI.findOption(selectScope, scope);
-        if (i > -1) {
-            selectScope.remove(i);
-        }
-        selectScope.selectedIndex = idx2;
-    };
-
-    this.selScope = (scope)=>{
-        let i = UI.findOption(selectScope, scope);
-        if (i > -1) {
-            selectScope.selectedIndex = i;
-        }
-    };
-    
-    this.getScope = ()=> {
-        return selectScope.value;
-    };
-    
-    this.refresh = () => {
-        if (sgv.graf !== null) {
-            UI.clearSelect(selectScope, true);
-            for (const key in sgv.graf.scopeOfValues) {
-                let scope = sgv.graf.scopeOfValues[key];
-                let opt = UI.option(scope, scope);
-                if (sgv.graf.currentScope === sgv.graf.scopeOfValues[key]) {
-                    opt.selected = "selected";
-                }
-                selectScope.appendChild(opt);
-            }
-        }
-    };
 
 });
 

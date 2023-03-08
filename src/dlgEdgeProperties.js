@@ -9,6 +9,8 @@ sgv.dlgEdgeProperties = new function() {
     var btnSetE, btnDeleteE;
     var prevFocused=null;
 
+    var notShownBefore = true;
+
     var ui = createUI();
     
     ui.addEventListener('keydown', onKeyDownX );
@@ -49,19 +51,19 @@ sgv.dlgEdgeProperties = new function() {
         var valueBlock = UI.tag("div", {'id':'ValueBlock'});
         checkValueE = UI.newInput("checkbox", "", "", "valueCheckE");
         checkValueE.addEventListener('click', function () {
-            activateE();
+            onValueEnableCheckbox();
         });
         valueBlock.appendChild(checkValueE);
 
         editWagaE = UI.newInput("number", "0", "", "wagaE");
         editWagaE.addEventListener('change', function () {
-            edycjaE();
+            onSetEdgeValueButton();
         });
         valueBlock.appendChild(editWagaE);
 
         btnSetE = UI.newInput("button", "set", "setvaluebutton", "setE");
         btnSetE.addEventListener('click', function () {
-            edycjaE();
+            onSetEdgeValueButton();
         });
         
         valueBlock.appendChild(btnSetE);
@@ -70,7 +72,7 @@ sgv.dlgEdgeProperties = new function() {
         ui.appendChild(zeroInfo = UI.tag("div", {'class':'content'}, {'innerHTML': "Select an edge, please."}));
         
         ui.appendChild(UI.createTransparentBtn1('CLOSE', 'CloseButton', ()=>{hideDialog();}));
-        ui.appendChild(UI.createTransparentBtn1('DELETE', 'DeleteButton', ()=>{usunE();}));
+        ui.appendChild(UI.createTransparentBtn1('DELETE', 'DeleteButton', ()=>{onDeleteEdgeButton();}));
         
         return ui;
     };
@@ -113,7 +115,8 @@ sgv.dlgEdgeProperties = new function() {
             btnSetE.disabled = "";
         }
 
-        if (!isMobile){
+        if ((!isMobile) && notShownBefore){
+            notShownBefore = false;
             if ((typeof x!=='undefined')&&(typeof y!=='undefined')) {
                 let xOffset = sgv.canvas.clientLeft;
                 ui.style.top = y + "px";
@@ -145,61 +148,36 @@ sgv.dlgEdgeProperties = new function() {
         showDialog(event.target.value);
     }
 
-    function changeScopeE() {
-        let scopeId = event.target.value;
-
-        let edgeId = ui.querySelector("#edgeId").value;
-
-        let currentValue = sgv.graf.edgeValue(edgeId,sgv.graf.scopeOfValues[scopeId]);
-        
-        if ((currentValue===null)||isNaN(currentValue)) {
-            console.log('NULL');
-            checkValueE.checked = "";
-            editWagaE.value = null;
-            editWagaE.disabled = "disabled";
-            btnSetE.disabled = "disabled";
-        } else {
-            console.log('NOT NULL');
-            checkValueE.checked = "checked";
-            editWagaE.value = currentValue;
-            editWagaE.disabled = "";
-            btnSetE.disabled = "";
-        }
+    function onDeleteEdgeButton() {
+        hideDialog();
+        sgv.graf.delEdge(hidEdgeId.value);
     };
 
-
-
-    function usunE() {
-        sgv.graf.delEdge(ui.querySelector("#edgeId").value);
-        ui.style.display = "none";
-    };
-
-    function edycjaE() {
-        let id = ui.querySelector("#edgeId").value;
+    function onSetEdgeValueButton() {
         let val = parseFloat(editWagaE.value.replace(/,/g, '.'));
-        let scope = sgv.graf.scopeOfValues[selectScope.value];
-        
-        sgv.graf.setEdgeValue(id, val, scope);
-        //ui.style.display = "none";
+        let scope = selectScope.getScope();
+
+        if ((val==="")||(isNaN(val))) {
+            sgv.graf.delEdgeValue(hidEdgeId.value, scope);
+        }
+        else {
+            sgv.graf.setEdgeValue(hidEdgeId.value, val, scope);
+        }
         Dispatcher.graphChanged();
     };
 
-    function activateE() {
+    function onValueEnableCheckbox() {
         let isActive = checkValueE.checked;
-        let scope = sgv.graf.scopeOfValues[selectScope.value];
+        let scope = selectScope.getScope();
+        
         if (isActive) {
-            editWagaE.disabled = "";
-            btnSetE.disabled = "";
             let val = parseFloat(editWagaE.value.replace(/,/g, '.'));
-            if (val==="") {
+            if ((val==="")||(isNaN(val))) {
                 val=0;
-                editWagaE.value = val;
             }
-            sgv.graf.setEdgeValue(ui.querySelector("#edgeId").value, val, scope);
+            sgv.graf.setEdgeValue(hidEdgeId.value, val, scope);
         } else {
-            editWagaE.disabled = "disabled";
-            btnSetE.disabled = "disabled";
-            sgv.graf.delEdgeValue(ui.querySelector("#edgeId").value, scope);
+            sgv.graf.delEdgeValue(hidEdgeId.value, scope);
         }
         Dispatcher.graphChanged();
     };

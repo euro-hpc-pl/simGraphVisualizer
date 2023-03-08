@@ -101,6 +101,9 @@ sgv.dlgNodeProperties = new function() {
     var _width = 250;
     var _height = 250;
 
+    var notShownBefore = true;
+
+
     var ui = createUI();
 
     ui.addEventListener('keydown', onKeyDownX );
@@ -312,7 +315,8 @@ sgv.dlgNodeProperties = new function() {
         
         UI.selectByKey( selectNodeId, nodeId );
 
-        if (!isMobile){
+        if ((!isMobile) && notShownBefore){
+            notShownBefore = false;
             if ((typeof x!=='undefined')&&(typeof y!=='undefined')) {
                 let xOffset = sgv.canvas.clientLeft;
 
