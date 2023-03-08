@@ -24,6 +24,12 @@ Here are some of the subdirectories and their contents:
 
 * ```/public_html/js``` holds the library file ```sgv.js``` and optionaly minimized ```sgv.min.js``` file.
 
+Clonning repository
+-------------------
+
+```git clone https://github.com/euro-hpc-pl/simGraphVisualizer.git```
+```cd simGraphVisualizer```
+
 Building
 --------
 
