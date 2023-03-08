@@ -24,13 +24,8 @@ Here are some of the subdirectories and their contents:
 
 * ```/public_html/js``` holds the library file ```sgv.js``` and optionaly minimized ```sgv.min.js``` file.
 
-Using
------
-
-To use the library in web browser mode, simply copy the contents of the public_html directory anywhere. The index.html file is an example of usage.
-
-Building and testing
---------------------
+Building
+--------
 
 You may need to run the npm install command first to download the missing elements:
 
@@ -40,15 +35,23 @@ Next you should to build the library using the gulp tool. Use the command:
 
 ```gulp build```.
 
+Using in web browser mode
+-------------------------
+
+To use the library in web browser mode, simply copy the contents of the public_html directory anywhere. The index.html file is an example of usage.
+
+Using in desktop mode
+---------------------
+
 Fast running desktop application:
 
 ```npm run start```
 
 Compiling to executable file:
 
-```npm run make```
+```npm run package```
 
 Building installer:
 
-```npm run package```
+```npm run make```
 
