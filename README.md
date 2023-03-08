@@ -28,6 +28,7 @@ Clonning repository
 -------------------
 
 ```git clone https://github.com/euro-hpc-pl/simGraphVisualizer.git```
+
 ```cd simGraphVisualizer```
 
 Building
