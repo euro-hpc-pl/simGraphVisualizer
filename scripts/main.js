@@ -38,7 +38,7 @@ function createWindow() {
     mainWindow.loadFile(path.join(app.getAppPath(), "public_html/index.html"));
 
     let wc = mainWindow.webContents;
-    wc.openDevTools();
+    //wc.openDevTools();
 
 
 }
@@ -48,7 +48,7 @@ function createWindow() {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
     createWindow();
-    //mainWindow.maximize();
+    mainWindow.maximize();
 
     app.on("activate", function () {
         // On macOS it's common to re-create a window in the app when the
