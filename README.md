@@ -27,7 +27,7 @@ Here are some of the subdirectories and their contents:
 Using
 -----
 
-To use the library, simply copy the contents of the public_html directory anywhere. The index.html file is an example of usage.
+To use the library in web browser mode, simply copy the contents of the public_html directory anywhere. The index.html file is an example of usage.
 
 Building and testing
 --------------------
