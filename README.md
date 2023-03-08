@@ -31,7 +31,24 @@ To use the library, simply copy the contents of the public_html directory anywhe
 
 Building and testing
 --------------------
-You may need to run the npm install command first to download the missing elements.
 
-After making changes to the code, you can build the library by running the script ```.\build.bat``` in Windows or using the gulp tool, using the command: ```gulp build```.
+You may need to run the npm install command first to download the missing elements:
+
+```npm install```
+
+Next you should to build the library using the gulp tool. Use the command: 
+
+```gulp build```.
+
+Fast running desktop application:
+
+```npm run start```
+
+Compiling to executable file:
+
+```npm run make```
+
+Building installer:
+
+```npm run package```
 
