@@ -1,10 +1,10 @@
 SimGraphVisualizer
 ======================================
 
-__SimGraphVisualizer__ is a javascript library for visualizing and editing of Ising graphs.
-Library uses the javascript programming language, so it works in browser and does not require powerful server.
+__SimGraphVisualizer__ is a javascript library for visualising and editing Ising graphs.
+The library uses the javascript programming language so that it runs in the browser and does not require a powerful server.
 
-Please note that this is a very early stage of library development, so unexpected errors may occur.
+It is also possible to compile into a desktop application using the ElectronJS library and the Chromium engine.
 
 License
 -------
