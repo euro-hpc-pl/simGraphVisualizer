@@ -16,8 +16,9 @@ window.indexBridge.onHideLoaderSplash( ()=>{
     hideSplash();
 });
 
-window.indexBridge.onRunExternal( (event,option) => {
-    runExternal(option);
+
+window.indexBridge.onRunExternal( (event,option,extInfo) => {
+    runExternal(option,extInfo);
 });
 
 window.indexBridge.onSetDisplayMode( (event, mode) => {
@@ -28,8 +29,8 @@ window.indexBridge.onSetDisplayMode( (event, mode) => {
 }); 
 
 
-window.indexBridge.onExternalResult( (event,data) => {
-    sgv.stringToScope(data,"result");
+window.indexBridge.onExternalResult( (event, resultData) => {
+    sgv.stringToScope(resultData, "result");
     hideSplash();
 });
 
@@ -39,6 +40,10 @@ window.indexBridge.onClearGraph( () => {
 
 window.indexBridge.onShowAbout( ()=> {
    sgv.dlgAbout.show(); 
+});
+
+window.indexBridge.onShowSettings( (event, externalRun, extBinDir)=> {
+   sgv.dlgEditSettings.show(externalRun, extBinDir); 
 });
 
 window.indexBridge.onCreateDefault( () => {
@@ -80,14 +85,14 @@ window.indexBridge.onSaveEnd( () => {
 
 
 
-const runExternal = (option) => {
+const runExternal = (option, extInfo) => {
     switch(option) {
         case 'any':
         default:
             if (sgv.graf!==null) {
                 showSplash();
                 var data = ParserTXT.exportGraph(sgv.graf);
-                window.indexBridge.runExternal(data);
+                window.indexBridge.runExternal(data, extInfo);
             }
             break;
     }
@@ -97,10 +102,9 @@ const runExternal = (option) => {
 // redefinition:
 desktopInit = () => {
     setTimeout(function () {
-        //const button = UI.tag("input", { 'class': "actionbutton", 'id': "cplElectronTestButton", 'type': "button", 'value': "run external program" } );
-        sgv.dlgCPL.addButton( "run external program", "cplElectronTestButton", ()=>{
-            runExternal('any');
-        } );
+//        sgv.dlgCPL.addButton( "run external program", "cplElectronTestButton", ()=>{
+//            runExternal('any');
+//        } );
 
         sgv.dlgCPL.hidePanel();
     }, 200);

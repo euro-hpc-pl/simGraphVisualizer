@@ -65,6 +65,7 @@ var template = (mainWindow) => {
         },
         {
             label: 'Run',
+            id: 'menuRun',
             submenu: [
                 {
                     label: 'Test program',
@@ -75,6 +76,7 @@ var template = (mainWindow) => {
             ]
         },
         {
+            id: 'menuView',
             label: 'View',
             submenu: [
                 {
@@ -116,36 +118,38 @@ var template = (mainWindow) => {
                         mainWindow.webContents.send('switchConsole');
                     }
                 },
-                 { type: 'separator' },
                 {
-                    label: 'Splash test',
-                    click: function() {
-                        mainWindow.webContents.send('showLoaderSplash');
-                        setTimeout(function () {
-                            mainWindow.webContents.send('hideLoaderSplash');
-                        }, 5000);
-                    }
-                },
-                {
-                    label: 'Show second window',
-                    click: function() {
-                        var splash = new BrowserWindow({
-                            width: 400, 
-                            height: 400, 
-                            //transparent: true, 
-                            //frame: false, 
-                            alwaysOnTop: true 
-                        });
-                        splash.loadFile('views/home/splash.html');
-                        splash.center();
-                        //splash.show();
-                        //mainWindow.setMenuBarVisibility(false);
-                        setTimeout(function () {
-                            splash.close();
-                            //mainWindow.setMenuBarVisibility(true);
-                        }, 5000);
-                    }
+                    type: 'separator'
                 }
+//                {
+//                    label: 'Splash test',
+//                    click: function() {
+//                        mainWindow.webContents.send('showLoaderSplash');
+//                        setTimeout(function () {
+//                            mainWindow.webContents.send('hideLoaderSplash');
+//                        }, 5000);
+//                    }
+//                },
+//                {
+//                    label: 'Show second window',
+//                    click: function() {
+//                        var splash = new BrowserWindow({
+//                            width: 400, 
+//                            height: 400, 
+//                            //transparent: true, 
+//                            //frame: false, 
+//                            alwaysOnTop: true 
+//                        });
+//                        splash.loadFile('views/home/splash.html');
+//                        splash.center();
+//                        //splash.show();
+//                        //mainWindow.setMenuBarVisibility(false);
+//                        setTimeout(function () {
+//                            splash.close();
+//                            //mainWindow.setMenuBarVisibility(true);
+//                        }, 5000);
+//                    }
+//                }
                 
             ]
         },

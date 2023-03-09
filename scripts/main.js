@@ -12,14 +12,58 @@ const {shell} = require("electron");
 var execFile = require('child_process').execFile;
 const child_process = require('child_process');
 const dataFile = require(path.join(app.getAppPath(), 'scripts/workers/dataFile.js'));
+const settings = require(path.join(app.getAppPath(), 'scripts/workers/settings.js'));
 const menu = require(path.join(app.getAppPath(), 'scripts/workers/mainMenu.js'));
+const {MenuItem} = require("electron");
 
 const isMac = process.platform === 'darwin';
 
-const extBinDir = 'd:\\test\\';
+//vvvvvv SETTINGS
+var extBinDir;// = 'd:/test/';
+var externalRun = [];
+//^^^^^  SETTINGS
 
 var mainWindow;
 let icounter = 0;
+
+
+var showSettings = function () {
+    mainWindow.webContents.send('showSettings',externalRun,extBinDir);
+};
+
+function addMenuItem(_parentID, _label, _callback) {
+    let m = Menu.getApplicationMenu();
+    if (typeof m !== 'undefined'){
+        var rm = m.getMenuItemById(_parentID).submenu;
+        if (typeof rm !== 'undefined'){
+            var item = new MenuItem({
+                label:_label,
+                click: _callback
+              });
+            rm.append(item);
+            
+            return item;
+        }
+    }
+    return null;
+}
+
+function addSeparator(_parentID) {
+    let m = Menu.getApplicationMenu();
+    if (typeof m !== 'undefined'){
+        var rm = m.getMenuItemById(_parentID).submenu;
+        if (typeof rm !== 'undefined'){
+            var item = new MenuItem({
+                type: 'separator'
+              });
+            rm.append(item);
+            
+            return item;
+        }
+    }
+    return null;
+}
+
 function createWindow() {
 
     // Create the browser window.
@@ -35,12 +79,15 @@ function createWindow() {
 
     Menu.setApplicationMenu(menu.create(mainWindow));
 
+    addSeparator('menuView');
+    addMenuItem('menuView', 'Settings window', showSettings);
+
     mainWindow.loadFile(path.join(app.getAppPath(), "public_html/index.html"));
 
     let wc = mainWindow.webContents;
-    //wc.openDevTools();
+    wc.openDevTools();
 
-
+    readSettings();
 }
 
 // This method will be called when Electron has finished
@@ -66,12 +113,29 @@ app.on("window-all-closed", function () {
         app.quit();
 });
 
+ipcMain.handle("settingsEdited", (event, extInfo, workDir) => {
+    extBinDir = workDir;
+    externalRun = extInfo;
+    
+    saveSettings();
+    
+    rebuildExtRunMenu();
+});
 
-ipcMain.handle("runExternal", (event, data) => {
-    dataFile.save(extBinDir+"sentFile.txt", data);
+ipcMain.handle("runExternal", (event, data, extInfo) => {
+    let outPath = extBinDir+"sentFile.txt";
+    let resultPath = extBinDir+"resultFile.txt";
+    
+    let params = extInfo.params.replace('{graph}', outPath).replace('{result}', resultPath);
+    
+    dataFile.save(outPath, data);
 
     child_process.chdir = extBinDir;
-    run_script("python", ["bin/externalProg.py", "-i "+extBinDir+"sentFile.txt", "-o "+extBinDir+"resultFile.txt"], null);
+    //run_script("python", ["bin/externalProg.py", "-i "+extBinDir+"sentFile.txt", "-o "+extBinDir+"resultFile.txt"], null);
+    //run_script("python", ["bin/externalProg.py -i "+extBinDir+"sentFile.txt -o "+extBinDir+"resultFile.txt"], null);
+    //run_script("python bin/externalProg.py", ["-i "+outPath+" -o "+resultPath], null);
+    
+    run_script(extInfo.path, [params], null);
 });
 
 ipcMain.handle("saveStringToFile", (event, string, fileName) => {
@@ -90,6 +154,64 @@ ipcMain.handle('enableMenu', (event, id,enabled) => {
         m.getMenuItemById(id).enabled = enabled;
 });
 
+ipcMain.handle('addExtProgram', (event, _label,_path,_params) => {
+    addExtProgram(_label,_path,_params);
+});
+
+
+
+function clearExtRunMenu() {
+    let m = Menu.getApplicationMenu();
+    if (typeof m !== 'undefined'){
+        var rm = m.getMenuItemById('menuRun').submenu;
+        rm.clear();
+    }
+}
+
+function rebuildExtRunMenu() {
+    let m = Menu.getApplicationMenu();
+    if (typeof m !== 'undefined'){
+        var rm = m.getMenuItemById('menuRun');
+        rm.submenu.clear();
+        
+        for (const exr of externalRun) {
+            let item = addMenuItem('menuRun', exr.label, () => {
+                mainWindow.webContents.send('runExternal','any',exr);
+            });
+            
+            
+        }    
+    }
+}
+
+function readSettings() {
+    let temp = settings.get('settings', 'externalRun');
+    
+    if (temp!==null) {
+        externalRun = temp;
+    } else {
+        externalRun = [
+            { "label":"Demo","path":"python bin/externalProg.py","params":"-i {graph} -o {result}" },
+            { 'label':'ext1', 'path':'TESTOWY1','params':'PARAMS1'},
+            { 'label':'ext2', 'path':'TESTOWY2','params':'PARAMS2'}
+        ];    
+    }
+    
+    let temp2 = settings.get('settings', 'workingDir');
+    if (temp2!==null) {
+        extBinDir = temp2;
+    } else {
+        extBinDir = 'd:/test/';
+    }
+    
+    saveSettings();
+    rebuildExtRunMenu();
+}
+
+function saveSettings() {
+    settings.set('settings', 'workingDir', extBinDir);
+    settings.set('settings', 'externalRun', externalRun);
+}
 
 function run_script(command, args, callback) {
     var child = child_process.spawn(command, args, {
@@ -142,5 +264,4 @@ function run_script(command, args, callback) {
     if (typeof callback === 'function')
         callback();
 }
-
 

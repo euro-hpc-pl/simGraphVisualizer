@@ -44,7 +44,8 @@ const srcfiles = [
     "./src/dlgAlternateFileSave.js",
     "./src/dlgMissingNodes.js",
     "./src/dlgAbout.js",
-    "./src/dlgLoaderSplash.js"
+    "./src/dlgLoaderSplash.js",
+    "./src/dlgEditSettings.js"
 ];
 
 const dstdir = "./public_html/js/";

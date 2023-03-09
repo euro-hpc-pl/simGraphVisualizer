@@ -1,0 +1,1 @@
+{"workingDir":"d:/test/","externalRun":[{"label":"Demo","path":"python bin/externalProg.py","params":"-i {graph} -o {result}"}]}

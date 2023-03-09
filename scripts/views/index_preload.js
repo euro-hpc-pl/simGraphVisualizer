@@ -3,9 +3,12 @@ const { contextBridge, ipcMain, ipcRenderer } = require('electron');
 let indexBridge = {
     
     /* ========== OUT ====================================================*/
+    settingsEdited: async (extInfo, workingDir) => {
+        await ipcRenderer.invoke("settingsEdited", extInfo, workingDir);
+    },
  
-    runExternal: async (data) => {
-        await ipcRenderer.invoke("runExternal", data);
+    runExternal: async (data, extInfo) => {
+        await ipcRenderer.invoke("runExternal", data, extInfo);
     },
     
     saveStringToFile: async (string, fileName) => {
@@ -37,7 +40,8 @@ let indexBridge = {
     onSwitchConsole: (callback) => ipcRenderer.on("switchConsole", (callback)),
     onSwitchCellView: (callback) => ipcRenderer.on("switchCellView", (callback)),
 
-    onShowAbout: (callback) => ipcRenderer.on("showAbout", (callback)),
+    onShowSettings: (callback) => ipcRenderer.on("showSettings", (callback)),
+    onShowAbout: (callback) => ipcRenderer.on("showAbout", (callback))
 };
 
 contextBridge.exposeInMainWorld("indexBridge", indexBridge);

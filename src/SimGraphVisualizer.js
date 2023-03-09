@@ -339,7 +339,11 @@ sgv.display = function(args) {
 //=========================================
 // functions overriden in desktop scripts
 
-desktopInit = ()=>{};
+desktopInit = ()=>{
+        sgv.dlgCPL.addButton( "settings window", "cplElectronTestButton", ()=>{
+            sgv.dlgEditSettings.show();
+        } );
+};
 enableMenu = (id, enabled)=>{};
 
 //=========================================
