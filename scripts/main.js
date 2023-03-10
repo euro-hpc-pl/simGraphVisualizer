@@ -202,10 +202,10 @@ function readSettings() {
     if (temp2!==null) {
         extBinDir = temp2;
         if (! fs.existsSync(extBinDir)) {
-            extBinDir = app.getAppPath()+"/";
+            extBinDir = app.getAppPath().replace(/\\/g, "/") + '/';
         }
     } else {
-        extBinDir = app.getAppPath()+"/";
+        extBinDir = app.getAppPath().replace(/\\/g, "/") + '/';
     }
     
     saveSettings();

@@ -21,7 +21,7 @@ sgv.dlgLoaderSplash = new function() {
     function showDialog() {
         if (ui===null) createDialog();
         if (ui.open) ui.close();
-        
+        info.innerHTML = "";
         ui.style.display = "block";
         ui.showModal();
     };
