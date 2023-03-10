@@ -15,6 +15,7 @@ const dataFile = require(path.join(app.getAppPath(), 'scripts/workers/dataFile.j
 const settings = require(path.join(app.getAppPath(), 'scripts/workers/settings.js'));
 const menu = require(path.join(app.getAppPath(), 'scripts/workers/mainMenu.js'));
 const {MenuItem} = require("electron");
+const fs = require('fs');
 
 const isMac = process.platform === 'darwin';
 
@@ -192,16 +193,19 @@ function readSettings() {
     } else {
         externalRun = [
             { "label":"Demo","path":"python bin/externalProg.py","params":"-i {graph} -o {result}" },
-            { 'label':'ext1', 'path':'TESTOWY1','params':'PARAMS1'},
-            { 'label':'ext2', 'path':'TESTOWY2','params':'PARAMS2'}
+            //{ 'label':'ext1', 'path':'TESTOWY1','params':'PARAMS1'},
+            //{ 'label':'ext2', 'path':'TESTOWY2','params':'PARAMS2'}
         ];    
     }
     
     let temp2 = settings.get('settings', 'workingDir');
     if (temp2!==null) {
         extBinDir = temp2;
+        if (! fs.existsSync(extBinDir)) {
+            extBinDir = app.getAppPath()+"/";
+        }
     } else {
-        extBinDir = 'd:/test/';
+        extBinDir = app.getAppPath()+"/";
     }
     
     saveSettings();
