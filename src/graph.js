@@ -22,13 +22,13 @@ const Graph = /** @class */ (function () {
     this.nodes = {};
     this.edges = {};
     this.missing = {};
+    //this.delEdges = {};
     this.type = 'generic';
     this.scopeOfValues = ['default'];
     this.currentScope = 'default';
     this.greenLimit = 1.0;
     this.redLimit = -1.0;
 
-    //this.labelsVisible = false;
     this.labelsVisible = false;
 
     this.dispose = function () {

@@ -115,6 +115,14 @@ sgv.dlgEditSettings = new function() {
         wd.style['padding-top'] = '15px';
         wd.style['text-align'] = 'center';
         wd.appendChild(UI.span("Temporary directory: ", {'id': "wDirLabel"}));
+        let wdButton = UI.tag('input',{'type':'button', 'class':'actionbutton', 'id':'wdButton', 'name':'wdButton', 'value':'...'});
+        wdButton.style['width'] = 'auto';
+        wdButton.addEventListener('click', ()=>{
+            window.indexBridge.getDirectoryDlg().then((result)=>{
+               workingDir.value = result; 
+            });
+        });
+        wd.appendChild(wdButton);
         workingDir = UI.newInput("text", "", "", "workingDir");
         wd.appendChild(workingDir);
 

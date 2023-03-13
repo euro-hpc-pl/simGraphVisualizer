@@ -2,7 +2,16 @@ const { contextBridge, ipcMain, ipcRenderer } = require('electron');
 
 let indexBridge = {
     
-    /* ========== OUT ====================================================*/
+    /* ======= WEB CONTENT => MAIN WORLD=====================================*/
+    // keys are async functions that can be called from web content
+    // they are handled with ipcMain.handle("event",...) defined in main.js
+
+    getDirectoryDlg: async () => {
+        const result = await ipcRenderer.invoke("getDirectoryDlg");
+        
+        return result;
+    },
+    
     settingsEdited: async (extInfo, workingDir) => {
         await ipcRenderer.invoke("settingsEdited", extInfo, workingDir);
     },
@@ -21,7 +30,11 @@ let indexBridge = {
         
         await ipcRenderer.invoke('enableMenu', id, enabled);
     },
-    /* ========== IN =====================================================*/
+    
+    /* ======== MAIN WORLD => WEB CONTENT ===================================*/
+    // keys are window.indexBridge methods defined in index_preload.js
+    // can be called from main.js with: mainWindow.webContents.send('event',..) 
+    //
     
     onShowLoaderSplash: (callback) => ipcRenderer.on("showLoaderSplash", (callback)),
     onHideLoaderSplash: (callback) => ipcRenderer.on("hideLoaderSplash", (callback)),
@@ -33,7 +46,7 @@ let indexBridge = {
 
     onClearGraph: (callback) => ipcRenderer.on("clearGraph", (callback)),
 
-    onRunExternal: (callback) => ipcRenderer.on("runExternal", (callback)),
+    onRunMenuItem: (callback) => ipcRenderer.on("runExternal", (callback)),
     onExternalResult: (callback) => ipcRenderer.on("externalResult", (callback)),
     
     onSetDisplayMode: (callback) => ipcRenderer.on("setDisplayMode", (callback)),

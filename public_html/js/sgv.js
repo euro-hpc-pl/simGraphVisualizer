@@ -1217,13 +1217,13 @@ const Graph = /** @class */ (function () {
     this.nodes = {};
     this.edges = {};
     this.missing = {};
+    //this.delEdges = {};
     this.type = 'generic';
     this.scopeOfValues = ['default'];
     this.currentScope = 'default';
     this.greenLimit = 1.0;
     this.redLimit = -1.0;
 
-    //this.labelsVisible = false;
     this.labelsVisible = false;
 
     this.dispose = function () {
@@ -2980,9 +2980,9 @@ sgv.display = function(args) {
 // functions overriden in desktop scripts
 
 desktopInit = ()=>{
-        sgv.dlgCPL.addButton( "settings window", "cplElectronTestButton", ()=>{
-            sgv.dlgEditSettings.show();
-        } );
+//        sgv.dlgCPL.addButton( "settings window", "cplElectronTestButton", ()=>{
+//            sgv.dlgEditSettings.show();
+//        } );
 };
 enableMenu = (id, enabled)=>{};
 
@@ -6307,6 +6307,14 @@ sgv.dlgEditSettings = new function() {
         wd.style['padding-top'] = '15px';
         wd.style['text-align'] = 'center';
         wd.appendChild(UI.span("Temporary directory: ", {'id': "wDirLabel"}));
+        let wdButton = UI.tag('input',{'type':'button', 'class':'actionbutton', 'id':'wdButton', 'name':'wdButton', 'value':'...'});
+        wdButton.style['width'] = 'auto';
+        wdButton.addEventListener('click', ()=>{
+            window.indexBridge.getDirectoryDlg().then((result)=>{
+               workingDir.value = result; 
+            });
+        });
+        wd.appendChild(wdButton);
         workingDir = UI.newInput("text", "", "", "workingDir");
         wd.appendChild(workingDir);
 

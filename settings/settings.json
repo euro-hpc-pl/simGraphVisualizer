@@ -1,1 +1,1 @@
-{"workingDir":"D:/praca/EuroHPC/simGraphVisualizer/","externalRun":[{"label":"Demo","path":"python bin/externalProg.py","params":"-i {graph} -o {result}"}]}
+{"workingDir":"D:/test1/test2/test55/","externalRun":[{"label":"Demo","path":"python bin/externalProg.py","params":"-i {graph} -o {result}"},{"label":"Demo2","path":"python bin/externalProg.py","params":"-i null -o {result}"}]}

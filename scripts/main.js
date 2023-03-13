@@ -16,6 +16,7 @@ const settings = require(path.join(app.getAppPath(), 'scripts/workers/settings.j
 const menu = require(path.join(app.getAppPath(), 'scripts/workers/mainMenu.js'));
 const {MenuItem} = require("electron");
 const fs = require('fs');
+const os = require('os');
 
 const isMac = process.platform === 'darwin';
 
@@ -28,7 +29,7 @@ var mainWindow;
 let icounter = 0;
 
 
-var showSettings = function () {
+var showSettingsDlg = function () {
     mainWindow.webContents.send('showSettings',externalRun,extBinDir);
 };
 
@@ -65,6 +66,32 @@ function addSeparator(_parentID) {
     return null;
 }
 
+function rebuildExtRunMenu() {
+    let m = Menu.getApplicationMenu();
+    if (typeof m !== 'undefined'){
+        var rm = m.getMenuItemById('menuRun');
+        rm.submenu.clear();
+        
+        for (const exr of externalRun) {
+            let item = addMenuItem('menuRun', exr.label, () => {
+                mainWindow.webContents.send('runExternal',exr);
+            });
+        }    
+    }
+}
+
+
+
+function getDirectoryDialog() {
+    let dir = dialog.showOpenDialogSync(mainWindow, { properties: ['openDirectory'] });
+    //console.log(dir);
+    dir = dir[0].replace(/\\/g, "/");
+    if (!dir.endsWith("/")) dir += "/";
+    return dir;
+}
+
+
+
 function createWindow() {
 
     // Create the browser window.
@@ -81,7 +108,7 @@ function createWindow() {
     Menu.setApplicationMenu(menu.create(mainWindow));
 
     addSeparator('menuView');
-    addMenuItem('menuView', 'Settings window', showSettings);
+    addMenuItem('menuView', 'Settings window', showSettingsDlg);
 
     mainWindow.loadFile(path.join(app.getAppPath(), "public_html/index.html"));
 
@@ -115,28 +142,115 @@ app.on("window-all-closed", function () {
 });
 
 ipcMain.handle("settingsEdited", (event, extInfo, workDir) => {
-    extBinDir = workDir;
     externalRun = extInfo;
-    
-    saveSettings();
-    
-    rebuildExtRunMenu();
+
+    if (fs.existsSync(workDir)) {
+        extBinDir = workDir;
+        if (!extBinDir.endsWith("/")) extBinDir += "/";
+        saveSettings();
+        rebuildExtRunMenu();
+    } else {
+        dialog.showMessageBox(mainWindow, {
+            'type': 'question',
+            'title': 'Confirmation',
+            'message': 'Poroposed Working Dir not exists. Should I to create it?',
+            'buttons': [ 'Yes', 'No' ]
+        }).then((result) => {
+            if (result.response === 0) {
+                fs.mkdirSync(workDir, { recursive: true });
+                if (fs.existsSync(workDir)) {
+                    extBinDir = workDir;
+                } else {
+                    // 
+                    // To DO (?)
+                    // (show info and not change dir) OR (show Settings window again)
+                    //
+                }
+            }
+
+            if (!extBinDir.endsWith("/")) extBinDir += "/";
+            saveSettings();
+            rebuildExtRunMenu();
+            
+            // Reply to the render process
+            //mainWindow.webContents.send('dialogResponse', result.response);
+        });
+    }
 });
 
 ipcMain.handle("runExternal", (event, data, extInfo) => {
+    function run_script(command, args, callback) {
+        mainWindow.webContents.send("showLoaderSplash");
+
+        var child = child_process.spawn(command, args, {
+            encoding: 'utf8',
+            shell: true
+        });
+        
+        // You can also use a variable to save the output for when the script closes later
+        child.on('error', (error) => {
+            mainWindow.webContents.send("hideLoaderSplash");
+            dialog.showMessageBox({
+                title: 'Title',
+                type: 'warning',
+                message: 'Error occured.\r\n' + error
+            });
+        });
+
+        child.stdout.setEncoding('utf8');
+        child.stdout.on('data', (data) => {
+            // Return some data to the renderer process with the mainprocess-response ID
+            //mainWindow.webContents.send('mainprocess-response', 'testData');
+
+            //Here is the output
+            data = data.toString();
+            console.log("received:");
+            console.log(data);
+        });
+
+        child.stderr.setEncoding('utf8');
+        child.stderr.on('data', (data) => {
+            //Here is the output from the command
+            console.log("StdErr returned: ", data);
+        });
+
+        child.on('close', (code) => {
+            //Here you can get the exit code of the script  
+            switch (code) {
+                case 0:
+                    console.log("end of process!");
+                    let mydata = dataFile.load(extBinDir+"resultFile.txt");
+                    mainWindow.webContents.send('externalResult', mydata);
+                    //              dialog.showMessageBox({
+                    //                  title: 'Title',
+                    //                  type: 'info',
+                    //                  message: 'End process.\r\n'
+                    //              });
+                    break;
+            }
+
+        });
+        if (typeof callback === 'function')
+            callback();
+    }
+    
     let outPath = extBinDir+"sentFile.txt";
     let resultPath = extBinDir+"resultFile.txt";
     
-    let params = extInfo.params.replace('{graph}', outPath).replace('{result}', resultPath);
-    
-    dataFile.save(outPath, data);
+    if ( (data===null) && (-1 !== extInfo.params.indexOf("{graph}") ) ) {
+        // ERROR
+        
+    } else {
+        let params = extInfo.params.replace('{graph}', outPath).replace('{result}', resultPath);
 
-    child_process.chdir = extBinDir;
-    //run_script("python", ["bin/externalProg.py", "-i "+extBinDir+"sentFile.txt", "-o "+extBinDir+"resultFile.txt"], null);
-    //run_script("python", ["bin/externalProg.py -i "+extBinDir+"sentFile.txt -o "+extBinDir+"resultFile.txt"], null);
-    //run_script("python bin/externalProg.py", ["-i "+outPath+" -o "+resultPath], null);
-    
-    run_script(extInfo.path, [params], null);
+        if (data!==null) {
+            dataFile.save(outPath, data);
+        }
+
+        child_process.chdir = extBinDir;
+
+        run_script(extInfo.path, [params], null);
+    }
 });
 
 ipcMain.handle("saveStringToFile", (event, string, fileName) => {
@@ -159,31 +273,9 @@ ipcMain.handle('addExtProgram', (event, _label,_path,_params) => {
     addExtProgram(_label,_path,_params);
 });
 
-
-
-function clearExtRunMenu() {
-    let m = Menu.getApplicationMenu();
-    if (typeof m !== 'undefined'){
-        var rm = m.getMenuItemById('menuRun').submenu;
-        rm.clear();
-    }
-}
-
-function rebuildExtRunMenu() {
-    let m = Menu.getApplicationMenu();
-    if (typeof m !== 'undefined'){
-        var rm = m.getMenuItemById('menuRun');
-        rm.submenu.clear();
-        
-        for (const exr of externalRun) {
-            let item = addMenuItem('menuRun', exr.label, () => {
-                mainWindow.webContents.send('runExternal','any',exr);
-            });
-            
-            
-        }    
-    }
-}
+ipcMain.handle('getDirectoryDlg', (event) => {
+    return getDirectoryDialog();
+});
 
 function readSettings() {
     let temp = settings.get('settings', 'externalRun');
@@ -192,9 +284,7 @@ function readSettings() {
         externalRun = temp;
     } else {
         externalRun = [
-            { "label":"Demo","path":"python bin/externalProg.py","params":"-i {graph} -o {result}" },
-            //{ 'label':'ext1', 'path':'TESTOWY1','params':'PARAMS1'},
-            //{ 'label':'ext2', 'path':'TESTOWY2','params':'PARAMS2'}
+            { "label":"Demo","path":"python bin/externalProg.py","params":"-i {graph} -o {result}" }
         ];    
     }
     
@@ -202,12 +292,15 @@ function readSettings() {
     if (temp2!==null) {
         extBinDir = temp2;
         if (! fs.existsSync(extBinDir)) {
-            extBinDir = app.getAppPath().replace(/\\/g, "/") + '/';
+            //extBinDir = app.getAppPath().replace(/\\/g, "/");
+            extBinDir = os.tmpdir().replace(/\\/g, "/");
         }
     } else {
-        extBinDir = app.getAppPath().replace(/\\/g, "/") + '/';
+        //extBinDir = app.getAppPath().replace(/\\/g, "/");
+        extBinDir = os.tmpdir().replace(/\\/g, "/");
     }
     
+    if (!extBinDir.endsWith("/")) extBinDir += "/";
     saveSettings();
     rebuildExtRunMenu();
 }
@@ -217,55 +310,4 @@ function saveSettings() {
     settings.set('settings', 'externalRun', externalRun);
 }
 
-function run_script(command, args, callback) {
-    var child = child_process.spawn(command, args, {
-        encoding: 'utf8',
-        shell: true
-    });
-    // You can also use a variable to save the output for when the script closes later
-    child.on('error', (error) => {
-        dialog.showMessageBox({
-            title: 'Title',
-            type: 'warning',
-            message: 'Error occured.\r\n' + error
-        });
-    });
-
-    child.stdout.setEncoding('utf8');
-    child.stdout.on('data', (data) => {
-
-        // Return some data to the renderer process with the mainprocess-response ID
-        //mainWindow.webContents.send('mainprocess-response', 'testData');
-
-        //Here is the output
-        data = data.toString();
-        console.log("received:");
-        console.log(data);
-    });
-
-    child.stderr.setEncoding('utf8');
-    child.stderr.on('data', (data) => {
-        //Here is the output from the command
-        console.log("StdErr returned: ", data);
-    });
-
-    child.on('close', (code) => {
-        //Here you can get the exit code of the script  
-        switch (code) {
-            case 0:
-                console.log("end of process!");
-                let mydata = dataFile.load(extBinDir+"resultFile.txt");
-                mainWindow.webContents.send('externalResult', mydata);
-                //              dialog.showMessageBox({
-                //                  title: 'Title',
-                //                  type: 'info',
-                //                  message: 'End process.\r\n'
-                //              });
-                break;
-        }
-
-    });
-    if (typeof callback === 'function')
-        callback();
-}
 

@@ -6,6 +6,7 @@
     "license": "Apache-2.0",
     "main": "scripts/main.js",
     "scripts": {
+        "build": "gulp build",
         "start": "electron-forge start",
         "watch": "nodemon --exec electron .",
         "package": "electron-forge package",

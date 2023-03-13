@@ -2,9 +2,12 @@
 
 if (typeof window.indexBridge!=='undefined') {
     console.log("desktopApp!");
+
+
 //================================================
 //
 // communication from main.js to sgv.js
+// see events defined in index_preload.js
 //
 //================================================
 
@@ -17,8 +20,9 @@ window.indexBridge.onHideLoaderSplash( ()=>{
 });
 
 
-window.indexBridge.onRunExternal( (event,option,extInfo) => {
-    runExternal(option,extInfo);
+window.indexBridge.onRunMenuItem( (event,extInfo) => {
+    console.log("index.js: window.indexBridge.onRunMenuItem()");
+    runExternal(extInfo);
 });
 
 window.indexBridge.onSetDisplayMode( (event, mode) => {
@@ -83,19 +87,16 @@ window.indexBridge.onSaveEnd( () => {
 
 /*==========================================================================*/
 
+const runExternal = (extInfo) => {
+//    if (sgv.graf!==null) {
+//        showSplash();
+//        var data = ParserTXT.exportGraph(sgv.graf);
+//        window.indexBridge.runExternal(data, extInfo);
+//    }
 
-
-const runExternal = (option, extInfo) => {
-    switch(option) {
-        case 'any':
-        default:
-            if (sgv.graf!==null) {
-                showSplash();
-                var data = ParserTXT.exportGraph(sgv.graf);
-                window.indexBridge.runExternal(data, extInfo);
-            }
-            break;
-    }
+    var data = (sgv.graf!==null) ? ParserTXT.exportGraph(sgv.graf) : null;
+    
+    window.indexBridge.runExternal(data, extInfo);
 };
 
 
