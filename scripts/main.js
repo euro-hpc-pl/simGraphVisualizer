@@ -20,6 +20,9 @@ const os = require('os');
 
 const isMac = process.platform === 'darwin';
 
+const DEVELOPEMENT_MODE = false;
+
+
 //vvvvvv SETTINGS
 var extBinDir;// = 'd:/test/';
 var externalRun = [];
@@ -113,7 +116,7 @@ function createWindow() {
     mainWindow.loadFile(path.join(app.getAppPath(), "public_html/index.html"));
 
     let wc = mainWindow.webContents;
-    wc.openDevTools();
+    if (DEVELOPEMENT_MODE) wc.openDevTools();
 
     readSettings();
 }
