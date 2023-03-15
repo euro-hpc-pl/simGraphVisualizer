@@ -20,4 +20,4 @@ time.sleep(5)
 print('Writing to: ', args['output']);
 
 import shutil
-shutil.copyfile(os.getcwd()+'\\bin\\inputFile.txt',args['output']);
+shutil.copyfile(os.getcwd()+'/bin/inputFile.txt',args['output']);
