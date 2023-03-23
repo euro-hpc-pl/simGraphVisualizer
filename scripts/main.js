@@ -1,22 +1,15 @@
-// Modules to control application life and create native browser window
-const {app, BrowserWindow, session, Menu} = require("electron");
+const {app, dialog, shell, BrowserWindow, ipcMain, net, session, Menu, MenuItem} = require("electron");
 const path = require("path");
-const {ipcMain} = require("electron");
-const {net} = require("electron");
-const fetch = (...args) =>
-    import("node-fetch").then(({ default: fetch }) => fetch(...args));
 const axios = require("axios");
-const got = (...args) => import("got").then(({ default: got }) => got(...args));
-const {dialog} = require("electron");
-const {shell} = require("electron");
-var execFile = require('child_process').execFile;
+const fs = require('fs');
+const os = require('os');
+
+const process = require('process');
 const child_process = require('child_process');
+
 const dataFile = require(path.join(app.getAppPath(), 'scripts/workers/dataFile.js'));
 const settings = require(path.join(app.getAppPath(), 'scripts/workers/settings.js'));
 const menu = require(path.join(app.getAppPath(), 'scripts/workers/mainMenu.js'));
-const {MenuItem} = require("electron");
-const fs = require('fs');
-const os = require('os');
 
 const isMac = process.platform === 'darwin';
 
@@ -123,8 +116,6 @@ function getDirectoryDialog() {
     return dir;
 }
 
-
-
 function createWindow() {
     // Create the browser window.
     mainWindow = new BrowserWindow({
@@ -136,7 +127,6 @@ function createWindow() {
             preload: path.join(app.getAppPath(), "scripts/preload.js")
         }
     });
-
 
     Menu.setApplicationMenu(menu.create(mainWindow));
 
@@ -187,14 +177,14 @@ app.on("window-all-closed", function () {
         app.quit();
 });
 
-//app.on('ready', () => {
-//    mainWindow = new BrowserWindow({
-//        webPreferences: {
-//            nodeIntegration: true,
-//            contextIsolation: false,
-//        }
-//    });
-//});
+
+
+
+/*****************************************************************************
+ * 
+ * Handlers for messages sent from web part of application
+ * 
+ ****************************************************************************/
 
 ipcMain.handle("getSetting", (event, key) => {
     return settings.get("settings", key);
@@ -340,4 +330,3 @@ ipcMain.handle('addExtProgram', (event, _label,_path,_params) => {
 ipcMain.handle('getDirectoryDlg', (event) => {
     return getDirectoryDialog();
 });
-
