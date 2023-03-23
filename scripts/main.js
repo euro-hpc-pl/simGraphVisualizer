@@ -18,22 +18,55 @@ const {MenuItem} = require("electron");
 const fs = require('fs');
 const os = require('os');
 
+const promiseIpc = require('electron-promise-ipc');
+//import promiseIpc from 'electron-promise-ipc';
+//const promiseIpc = import('electron-promise-ipc');
+
 const isMac = process.platform === 'darwin';
 
-const DEVELOPEMENT_MODE = false;
+const DEVELOPEMENT_MODE = true;
 
+var appSettings = {
+    workingDir: "",
+    externApps: [],
+    read: () => {
+        let temp = settings.get('settings', 'externApps');
 
-//vvvvvv SETTINGS
-var extBinDir;// = 'd:/test/';
-var externalRun = [];
-//^^^^^  SETTINGS
+        if (temp!==null) {
+            appSettings.externApps = temp;
+        } else {
+            appSettings.externApps = [
+                { "label":"Demo","path":"python bin/externalProg.py","params":"-i {graph} -o {result}" }
+            ];    
+        }
+
+        let temp2 = settings.get('settings', 'workingDir');
+
+        if (temp2!==null) {
+            appSettings.workingDir = temp2;
+            if (! fs.existsSync(appSettings.workingDir)) {
+                appSettings.workingDir = os.tmpdir().replace(/\\/g, "/");
+            }
+        } else {
+            appSettings.workingDir = os.tmpdir().replace(/\\/g, "/");
+        }
+
+        if (!appSettings.workingDir.endsWith("/")) appSettings.workingDir += "/";
+        appSettings.save();
+        rebuildExtRunMenu();
+    },
+    save: () => {
+        settings.set('settings', 'workingDir', appSettings.workingDir);
+        settings.set('settings', 'externApps', appSettings.externApps);
+    }
+};
 
 var mainWindow;
 let icounter = 0;
 
 
 var showSettingsDlg = function () {
-    mainWindow.webContents.send('showSettings',externalRun,extBinDir);
+    mainWindow.webContents.send('showSettings',appSettings.externApps,appSettings.workingDir);
 };
 
 function addMenuItem(_parentID, _label, _callback) {
@@ -75,9 +108,11 @@ function rebuildExtRunMenu() {
         var rm = m.getMenuItemById('menuRun');
         rm.submenu.clear();
         
-        for (const exr of externalRun) {
+        for (const exr of appSettings.externApps) {
             let item = addMenuItem('menuRun', exr.label, () => {
-                mainWindow.webContents.send('runExternal',exr);
+                
+                //mainWindow.webContents.send('runExternal',exr);
+                mainWindow.webContents.send("m2w_getScopeAsTXT_request",'runExternal',exr);
             });
         }    
     }
@@ -96,13 +131,13 @@ function getDirectoryDialog() {
 
 
 function createWindow() {
-
     // Create the browser window.
     mainWindow = new BrowserWindow({
         icon: path.join(app.getAppPath(), "public_html/favicon.ico"),
         webPreferences: {
             contextIsolation: true,
-            nodeIntegration: true,
+            nodeIntegration: false,
+            enableRemoteModule: false,
             preload: path.join(app.getAppPath(), "scripts/preload.js")
         }
     });
@@ -112,13 +147,26 @@ function createWindow() {
 
     addSeparator('menuView');
     addMenuItem('menuView', 'Settings window', showSettingsDlg);
+   
+    addSeparator('menuView');
+    addMenuItem('menuView', 'TEST IPC', ()=>{
+        ipcMain.handle("w2m_getScopeAsTXT_response", (event, data) => {
+            console.log("3. (main.js) ipcMain.handle()");
+            //DO SOMETHING
+            return "OK";
+        });
+
+        console.log("1. (main.js) TEST_IPC menu");
+        mainWindow.webContents.send("m2w_getScopeAsTXT_request","w2m_getScopeAsTXT_response");
+    });
 
     mainWindow.loadFile(path.join(app.getAppPath(), "public_html/index.html"));
 
     let wc = mainWindow.webContents;
     if (DEVELOPEMENT_MODE) wc.openDevTools();
 
-    readSettings();
+    appSettings.read();
+    
 }
 
 // This method will be called when Electron has finished
@@ -144,40 +192,58 @@ app.on("window-all-closed", function () {
         app.quit();
 });
 
-ipcMain.handle("settingsEdited", (event, extInfo, workDir) => {
-    externalRun = extInfo;
+//app.on('ready', () => {
+//    mainWindow = new BrowserWindow({
+//        webPreferences: {
+//            nodeIntegration: true,
+//            contextIsolation: false,
+//        }
+//    });
+//});
 
-    if (fs.existsSync(workDir)) {
-        extBinDir = workDir;
-        if (!extBinDir.endsWith("/")) extBinDir += "/";
-        saveSettings();
-        rebuildExtRunMenu();
-    } else {
-        dialog.showMessageBox(mainWindow, {
-            'type': 'question',
-            'title': 'Confirmation',
-            'message': 'Poroposed Working Dir not exists. Should I to create it?',
-            'buttons': [ 'Yes', 'No' ]
-        }).then((result) => {
-            if (result.response === 0) {
-                fs.mkdirSync(workDir, { recursive: true });
-                if (fs.existsSync(workDir)) {
-                    extBinDir = workDir;
-                } else {
-                    // 
-                    // To DO (?)
-                    // (show info and not change dir) OR (show Settings window again)
-                    //
-                }
-            }
+ipcMain.handle("getSetting", (event, key) => {
+    return settings.get("settings", key);
+});
 
-            if (!extBinDir.endsWith("/")) extBinDir += "/";
-            saveSettings();
+ipcMain.handle("setSettings", (event, pairs) => {
+    if (pairs["externApps"] !== undefined){
+        appSettings.externApps = pairs["externApps"];
+    }
+    
+    if (pairs["workingDir"] !== undefined){
+        let workDir = pairs["workingDir"];
+        if (fs.existsSync(workDir)) {
+            appSettings.workingDir = workDir;
+            if (!appSettings.workingDir.endsWith("/")) appSettings.workingDir += "/";
+            appSettings.save();
             rebuildExtRunMenu();
-            
-            // Reply to the render process
-            //mainWindow.webContents.send('dialogResponse', result.response);
-        });
+        } else {
+            dialog.showMessageBox(mainWindow, {
+                'type': 'question',
+                'title': 'Confirmation',
+                'message': 'Poroposed Working Dir not exists. Should I to create it?',
+                'buttons': [ 'Yes', 'No' ]
+            }).then((result) => {
+                if (result.response === 0) {
+                    fs.mkdirSync(workDir, { recursive: true });
+                    if (fs.existsSync(workDir)) {
+                        appSettings.workingDir = workDir;
+                    } else {
+                        // 
+                        // To DO (?)
+                        // (show info and not change dir) OR (show Settings window again)
+                        //
+                    }
+                }
+
+                if (!appSettings.workingDir.endsWith("/")) appSettings.workingDir += "/";
+                appSettings.save();
+                rebuildExtRunMenu();
+
+                // Reply to the render process
+                //mainWindow.webContents.send('dialogResponse', result.response);
+            });
+        }
     }
 });
 
@@ -222,7 +288,7 @@ ipcMain.handle("runExternal", (event, data, extInfo) => {
             switch (code) {
                 case 0:
                     console.log("end of process!");
-                    let mydata = dataFile.load(extBinDir+"resultFile.txt");
+                    let mydata = dataFile.load(appSettings.workingDir+"resultFile.txt");
                     mainWindow.webContents.send('externalResult', mydata);
                     //              dialog.showMessageBox({
                     //                  title: 'Title',
@@ -237,8 +303,8 @@ ipcMain.handle("runExternal", (event, data, extInfo) => {
             callback();
     }
     
-    let outPath = extBinDir+"sentFile.txt";
-    let resultPath = extBinDir+"resultFile.txt";
+    let outPath = appSettings.workingDir+"sentFile.txt";
+    let resultPath = appSettings.workingDir+"resultFile.txt";
     
     if ( (data===null) && (-1 !== extInfo.params.indexOf("{graph}") ) ) {
         // ERROR
@@ -250,7 +316,7 @@ ipcMain.handle("runExternal", (event, data, extInfo) => {
             dataFile.save(outPath, data);
         }
 
-        child_process.chdir = extBinDir;
+        child_process.chdir = appSettings.workingDir;
 
         run_script(extInfo.path, [params], null);
     }
@@ -279,38 +345,4 @@ ipcMain.handle('addExtProgram', (event, _label,_path,_params) => {
 ipcMain.handle('getDirectoryDlg', (event) => {
     return getDirectoryDialog();
 });
-
-function readSettings() {
-    let temp = settings.get('settings', 'externalRun');
-    
-    if (temp!==null) {
-        externalRun = temp;
-    } else {
-        externalRun = [
-            { "label":"Demo","path":"python bin/externalProg.py","params":"-i {graph} -o {result}" }
-        ];    
-    }
-    
-    let temp2 = settings.get('settings', 'workingDir');
-    if (temp2!==null) {
-        extBinDir = temp2;
-        if (! fs.existsSync(extBinDir)) {
-            //extBinDir = app.getAppPath().replace(/\\/g, "/");
-            extBinDir = os.tmpdir().replace(/\\/g, "/");
-        }
-    } else {
-        //extBinDir = app.getAppPath().replace(/\\/g, "/");
-        extBinDir = os.tmpdir().replace(/\\/g, "/");
-    }
-    
-    if (!extBinDir.endsWith("/")) extBinDir += "/";
-    saveSettings();
-    rebuildExtRunMenu();
-}
-
-function saveSettings() {
-    settings.set('settings', 'workingDir', extBinDir);
-    settings.set('settings', 'externalRun', externalRun);
-}
-
 

@@ -14,6 +14,8 @@ const sass = require('gulp-sass')(require('sass'));
 const del = require('del');
 
 const srcfiles = [
+    "./src/Cookies.js",
+    "./src/Settings.js",
     "./src/helpers.js",
     "./src/SVG.js",
     "./src/Dispatcher.js",
@@ -45,7 +47,8 @@ const srcfiles = [
     "./src/dlgMissingNodes.js",
     "./src/dlgAbout.js",
     "./src/dlgLoaderSplash.js",
-    "./src/dlgEditSettings.js"
+    "./src/dlgEditSettings.js",
+    "./src/ElectronInterface.js"
 ];
 
 const dstdir = "./public_html/js/";

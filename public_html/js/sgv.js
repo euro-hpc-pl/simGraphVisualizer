@@ -1,3 +1,87 @@
+var Cookie = {};
+Cookie.set = (name, value, options) => {
+    const opts = {
+        path: "/",
+        ...options
+    };
+
+    if (navigator.cookieEnabled) { //czy ciasteczka są włączone
+        const cookieName = encodeURIComponent(name);
+        const cookieVal = encodeURIComponent(value);
+        let cookieText = cookieName + "=" + cookieVal;
+
+        if (opts.days && typeof opts.days === "number") {
+            const data = new Date();
+            data.setTime(data.getTime() + (opts.days * 24*60*60*1000));
+            cookieText += "; expires=" + data.toUTCString();
+        }
+
+        if (opts.path) {
+            cookieText += "; path=" + opts.path;
+        }
+        if (opts.domain) {
+            cookieText += "; domain=" + opts.domain;
+        }
+        if (opts.secure) {
+            cookieText += "; secure";
+        }
+
+        window.document.cookie = cookieText;
+    }
+};
+
+Cookie.get = (name) => {
+    if (window.document.cookie !== "") {
+        const cookies = window.document.cookie.split(/; */);
+
+        for (let cookie of cookies) {
+            const [ cookieName, cookieVal ] = cookie.split("=");
+            if (cookieName === decodeURIComponent(name)) {
+                console.log(cookieVal);
+                return decodeURIComponent(cookieVal);
+            }
+        }
+    }
+
+    return undefined;
+};
+
+Cookie.delete = (name, options) => {
+    const opts = {
+        path: "/",
+        ...options
+    };
+
+    const cookieName = encodeURIComponent(name);
+    let cookieText = cookieName + "=";
+    if (opts.path) {
+        cookieText += "; path=" + opts.path;
+    }
+    cookieText += "; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    document.cookie = cookieText;
+};
+
+var Settings = {};
+
+if (typeof window.api==='undefined') {
+    Settings.get = (key) => {
+        return Cookie.get(key);
+    };
+    Settings.set = (pairs) => {
+        for (let key in pairs) {
+            Cookie.set(key, pairs[key]);
+        }
+    };
+} else {
+    console.log("Settings in desktopApp!");
+    Settings.get = (key) => {
+        return window.api.invoke("getSetting",key);
+    };
+    Settings.set = (pairs) => {
+        window.api.invoke("setSettings", pairs);
+    };
+}
+
 /* global BABYLON, sgv */
 
 const DEMO_MODE = false;
@@ -2973,20 +3057,6 @@ sgv.display = function(args) {
         desktopInit();
     });
 };
-
-
-
-//=========================================
-// functions overriden in desktop scripts
-
-desktopInit = ()=>{
-//        sgv.dlgCPL.addButton( "settings window", "cplElectronTestButton", ()=>{
-//            sgv.dlgEditSettings.show();
-//        } );
-};
-enableMenu = (id, enabled)=>{};
-
-//=========================================
 
 
 
@@ -6190,7 +6260,7 @@ function showSplashAndRun(f,noHide) {
     }, 100);
 };
 
-/* global sgv, UI, Graph, TempGraphStructure */
+/* global sgv, UI, Graph, TempGraphStructure, Settings */
 
 const SingleFilePanel = (function(_id,_label,_path,_params) {
     var myId = _id;
@@ -6219,9 +6289,9 @@ const SingleFilePanel = (function(_id,_label,_path,_params) {
     return {
         id: myId,
         ui: myUI,
-        label: myLabel.value,
-        path: myPath.value,
-        params: myParams.value,
+        label: myLabel,
+        path: myPath,
+        params: myParams,
         close: () => { SingleFilePanel.removeByUi(myUI); }
     };
 });
@@ -6310,9 +6380,11 @@ sgv.dlgEditSettings = new function() {
         let wdButton = UI.tag('input',{'type':'button', 'class':'actionbutton', 'id':'wdButton', 'name':'wdButton', 'value':'...'});
         wdButton.style['width'] = 'auto';
         wdButton.addEventListener('click', ()=>{
-            window.indexBridge.getDirectoryDlg().then((result)=>{
-               workingDir.value = result; 
-            });
+            if (typeof window.api!=='undefined') {
+                window.api.invoke("getDirectoryDlg").then((result)=>{
+                    workingDir.value = result;
+                });
+            }
         });
         wd.appendChild(wdButton);
         workingDir = UI.newInput("text", "", "", "workingDir");
@@ -6340,33 +6412,36 @@ sgv.dlgEditSettings = new function() {
     };
     
     function onSaveButton() {
-        var extInfo = [];
+        let pairs = {
+            "workingDir": workingDir.value,
+            "externApps": []
+        };
         
         for (const panel of SingleFilePanel.panels) {
-            extInfo.push({
-                label: panel.label,
-                path: panel.path,
-                params: panel.params
+            pairs["externApps"].push({
+                label: panel.label.value,
+                path: panel.path.value,
+                params: panel.params.value
             });
         }
         
-        window.indexBridge.settingsEdited(extInfo, workingDir.value);
+        Settings.set(pairs);
         
         hideDialog();
     }
     
-    function showDialog(_externalRun, _extBinDir) {
+    function showDialog(_externApps, _workingDir) {
         ui.close();
         
         SingleFilePanel.removeAll();
         
         let idx = 0;
-        for (const exr of _externalRun) {
+        for (const exr of _externApps) {
             files.appendChild(SingleFilePanel.create(idx, exr.label, exr.path, exr.params));
             idx++;
         }
         
-        workingDir.value = _extBinDir;
+        workingDir.value = _workingDir;
         
         ui.showModal();
     };
@@ -6380,3 +6455,135 @@ sgv.dlgEditSettings = new function() {
         hide: hideDialog
     };
 };
+
+
+/* 
+ * Copyright 2022 Dariusz Pojda.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+//================================================
+// Short description of communication:
+// 
+// window.api.on() functions are handlers for events send from main.js
+// to web part of application with mainWindow.webContents.send()
+// 
+// Handlers can do actions in browser window document, but can't return results
+// so they need to call window.api.invoke() and send response in message.
+// 
+// ElectronJS part of application can read it by ipcMain.handle() in main.js,
+// optionaly ipcMain.handle() may return any result that can be read in 
+// window.api.invoke() as Promise, so we can to use window.api.invoke().then()
+//
+//================================================
+
+/* global sgv, UI, FileIO, ParserGEXF, ParserTXT, Graph */
+
+//var userAgent = navigator.userAgent.toLowerCase();
+//console.log(userAgent);
+//if (userAgent.indexOf(' electron/') > -1) {
+   // Electron-specific code
+//}
+
+if (typeof window.api!=='undefined') {
+    console.log("desktopApp!");
+
+    window.api.on( "showLoaderSplash", ()=>showSplash() );
+
+    window.api.on( "hideLoaderSplash", ()=>hideSplash() );
+
+    window.api.on( "setDisplayMode", (mode) => {
+        if (sgv.graf !== null) {
+            Graph.currentDisplayMode = mode;
+            sgv.graf.setDisplayMode();
+        }
+    }); 
+
+    window.api.on( "externalResult", (resultData) => {
+        sgv.stringToScope(resultData, "result");
+        hideSplash();
+    });
+
+    window.api.on( "clearGraph", ()=>Graph.remove() );
+
+    window.api.on( "showAbout", ()=>sgv.dlgAbout.show() );
+
+    window.api.on( "showSettings", (externApps, extBinDir)=>sgv.dlgEditSettings.show(externApps, extBinDir) );
+
+    window.api.on( "createDefault", ()=>sgv.dlgCreateGraph.show() );
+
+    window.api.on( "switchConsole", ()=>sgv.dlgConsole.switchConsole() );
+
+    window.api.on( "switchCellView", ()=>sgv.dlgCellView.switchDialog() );
+
+    window.api.on( "loadFile", (fileName,data) => {
+        showSplashAndRun( ()=> {
+            FileIO.loadGraph2(fileName,data);
+        });
+    });
+
+    window.api.on( "clickSaveGraph", (fileName) => {
+        showSplashAndRun( ()=> {
+            var string = "";
+            if (fileName.endsWith('txt')){
+                string = ParserTXT.exportGraph(sgv.graf);
+            } else if (fileName.endsWith('gexf')) {
+                string = ParserGEXF.exportGraph(sgv.graf);
+            }
+
+            window.api.invoke("saveStringToFile", string, fileName);
+        });
+    });
+
+    window.api.on( "saveEnd", ()=>hideSplash() );
+
+    // reading data from graph and sending it as response to main world
+    window.api.on( "m2w_getScopeAsTXT_request", (responseChannel, ...args) => {
+        console.log("2. (index.js) window.api.on(\"m2w_getScopeAsTXT_request\")");
+
+        //read text data from graph
+        let data = (sgv.graf!==null) ? ParserTXT.exportGraph(sgv.graf) : null;
+
+        //send response and get result
+        window.api.invoke(responseChannel, data, ...args).then((result)=>{
+            console.log("4. (index.js) window.api.invoke("+responseChannel+").then()");
+            console.log("result = ",result);
+        });
+    });
+
+
+
+    /*==========================================================================*/
+
+    desktopInit = () => {
+        setTimeout(function () {
+            sgv.dlgCPL.hidePanel();
+        }, 200);
+    };
+
+    enableMenu = (id, enabled) => {
+        if (typeof enabled==='undefined')
+        enabled=true;
+
+        window.api.invoke('enableMenu', id, enabled);
+    };
+
+} else {
+    desktopInit = ()=>{
+    //        sgv.dlgCPL.addButton( "settings window", "cplElectronTestButton", ()=>{
+    //            sgv.dlgEditSettings.show();
+    //        } );
+    };
+    enableMenu = (id, enabled)=>{};
+}

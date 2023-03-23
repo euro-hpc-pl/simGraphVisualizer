@@ -1,4 +1,4 @@
-/* global sgv, UI, Graph, TempGraphStructure */
+/* global sgv, UI, Graph, TempGraphStructure, Settings */
 
 const SingleFilePanel = (function(_id,_label,_path,_params) {
     var myId = _id;
@@ -27,9 +27,9 @@ const SingleFilePanel = (function(_id,_label,_path,_params) {
     return {
         id: myId,
         ui: myUI,
-        label: myLabel.value,
-        path: myPath.value,
-        params: myParams.value,
+        label: myLabel,
+        path: myPath,
+        params: myParams,
         close: () => { SingleFilePanel.removeByUi(myUI); }
     };
 });
@@ -118,9 +118,11 @@ sgv.dlgEditSettings = new function() {
         let wdButton = UI.tag('input',{'type':'button', 'class':'actionbutton', 'id':'wdButton', 'name':'wdButton', 'value':'...'});
         wdButton.style['width'] = 'auto';
         wdButton.addEventListener('click', ()=>{
-            window.indexBridge.getDirectoryDlg().then((result)=>{
-               workingDir.value = result; 
-            });
+            if (typeof window.api!=='undefined') {
+                window.api.invoke("getDirectoryDlg").then((result)=>{
+                    workingDir.value = result;
+                });
+            }
         });
         wd.appendChild(wdButton);
         workingDir = UI.newInput("text", "", "", "workingDir");
@@ -148,33 +150,36 @@ sgv.dlgEditSettings = new function() {
     };
     
     function onSaveButton() {
-        var extInfo = [];
+        let pairs = {
+            "workingDir": workingDir.value,
+            "externApps": []
+        };
         
         for (const panel of SingleFilePanel.panels) {
-            extInfo.push({
-                label: panel.label,
-                path: panel.path,
-                params: panel.params
+            pairs["externApps"].push({
+                label: panel.label.value,
+                path: panel.path.value,
+                params: panel.params.value
             });
         }
         
-        window.indexBridge.settingsEdited(extInfo, workingDir.value);
+        Settings.set(pairs);
         
         hideDialog();
     }
     
-    function showDialog(_externalRun, _extBinDir) {
+    function showDialog(_externApps, _workingDir) {
         ui.close();
         
         SingleFilePanel.removeAll();
         
         let idx = 0;
-        for (const exr of _externalRun) {
+        for (const exr of _externApps) {
             files.appendChild(SingleFilePanel.create(idx, exr.label, exr.path, exr.params));
             idx++;
         }
         
-        workingDir.value = _extBinDir;
+        workingDir.value = _workingDir;
         
         ui.showModal();
     };
