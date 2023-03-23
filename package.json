@@ -31,7 +31,6 @@
         "del": "6.0.0",
         "electron": "^13.6.9",
         "electron-builder": "^22.11.7",
-        "electron-promise-ipc": "2.2.4",
         "gulp": "^4.0.2",
         "gulp-concat": "",
         "gulp-less": "",
