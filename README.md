@@ -31,16 +31,25 @@ Clonning repository
 
 ```cd simGraphVisualizer```
 
-Building
---------
+Dependency installation
+-----------------------
 
-You may need to run the npm install command first to download the missing elements:
+You should to run the npm install command first to download the missing modules:
 
 ```npm install```
 
-Next you should to build the library using the gulp tool. Use the command: 
+Building
+--------
 
-```gulp build```.
+You don't need to rebuild library after load it from repository, because it is compiled before.
+
+If you need to do it, you can rebuild the library with the command:
+
+```npm run build```
+
+or (if you have gulp installed globally):
+
+```gulp build```
 
 Using in web browser mode
 -------------------------
