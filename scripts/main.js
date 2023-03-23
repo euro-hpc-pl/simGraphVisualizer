@@ -31,7 +31,6 @@ var appSettings = {
     externApps: [],
     read: () => {
         let temp = settings.get('settings', 'externApps');
-
         if (temp!==null) {
             appSettings.externApps = temp;
         } else {

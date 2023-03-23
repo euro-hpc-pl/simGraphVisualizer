@@ -3,18 +3,21 @@ const fs = require('fs');
 const path = require('path');
 
 let get = (section, key) => {
-  let pth = path.join(app.getAppPath(),'settings/'+section+'.json');
+    let pth = path.join(app.getAppPath(),'settings/'+section+'.json');
 
-  if (fs.existsSync(pth)) {
-    let rawdata = fs.readFileSync(pth);
+    if (fs.existsSync(pth)) {
+        let rawdata = fs.readFileSync(pth);
 
-    if (rawdata !== '') {
-      let data = JSON.parse(rawdata);
-      return data[key];
-    } else return null;
-  } else {
-    return null;
-  }
+        if (rawdata !== '') {
+            let data = JSON.parse(rawdata);
+            if (data[key]!==undefined) {
+                return data[key];
+            } else
+                return null;
+        } else 
+            return null;
+    } else 
+        return null;
 };
 
 let set = (section, key, value) => {
