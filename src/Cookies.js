@@ -37,7 +37,6 @@ Cookie.get = (name) => {
         for (let cookie of cookies) {
             const [ cookieName, cookieVal ] = cookie.split("=");
             if (cookieName === decodeURIComponent(name)) {
-                console.log(cookieVal);
                 return decodeURIComponent(cookieVal);
             }
         }

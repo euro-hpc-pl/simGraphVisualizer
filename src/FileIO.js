@@ -69,9 +69,24 @@ FileIO.onSaveButton = ()=>{
 
 FileIO.download = (text, name, type) => {
     let a = document.createElement("a");
-    let file = new Blob([text], {type: type});
-    a.href = URL.createObjectURL(file);
+    let fileAsBlob = new Blob([text], {type: type});
+    
     a.download = name;
+    a.innerHTML = "Download graph file";
+
+    if (window.webkitURL != null) {
+        // Chrome allows the link to be clicked without actually adding it to the DOM.
+        a.href = window.webkitURL.createObjectURL(fileAsBlob);
+    } else {
+        // Firefox requires the link to be added to the DOM before it can be clicked.
+        a.href = window.URL.createObjectURL(fileAsBlob);
+        a.onclick = function (event) {
+            document.body.removeChild(event.target);
+        };
+        a.style.display = "none";
+        document.body.appendChild(a);
+    }
+    
     a.click();
 };
 
