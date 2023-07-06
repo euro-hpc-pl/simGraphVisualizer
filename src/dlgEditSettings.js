@@ -1,5 +1,13 @@
 /* global sgv, UI, Graph, TempGraphStructure, Settings */
 
+/**
+ * Creates a new instance of the SingleFilePanel.
+ * @constructor
+ * @param {number} _id - The unique ID of the panel.
+ * @param {string} _label - The displayable name of the external file.
+ * @param {string} _path - The external file path.
+ * @param {string} _params - The parameters of file execute.
+ */
 const SingleFilePanel = (function(_id,_label,_path,_params) {
     var myId = _id;
     var myUI = UI.tag("div", {'class':'singleFilePanel'});
@@ -34,8 +42,16 @@ const SingleFilePanel = (function(_id,_label,_path,_params) {
     };
 });
 
+/**
+ * Array of SingleFilePanel instances.
+ * @type {SingleFilePanel[]}
+ */
 SingleFilePanel.panels = [];
 
+/**
+ * Removes a panel by its UI element.
+ * @param {HTMLElement} tmpUI - The UI element of the panel to be removed.
+ */
 SingleFilePanel.removeByUi = function(tmpUI) {
     tmpUI.parentNode.removeChild(tmpUI);
 
@@ -46,6 +62,9 @@ SingleFilePanel.removeByUi = function(tmpUI) {
     }
 };
 
+/**
+ * Removes all panels.
+ */
 SingleFilePanel.removeAll = function() {
     for( var i = SingleFilePanel.panels.length-1; i >=0; i--){
         let tmpUI = SingleFilePanel.panels[i].ui;
@@ -54,20 +73,39 @@ SingleFilePanel.removeAll = function() {
     }
 };
 
+/**
+ * Creates a new SingleFilePanel and appends its UI to the files container.
+ * @param {number} _id - The ID of the panel.
+ * @param {string} _label - The label of the panel.
+ * @param {string} _path - The path
+ * @param {string} _params - The parameters of the panel.
+ * @returns {HTMLElement} The UI element of the created panel.
+ */
 SingleFilePanel.create = function(_id,_label,_path,_params){
     return (SingleFilePanel.panels[SingleFilePanel.panels.length] = new SingleFilePanel(_id,_label,_path,_params)).ui;
 };
 
+/**
+ * dlgEditSettings module for managing the edit settings dialog.
+ */
 sgv.dlgEditSettings = new function() {
     var files;
     var workingDir;
     
+    /**
+     * User interface element representing the edit settings dialog.
+     * @type {HTMLElement}
+     */    
     var ui = createUI();
 
     window.addEventListener('load',()=>{
         window.document.body.appendChild(ui);
     });
 
+    /**
+     * Creates the user interface for the edit settings dialog.
+     * @returns {HTMLElement} The user interface element for the edit settings dialog.
+     */
     function createUI() {
         let ui = UI.tag( "dialog", { "class": "sgvUIwindow sgvModalDialog", "id": "sgvDlgEditSettings" });
 
@@ -149,6 +187,9 @@ sgv.dlgEditSettings = new function() {
         return ui;
     };
     
+    /**
+     * Handles the save button click event.
+     */
     function onSaveButton() {
         let pairs = {
             "workingDir": workingDir.value,
@@ -168,6 +209,11 @@ sgv.dlgEditSettings = new function() {
         hideDialog();
     }
     
+    /**
+     * Shows the edit settings dialog.
+     * @param {Object[]} _externApps - Array of external applications.
+     * @param {string} _workingDir - The working directory.
+     */
     function showDialog(_externApps, _workingDir) {
         ui.close();
         
@@ -184,12 +230,27 @@ sgv.dlgEditSettings = new function() {
         ui.showModal();
     };
 
+    /**
+     * Hides the edit settings dialog.
+     */
     function hideDialog() {
         ui.close();
     };
     
+    /**
+     * Public interface for the dlgEditSettings module.
+     */
     return {
+        /**
+         * Shows the edit settings dialog.
+         * @param {Object[]} _externApps - Array of external applications.
+         * @param {string} _workingDir - The working directory.
+         */
         show: showDialog,
+        
+        /**
+         * Hides the edit settings dialog.
+         */        
         hide: hideDialog
     };
 };

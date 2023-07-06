@@ -15,22 +15,46 @@
  * limitations under the License.
  */
 
+/**
+ * Dialog Console module for managing a console dialog.
+ * @module dlgConsole
+ */
+
 "use strict";
 /* global scene, sgv, Chimera, Pegasus, UI, Graph */
 
+/**
+ * Creates a new instance of the Dialog Console.
+ * @constructor
+ */
 sgv.dlgConsole = new function () {
     var isDown;
     var cmdHistory = [];
     var cmdHistoryPtr = -1;
     var movable = false;
     
+    /**
+    * User interface element representing the console.
+    * @type {HTMLElement}
+    */    
     var ui = createUI("sgvConsole");
+    
+    /**
+    * Initializes the console.
+    */
     initConsole();
 
     window.addEventListener('load',()=>{
         window.document.body.appendChild(ui);
     });
 
+    /**
+     * Initializes the console by setting up event listeners for the command line input field.
+     * 
+     * The function sets up listeners for "Enter", "Up", and "Down" key presses. 
+     * "Enter" executes the command written in the input field. 
+     * "Up" and "Down" navigate through the command history.
+     */
     function initConsole() {
         let domCmdline = ui.querySelector("#commandline");
 
@@ -67,45 +91,15 @@ sgv.dlgConsole = new function () {
         });
 
         ui.querySelector(".hidebutton").addEventListener('click', function() { sgv.dlgConsole.hideConsole(); });
-
-//        let titlebar = ui.querySelector(".title");
-//        var offset;
-//
-//        titlebar.addEventListener('mouseover', function() {
-//            ui.querySelector(".title").style.cursor='pointer';
-//            movable = true;
-//        });
-//
-//        titlebar.addEventListener('mouseout', function() {
-//            movable = false;
-//        });
-//
-//        titlebar.addEventListener('mousedown', function (e) {
-//            isDown = movable;
-//            offset = {
-//                x: ui.offsetLeft - e.clientX,
-//                y: ui.offsetTop - e.clientY
-//            };
-//        }, true);
-//
-//        titlebar.addEventListener('mouseup', function () {
-//            isDown = false;
-//        }, true);
-//
-//        document.addEventListener('mousemove', function (event) {
-//            //event.preventDefault();
-//            if (isDown) {
-//                let mousePosition = {
-//                    x: event.clientX,
-//                    y: event.clientY
-//                };
-//
-//                ui.style.left = (mousePosition.x + offset.x) + 'px';
-//                ui.style.top = (mousePosition.y + offset.y) + 'px';
-//            }
-//        }, true);
     };
 
+    /**
+     * Creates a new UI window for a console with a specified ID.
+     * 
+     * @param {string} id - The ID to be assigned to the new window.
+     * 
+     * @returns {HTMLElement} The created UI window element. The window includes a read-only textarea for the console history and a text input field for the command line.
+     */
     function createUI(id) {
         var o = UI.createEmptyWindow("sgvUIwindow", id, "console", true);
 
@@ -116,7 +110,27 @@ sgv.dlgConsole = new function () {
         return o;
     };
 
+    /**
+     * Parses and executes a command.
+     * 
+     * @param {string} line - The command to parse and execute. The command name and its arguments should be separated by whitespace characters.
+     * 
+     * @returns {string} A string message indicating the result of the operation. The exact message depends on the command and its arguments.
+     */
     function parseCommand(line) {
+
+        /**
+        * Sets the value of a specified node in the graph, if the node exists.
+        * 
+        * @param {string|number} node - The ID of the node to be modified, either as a string or a number.
+        * @param {string|number} value - The new value to be set for the node, either as a string or a number.
+        * 
+        * @returns {string} A string message indicating the result of the operation. This can be one of the following:
+        *    - "modified node q<id> = <value>": If the node value was successfully modified. The <id> and <value> placeholders are replaced with the node's ID and the new value, respectively.
+        *    - "restored node q<id> = <value>": If the node was restored and its value was successfully modified. The <id> and <value> placeholders are replaced with the node's ID and the new value, respectively.
+        *    - "not implemented yet": If the node does not exist in the graph and the node adding feature is not yet implemented.
+        *    - "no graph defined": If there is no graph defined in the sgv.graf property.
+        */
         function set(node, value) {
             var id = parseInt(node, 10);
             var val = parseFloat(value);
@@ -141,6 +155,17 @@ sgv.dlgConsole = new function () {
             }
         }
 
+        /**
+         * Deletes a node from the graph, if it exists. 
+         * 
+         * @param {string|number} node - The ID of the node to be deleted, either as a string or a number.
+         * 
+         * @returns {string} A string message indicating the result of the deletion operation. This can be one of the following:
+         *    - "no graph defined": If there is no graph defined in the sgv.graf property.
+         *    - "bad NodeId": If the provided node ID is not a valid integer or it is zero.
+         *    - "deleted node q<id>": If the node was successfully deleted. The <id> placeholder is replaced with the ID of the deleted node.
+         *    - "node q<id> not exists": If the node with the provided ID does not exist in the graph. The <id> placeholder is replaced with the non-existent node's ID.
+         */
         function del(node) {
             if (sgv.graf === null) {
                 return "no graph defined";
@@ -157,6 +182,19 @@ sgv.dlgConsole = new function () {
             }
         }
 
+        /**
+         * Performs a specified action on a scope of the graph.
+         * 
+         * @param {string} action - The action to be performed. This can be one of the following: 
+         *    - "list": Lists all the scopes.
+         *    - "add": Adds a new scope.
+         *    - "delete": Deletes a specified scope.
+         *    - "set": Sets the specified scope as the current scope.
+         * @param {string} [scope] - The name of the scope on which the action is to be performed. 
+         *    Required for "add", "delete", and "set" actions.
+         * 
+         * @returns {string} A string message indicating the result of the operation. The actual message depends on the action performed.
+         */
         function scope(action, scope) {
             if (sgv.graf === null) {
                 return "no graph defined";
@@ -202,6 +240,20 @@ sgv.dlgConsole = new function () {
             }
         }
 
+        /**
+         * Creates a new graph of a specified type and size.
+         * 
+         * @param {string} type - The type of the graph to be created. This should be either "chimera" or "pegasus".
+         * @param {string} sizeTXT - A comma-separated string of numbers representing the size of the graph to be created.
+         *    For a "chimera" graph, this should have four or five numbers.
+         *    For a "pegasus" graph, this should have five numbers.
+         * 
+         * @returns {string} A string message indicating the result of the operation. This can be one of the following:
+         *    - "unknown graph type, use: chimera or pegasus": If the provided type is not "chimera" or "pegasus".
+         *    - "bad arguments": If the sizeTXT parameter does not have the correct number of numbers for the specified type.
+         *    - "graph created": If the graph was successfully created.
+         *    - "graf exists, type: clear <Enter> to delete it": If a graph already exists.
+         */
         function create(type, sizeTXT) {
             if ((type!=='chimera')&&(type!=='pegasus')){
                 return "unknown graph type, use: chimera or pegasus";
@@ -239,11 +291,30 @@ sgv.dlgConsole = new function () {
 
         }
 
+        /**
+        * Removes the graph.
+        * 
+        * @returns {string} A string message indicating that the graph was removed.
+        */
         function clear() {
             Graph.remove();
             return "graph removed";
         }
 
+        /**
+         * Connects two nodes in the graph with a specified value, if both nodes exist.
+         * 
+         * @param {string|number} node1 - The ID of the first node to be connected, either as a string or a number.
+         * @param {string|number} node2 - The ID of the second node to be connected, either as a string or a number.
+         * @param {string|number} value - The value to be set for the edge connecting the nodes, either as a string or a number.
+         * 
+         * @returns {string} A string message indicating the result of the operation. This can be one of the following:
+         *    - "no graph defined": If there is no graph defined in the sgv.graf property.
+         *    - "bad node": If either of the provided node IDs are not valid integers or they are zero.
+         *    - "bad value": If the provided value is not a valid number.
+         *    - "added edge: q<id1> -> q<id2>": If the edge was successfully added. The <id1> and <id2> placeholders are replaced with the IDs of the connected nodes.
+         *    - "node q<id> was probably deleted earlier": If the node with the provided ID does not exist in the graph. The <id> placeholder is replaced with the non-existent node's ID.
+         */
         function con(node1, node2, value) {
             if (sgv.graf === null) {
                 return "no graph defined";
@@ -270,7 +341,36 @@ sgv.dlgConsole = new function () {
             }
         }
 
+        /**
+         * Processes a command to set values of nodes or edges in the graph. The command syntax should follow either of the following formats:
+         *    - 'q<nodeId>=<value>' to set the value of a node. 
+         *    - 'q<nodeId1>+q<nodeId2>=<value>' to set the value of an edge. 
+         * If a node or edge does not exist, it will be created. If the value is not a valid number, the function will attempt to delete the node or edge.
+         *
+         * @param {string} command - The command string to process.
+         * 
+         * @returns {string} A string message indicating the result of the operation. Possible results include:
+         *    - "no graph defined": If no graph is currently defined.
+         *    - "too few arguments": If the command does not contain enough arguments.
+         *    - "bad arguments": If the command syntax does not match the expected formats.
+         *    - Any of the return messages defined in the setN or setE functions.
+         */
         function set2(command) {
+
+            /**
+             * Sets the value of a specified node in the graph, restores a missing node, adds a new node, or deletes a node, depending on the given parameters.
+             * 
+             * @param {Array} split2 - An array where the first element is a string representing the node. The node ID should be prefixed with 'q'.
+             * @param {string|number} val - The value to be set for the node. If not a valid number, the function will attempt to delete the node.
+             * 
+             * @returns {string} A string message indicating the result of the operation. This can be one of the following:
+             *    - "bad node Id": If the provided node ID is not a valid integer, it is zero, or it is greater than the maximum node ID in the graph.
+             *    - "deleted node q<id>": If the node was successfully deleted. The <id> placeholder is replaced with the ID of the deleted node.
+             *    - "node q<id> already deleted": If the node with the provided ID does not exist in the graph. The <id> placeholder is replaced with the non-existent node's ID.
+             *    - "modified node q<id> = <value>": If the node value was successfully modified. The <id> and <value> placeholders are replaced with the node's ID and the new value, respectively.
+             *    - "restored and modified node q<id> = <value>": If the node was restored from the missing nodes and its value was successfully modified. The <id> and <value> placeholders are replaced with the node's ID and the new value, respectively.
+             *    - "added node q<id> = <value>": If a new node was successfully added with the specified value. The <id> and <value> placeholders are replaced with the node's ID and the new value, respectively.
+             */
             function setN(split2, val) {
                 if (split2[0][0] === 'q') {
                     let id = parseInt(split2[0].slice(1), 10);
@@ -304,6 +404,20 @@ sgv.dlgConsole = new function () {
                 }
             }
 
+            /**
+             * Sets the value of a specified edge in the graph, adds a new edge, or deletes an edge, depending on the given parameters.
+             * 
+             * @param {Array} split2 - An array where the first two elements are strings representing the nodes to be connected. The node IDs should be prefixed with 'q'.
+             * @param {string|number} val - The value to be set for the edge. If not a valid number, the function will attempt to delete the edge.
+             * 
+             * @returns {string} A string message indicating the result of the operation. This can be one of the following:
+             *    - "bad node Id: q<id>": If the provided node ID is not a valid integer or it is zero. The <id> placeholder is replaced with the incorrect node ID.
+             *    - "deleted edge <id1>,<id2>": If the edge was successfully deleted. The <id1> and <id2> placeholders are replaced with the IDs of the connected nodes.
+             *    - "edge <id1>,<id2> not exists": If the edge with the provided node IDs does not exist in the graph. The <id1> and <id2> placeholders are replaced with the non-existent edge's node IDs.
+             *    - "modified edge <id1>,<id2>": If the edge value was successfully modified. The <id1> and <id2> placeholders are replaced with the IDs of the connected nodes.
+             *    - "added edge <id1>,<id2>": If a new edge was successfully added with the specified value. The <id1> and <id2> placeholders are replaced with the IDs of the connected nodes.
+             *    - "NOT DONE: both connected nodes must exist in the graph": If either of the nodes specified in the edge do not exist in the graph.
+             */
             function setE(split2, val) {
                 if ((split2[0][0] === 'q') && (split2[1][0] === 'q')) {
                     let id1 = parseInt(split2[0].slice(1), 10);
@@ -370,10 +484,33 @@ sgv.dlgConsole = new function () {
             return "bad arguments";
         }
 
+        /**
+         * Calls the `displayValues` function on the current graph and returns a message indicating the displayed value.
+         * 
+         * @param {string} valId - The identifier of the value to display. This is passed as an argument to the `displayValues` function of the current graph.
+         * 
+         * @returns {string} A message indicating the displayed value. If `displayValues` returns a value, the message is "displayed value: " followed by the returned value.
+         */
         function display(valId) {
             return "displayed value: " + sgv.graf.displayValues(valId);
         }
         
+        /**
+         * Gets or sets the display limits of the current graph. The limits are the thresholds at which the display colors change.
+         * 
+         * @param {Array} cmds - An array of strings that represents the command and its arguments. 
+         *                       - The first element should be the string "limits".
+         *                       - The second element should be "set" if you want to set the limits, in which case the array should also contain the new min and max values as the third and fourth elements, respectively.
+         * 
+         * @returns {string} A string message indicating the result of the operation. This can be one of the following:
+         *    - "no graph defined": If the current graph is null.
+         *    - "Current display limits [red, green] are set to [<min>,<max>]": If no command other than "limits" is provided. The <min> and <max> placeholders are replaced with the current minimum and maximum display limits, respectively.
+         *    - "too few arguments\nUse: limits set <min> <max>": If the "set" command is used but the new min and max values are not provided.
+         *    - "Bad arguments: <min> and <max> should be numbers.": If the provided min or max value is not a number.
+         *    - "Bad arguments: <min> cannot be greater than zero, <max> cannot be less than zero and both values cannot be zero at the same time.": If the provided min value is greater than zero, the max value is less than zero, or both values are zero.
+         *    - "Display limits [red, green] are set to [<min>,<max>]": If the limits were successfully set. The <min> and <max> placeholders are replaced with the new minimum and maximum display limits, respectively.
+         *    - "bad arguments": If an unrecognized command is used.
+         */        
         function limits(cmds) {
             if (sgv.graf === null) {
                 return "no graph defined";
@@ -416,22 +553,6 @@ sgv.dlgConsole = new function () {
                     response = "Display limits [red, green] are set to [" + sgv.graf.redLimit+", "+sgv.graf.greenLimit+"]";
                     
                     break;
-//                case "red":
-//                    if (cmds.length>2){
-//                        sgv.graf.redLimit = parseFloat(cmds[2]);
-//                        response = "red limit set to " + sgv.graf.redLimit;
-//                    } else {
-//                        return "current red limit = "+sgv.graf.redLimit;
-//                    }
-//                    break;
-//                case "green":
-//                    if (cmds.length>2){
-//                        sgv.graf.greenLimit = parseFloat(cmds[2]);
-//                        response = "green limit set to " + sgv.graf.greenLimit;
-//                    } else {
-//                        return "current green limit = "+sgv.graf.greenLimit;
-//                    }
-//                    break;
                 default:
                     return "bad arguments";
             }
@@ -440,6 +561,13 @@ sgv.dlgConsole = new function () {
             return response;
         }
         
+        /**
+         * Provides help information for the specified command.
+         * 
+         * @param {string} command - The name of the command to provide help for. It should be one of the following: "set", "create", "clear", "display", "displaymode".
+         * 
+         * @returns {string} A string message containing help information for the specified command. If the command is not recognized, the message will contain help information for all commands.
+         */        
         function getHelp(command) {
             switch (command) {
                 case "set":
@@ -486,22 +614,10 @@ sgv.dlgConsole = new function () {
             case "scope":
                 result = scope(command[1], command[2]);
                 break;
-//            case "set":
-//                result = set(command[1], command[2]);
-//                break;
-//            case "delete":
-//            case "del":
-//                result = del(command[1]);
-//                break;
-//            case "connect":
-//            case "con":
-//                result = con(command[1], command[2], command[3]);
-//                break;
             case "display":
                 result = display(command[1]);
                 break;
             case "displaymode":
-                //if ((command[1]==='classic')||(command[1]==='diamond')||(command[1]==='triangle')) {
                 if (sgv.graf===null) {
                     result = "graph is not defined";
                 }
@@ -521,7 +637,15 @@ sgv.dlgConsole = new function () {
         return result;
     }
 
-    return {// public interface
+    /**
+    * Public interface for the console.
+    * @returns {Object} Object containing public methods.
+    */
+    return {
+        
+        /**
+        * Toggles the visibility of the console. If the console is visible, it hides it. If the console is hidden, it shows it.
+        */
         switchConsole: function () {
             if (ui.style.display !== "block") {
                 ui.style.display = "block";
@@ -530,10 +654,16 @@ sgv.dlgConsole = new function () {
             }
         },
 
+        /**
+         * Shows the console.
+         */
         showConsole: function () {
             ui.style.display = "block";
         },
 
+        /**
+         * Hides the console.
+         */
         hideConsole: function () {
             ui.style.display = "none";
         }
