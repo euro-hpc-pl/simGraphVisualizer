@@ -1,5 +1,7 @@
+
 /* global sgv, UI, Graph, TempGraphStructure */
 
+// The object sgv.dlgCreateGraph handles the display and functionality of a dialog for creating a graph
 sgv.dlgCreateGraph = new function() {
     var selectGraphType;
     var selectGraphCols, selectGraphRows, selectGraphLays;
@@ -9,23 +11,37 @@ sgv.dlgCreateGraph = new function() {
 
     var graphData;
     
+    // Listen for the load event on the window object
+    // This event is fired when the entire page has loaded, including all dependent resources such as stylesheets and images
+    // When the load event is fired, append the ui element to the body of the window document
     window.addEventListener('load',()=>{
         window.document.body.appendChild(ui);
     });
 
+    /**
+     * Creates the UI for the graph creation dialog.
+     * @returns {Object} The UI for the graph creation dialog.
+     */
     function createUI() {
+        // Create a dialog HTML element with the specified properties and assign it to "ui"
         let ui = UI.tag( "dialog", { "class": "sgvUIwindow sgvModalDialog", "id": "sgvDlgCreateGraph" });
 
+        // Create a title bar with the specified title and add it to the dialog
         let t = UI.createTitlebar("Create graph", false);
         ui.appendChild(t);
 
+        // Create a content div for the graph selection and add it to the dialog
         let divSel = UI.tag( "div", { "class": "content", "id": "graphSelection" });
 
+        // Append several child elements to the divSel element
         divSel.appendChild(UI.tag('div',{'id':'description'}));
         let g = UI.tag('div',{'id':'description'});
 
+        // Center align the text in the "g" div
         g.style['text-align']='center';
 
+        // Create a select element for the graph type and add it to the "g" div
+        // Also add an event listener that disables the selectGraphLays element when the graph type is "chimera"
         selectGraphType = UI.tag('select',{'id':'graphType'});
         selectGraphType.appendChild(UI.option('chimera','chimera'));
         selectGraphType.appendChild(UI.option('pegasus','pegasus'));
@@ -41,8 +57,11 @@ sgv.dlgCreateGraph = new function() {
         g.appendChild(UI.tag('label',{'for':'graphType'},{'innerHTML':'graph type: '}));
         g.appendChild(selectGraphType);
 
+        // Add a horizontal line to the "g" div
         g.appendChild(UI.tag('hr'));
         
+        // Create a select element for the graph columns and add it to the "g" div
+        // The options for the select element are the numbers from 1 to 16
         selectGraphCols = UI.tag('select',{'id':'graphCols'});
         for (let i=1; i<17; i++ ) {
             selectGraphCols.appendChild(UI.option(i,i));
@@ -52,6 +71,8 @@ sgv.dlgCreateGraph = new function() {
         g.appendChild(UI.tag('label',{'for':'graphCols'},{'innerHTML':' columns: '}));
         g.appendChild(selectGraphCols);
 
+        // Create a select element for the graph rows and add it to the "g" div
+        // The options for the select element are the numbers from 1 to 16
         selectGraphRows = UI.tag('select',{'id':'graphRows'});
         for (let i=1; i<17; i++ ) {
             selectGraphRows.appendChild(UI.option(i,i));
@@ -61,6 +82,9 @@ sgv.dlgCreateGraph = new function() {
         g.appendChild(UI.tag('label',{'for':'graphRows'},{'innerHTML':' rows: '}));
         g.appendChild(selectGraphRows);
 
+        // Create a select element for the graph layers and add it to the "g" div
+        // The options for the select element are the numbers from 1 to 5
+        // The select element is initially disabled
         selectGraphLays = UI.tag('select',{'id':'graphLays'});
         for (let i=1; i<6; i++ ) {
             selectGraphLays.appendChild(UI.option(i,i));
@@ -70,8 +94,11 @@ sgv.dlgCreateGraph = new function() {
         g.appendChild(UI.tag('label',{'for':'graphLays'},{'innerHTML':' layers: '}));
         g.appendChild(selectGraphLays);
 
+        // Add a horizontal line to the "g" div
         g.appendChild(UI.tag('hr'));
 
+        // Create a select element for the graph module size KL and add it to the "g" div
+        // The options for the select element are the numbers from 1 to 4
         selectGraphKL = UI.tag('select',{'id':'graphKL'});
         selectGraphKL.appendChild(UI.option('1','1'));
         selectGraphKL.appendChild(UI.option('2','2'));
@@ -81,6 +108,8 @@ sgv.dlgCreateGraph = new function() {
         g.appendChild(UI.tag('label',{'for':'graphKL'},{'innerHTML':'module size: K = '}));
         g.appendChild(selectGraphKL);
 
+        // Create a select element for the graph module size KR and add it to the "g" div
+        // The options for the select element are the numbers from 1 to 4
         selectGraphKR = UI.tag('select',{'id':'graphKR'});
         selectGraphKR.appendChild(UI.option('1','1'));
         selectGraphKR.appendChild(UI.option('2','2'));
@@ -90,27 +119,41 @@ sgv.dlgCreateGraph = new function() {
         g.appendChild(UI.tag('label',{'for':'graphKR'},{'innerHTML':', '}));
         g.appendChild(selectGraphKR);
 
+        // Add the "g" div to the divSel element
         divSel.appendChild(g);
 
+        // Create a div for the buttons and add it to the divSel element
         let btns = UI.tag('div',{'id':'buttons'});
 
+        // Create a "Cancel" button and add it to the buttons div
+        // Also add an event listener that hides the dialog when the button is clicked
         let cancelButton = UI.tag('input',{'type':'button', 'class':'actionbutton', 'id':'cplCancelButton', 'name':'cancelButton', 'value':'Cancel'});
         cancelButton.addEventListener('click', ()=>{hideDialog();});
         btns.appendChild(cancelButton);
         
+        // Create a "Create" button and add it to the buttons div
+        // Also add an event listener that calls the onCreateButton function when the button is clicked
         let createButton = UI.tag('input',{'type':'button', 'class':'actionbutton', 'id':'cplCreateButton', 'name':'createButton', 'value':'Create'});
         createButton.addEventListener('click', ()=>{onCreateButton();});
         btns.appendChild(createButton);
 
+        // Add the buttons div to the divSel element
         divSel.appendChild(btns);
 
+        // Append the divSel to the ui element
         ui.appendChild(divSel);
 
+        // Initially, hide the ui element by setting its display to "none"
         ui.style.display = "none";
         
+        // Return the created ui element
         return ui;
     };
     
+    /**
+     * Gets the graph description from the current values of the select elements.
+     * @returns {GraphDescr} The graph description.
+     */
     function getGraphDescr() {
         let gD = new GraphDescr();
         gD.setType(selectGraphType.value);
@@ -124,6 +167,10 @@ sgv.dlgCreateGraph = new function() {
         return gD;
     };
 
+    /**
+     * Suggests graph size based on maximum node in the graph data.
+     * @returns {undefined}
+     */
     function sugestSize() {
         let maxNode = 0;
         graphData.nodes.forEach((n)=>{if (maxNode<n.id) maxNode=n.id;});
@@ -161,6 +208,10 @@ sgv.dlgCreateGraph = new function() {
         else selectGraphLays.disabled='';
     }
     
+    /**
+     * Creates a graph with the selected description when "Create" button is clicked.
+     * @returns {undefined}
+     */
     function onCreateButton() {
         let gDesc = getGraphDescr();
         
@@ -172,6 +223,12 @@ sgv.dlgCreateGraph = new function() {
             },true);
     }
     
+    /**
+     * Shows the dialog for creating a graph.
+     * @param {string} type - Type of the graph.
+     * @param {Object} struct - Temporary graph structure.
+     * @returns {undefined}
+     */
     function showDialog( type, struct ) {
         if (type==='load') {
             ui.querySelector('#cplCreateButton').value = 'Load';
@@ -193,12 +250,17 @@ sgv.dlgCreateGraph = new function() {
         ui.showModal();
     };
 
+    /**
+     * Hides the dialog for creating a graph.
+     * @returns {undefined}
+     */
     function hideDialog() {
         ui.close();
         ui.style.display = "none";
     };
     
         
+    // Return an object with references to the showDialog and hideDialog functions
     return {
         d: graphData,
         show: showDialog,

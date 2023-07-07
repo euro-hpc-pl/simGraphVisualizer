@@ -18,19 +18,35 @@
 "use strict";
 /* global BABYLON, labelsVisible, sgv, Edge, Dispatcher, QbDescr, TempGraphStructure, GraphDescr */
 
+/**
+ * @class Graph - Represents a graph with nodes and edges.
+ */
 const Graph = /** @class */ (function () {
+    /** Object that holds nodes of the graph. Keys are node IDs. */
     this.nodes = {};
+    /** Object that holds edges of the graph. Keys are edge IDs. */
     this.edges = {};
+    /** Object that holds nodes that have been deleted. Keys are node IDs. */
     this.missing = {};
     //this.delEdges = {};
+    /** Represents the type of graph. Default is 'generic'. */
     this.type = 'generic';
+    /** Array of value scopes available for this graph. Default is ['default']. */
     this.scopeOfValues = ['default'];
+    /** Current scope of values to be shown on the graph. Default is 'default'. */
     this.currentScope = 'default';
+    /** Limit of green color representation for values on the graph. Default is 1.0. */
     this.greenLimit = 1.0;
+    /** Limit of red color representation for values on the graph. Default is -1.0. */
     this.redLimit = -1.0;
 
+    /** Indicates whether node labels are visible or not. Default is false. */
     this.labelsVisible = false;
 
+    /**
+     * Dispose of the graph by deleting all its edges and nodes.
+     * Also triggers graphDeleted event.
+     */
     this.dispose = function () {
         for (const key in this.edges) {
             this.edges[key].clear();
@@ -44,15 +60,29 @@ const Graph = /** @class */ (function () {
         Dispatcher.graphDeleted();
     };
 
+    /**
+     * Alias for dispose function.
+     * @alias Graph.dispose
+     */
     this.clear = function () {
         this.dispose();
     };
 
+    /**
+     * Returns the number of nodes in the graph.
+     * @returns {number}
+     */
     this.maxNodeId = function () {
         return Object.keys(this.nodes).length;
     };
 
 
+    /**
+     * Add a node to the graph with given nodeId and value.
+     * @param {number} nodeId
+     * @param {number} val - Initial value for the node.
+     * @returns {Node}
+     */
     this.addNode = function(nodeId, val) {
         values = {};
         
@@ -68,14 +98,32 @@ const Graph = /** @class */ (function () {
         return n;
     };
 
+    /**
+     * Given an object and a value, it returns the key corresponding to the value.
+     * @param {object} object
+     * @param {*} value
+     * @returns {*}
+     */
     this.getKeyByValue = function(object, value) {
         return Object.keys(object).find(key => object[key] === value);
     };
 
+    /**
+     * Given a scope, it returns the index of the scope in the scopeOfValues array.
+     * @param {string} scope
+     * @returns {number}
+     */
     this.getScopeIndex = function(scope) {
         return Object.keys(this.scopeOfValues).find(key => this.scopeOfValues[key] === scope);
     };
     
+    /**
+     * Add an edge to the graph between given nodes. 
+     * If edge already exists, return the existing edge.
+     * @param {Node} node1
+     * @param {Node} node2
+     * @returns {Edge}
+     */
     this.addEdge = function (node1, node2) {
         let id = Edge.calcId(node1, node2);
         if (id in this.edges) {
@@ -89,6 +137,11 @@ const Graph = /** @class */ (function () {
         }            
     };
 
+    /**
+     * Delete an edge from the graph.
+     * Also triggers graphChanged event.
+     * @param {number} edgeId
+     */
     this.delEdge = function (edgeId) {
         this.edges[edgeId].clear();
         delete this.edges[edgeId];
@@ -96,6 +149,11 @@ const Graph = /** @class */ (function () {
         Dispatcher.graphChanged();
     };
 
+    /**
+     * Returns all nodes connected to the given node.
+     * @param {number} nodeId
+     * @returns {object} - An object containing arrays of different types of connected nodes.
+     */
     this.findAllConnected = (nodeId) => {
         var connected = {
                 //all: [],
@@ -143,6 +201,11 @@ const Graph = /** @class */ (function () {
         return connected;
     };
 
+    /**
+     * Find and delete all edges connected to a node. Return removed edges.
+     * @param {number} nodeId
+     * @returns {object} - Removed edges.
+     */
     this.findAndDeleteEdges = function (nodeId) {
         var removedEdges = {};
 
@@ -165,6 +228,11 @@ const Graph = /** @class */ (function () {
         return removedEdges;
     };
 
+    /**
+     * Delete a node from the graph.
+     * Also triggers graphChanged event.
+     * @param {number} nodeId
+     */
     this.delNode = function (nodeId) {
         var tmpEdges = this.findAndDeleteEdges(nodeId);
 
@@ -190,6 +258,12 @@ const Graph = /** @class */ (function () {
         Dispatcher.graphChanged();
     };
 
+    /**
+     * Restore a deleted node back to the graph.
+     * Also triggers graphChanged event.
+     * @param {number} nodeId
+     * @returns {boolean}
+     */
     this.restoreNode = function (nodeId) {
         if (nodeId in this.nodes) return false;
         
@@ -228,6 +302,10 @@ const Graph = /** @class */ (function () {
     };
 
 
+    /**
+     * Update all edges connected to a node.
+     * @param {number} nodeId
+     */
     this.findAndUpdateEdges = function (nodeId) {
         for (const key in this.edges) {
             if ((this.edges[key].begin.toString() === nodeId) || (this.edges[key].end.toString() === nodeId)) {
@@ -236,6 +314,11 @@ const Graph = /** @class */ (function () {
         }
     };
 
+    /**
+     * Converts a string representing graph structure into a structured object.
+     * @param {string} string - String representation of the graph.
+     * @returns {object|null}
+     */
     this.stringToStruct = (string) => {
        if ((typeof string==='undefined')||(string===null)) return null;
     
@@ -276,6 +359,12 @@ const Graph = /** @class */ (function () {
         return result;
     };
 
+    /**
+     * Load scope values into the graph. If the scope is new, add it to the scopeOfValues array.
+     * @param {string} scope
+     * @param {string} data - String representation of the graph structure.
+     * @returns {object} - An object indicating whether the scope was new and its index in scopeOfValues array.
+     */
     this.loadScopeValues = (scope, data) => {
         let isNew = false;
         if ( (typeof scope !== 'undefined') && ! this.scopeOfValues.includes(scope) ) {
@@ -298,6 +387,11 @@ const Graph = /** @class */ (function () {
         return {n:isNew, i:this.scopeOfValues.indexOf(scope)};
     };
 
+    /**
+     * Add a scope to the scopeOfValues array. Returns the index of the added scope.
+     * @param {string} scope
+     * @returns {number} - Index of the added scope.
+     */
     this.addScopeOfValues = function(scope) {
         if ( (typeof scope !== 'undefined') && ! this.scopeOfValues.includes(scope) ) {
             this.scopeOfValues.push(scope);
@@ -306,6 +400,13 @@ const Graph = /** @class */ (function () {
         return -1;
     };
 
+    /**
+     * Delete a scope from the scopeOfValues array except 'default'. 
+     * If the deleted scope was the currentScope, set the currentScope to 'default'.
+     * Returns the index of the currentScope.
+     * @param {string} scope
+     * @returns {number} - Index of the current scope.
+     */
     this.delScopeOfValues = function(scope) {
         if ( (typeof scope !== 'undefined') && (scope !== 'default') ) {
 
@@ -329,10 +430,20 @@ const Graph = /** @class */ (function () {
         return -1;
     };
 
+    /**
+     * Check if a scope exists in the scopeOfValues array.
+     * @param {string} scope
+     * @returns {boolean} - true if the scope exists, false otherwise.
+     */
     this.hasScope = function (scope) {
         return (typeof scope !== 'undefined') && this.scopeOfValues.includes(scope);
     };
     
+    /**
+     * Display values of the given scope on the graph. If no scope is given, use currentScope.
+     * @param {string} scope - optional
+     * @returns {Promise<boolean>}
+     */
     this.displayValues = async function (scope) {
         if ( (typeof scope === 'undefined') || ! this.scopeOfValues.includes(scope) ) {
             scope = this.currentScope;
@@ -352,16 +463,21 @@ const Graph = /** @class */ (function () {
         return true;
     };
 
-//    updateNodeLabels(show) {
-//        for (const key in nodes) {
-//            nodes[key].updateLabel(show);
-//        }
-//    }
 
+    /**
+     * Get the position of a node in the graph.
+     * @param {number} nodeId
+     * @returns {BABYLON.Vector3}
+     */
     this.nodePosition = function (nodeId) {
         return this.nodes[nodeId].position;
     };
 
+    /**
+     * Add or remove check mark from a node.
+     * @param {number} nodeId
+     * @param {boolean} check - If true, add check mark, otherwise remove it.
+     */
     this.checkNode = function (nodeId, check) {
         if (check) {
             this.nodes[nodeId].addCheck();
@@ -370,43 +486,92 @@ const Graph = /** @class */ (function () {
         }
     };
 
+    /**
+     * Switch the check flag of an edge.
+     * @param {number} id - ID of the edge.
+     */
     this.edgeDoubleClicked = function (id) {
         this.edges[id].switchCheckFlag();
     };
 
+    /**
+     * Move a node by a given difference in position. Also updates all edges connected to the node.
+     * @param {number} nodeId
+     * @param {BABYLON.Vector3} diff - Difference in position.
+     */
     this.moveNode = function (nodeId, diff) {
         this.nodes[nodeId].move(diff);
         this.findAndUpdateEdges(nodeId);
     };
 
+    /**
+     * Set the value of an edge for a given scope. Also updates the display.
+     * @param {number} edgeId
+     * @param {number} value
+     * @param {string} scope
+     */
     this.setEdgeValue = function (edgeId, value, scope) {
         this.edges[edgeId].setValue(value, scope);
         this.edges[edgeId].displayValue();
     };
 
+    /**
+     * Delete the value of an edge for a given scope. Also updates the display.
+     * @param {number} edgeId
+     * @param {string} scope
+     */
     this.delEdgeValue = function (edgeId, scope) {
         this.edges[edgeId].delValue(scope);
         this.edges[edgeId].displayValue();
     };
 
+    /**
+     * Get the value of an edge for a given scope.
+     * @param {number} edgeId
+     * @param {string} scope
+     * @returns {number}
+     */
     this.edgeValue = function(edgeId, scope) {
         return this.edges[edgeId].getValue(scope);
     };
 
+    /**
+     * Set the value of a node for a given scope. Also updates the display.
+     * @param {number} nodeId
+     * @param {number} value
+     * @param {string} scope
+     */
     this.setNodeValue = function (nodeId, value, scope) {
         this.nodes[nodeId].setValue(value, scope);
         this.nodes[nodeId].displayValue();
     };
 
+    /**
+     * Delete the value of a node for a given scope. Also updates the display.
+     * @param {number} nodeId
+     * @param {string} scope
+     */
     this.delNodeValue = function (nodeId, scope) {
         this.nodes[nodeId].delValue(scope);
         this.nodes[nodeId].displayValue();
     };
 
+    /**
+     * Get the value of a node for a given scope.
+     * @param {number} nodeId
+     * @param {string} scope
+     * @returns {number}
+     */
     this.nodeValue = function (nodeId,scope) {
         return this.nodes[nodeId].getValue(scope);
     };
 
+    /**
+     * Get the minimum and maximum edge value for a given scope. 
+     * If no scope is given, use currentScope.
+     * @param {string} scope - optional
+     * @returns {object} - An object containing minimum and maximum edge value.
+     */
     this.getMinMaxEdgeVal = function (scope) {
         if ( (typeof scope === 'undefined') || ! this.scopeOfValues.includes(scope) ) {
             scope = this.currentScope;
@@ -445,6 +610,12 @@ const Graph = /** @class */ (function () {
         return result;
     };
 
+    /**
+     * Get the minimum and maximum node value for a given scope. 
+     * If no scope is given, use currentScope.
+     * @param {string} scope - optional
+     * @returns {object} - An object containing minimum and maximum node value.
+     */
     this.getMinMaxNodeVal = function (scope) {
         if ( (typeof scope === 'undefined') || ! this.scopeOfValues.includes(scope) ) {
             scope = this.currentScope;
@@ -483,6 +654,12 @@ const Graph = /** @class */ (function () {
         return result;
     };
 
+    /**
+     * Get the minimum and maximum value for a given scope from nodes and edges. 
+     * If no scope is given, use currentScope.
+     * @param {string} scope - optional
+     * @returns {object} - An object containing minimum and maximum value.
+     */
     this.getMinMaxVal = function (scope) {
         if ( (typeof scope === 'undefined') || ! this.scopeOfValues.includes(scope) ) {
             scope = this.currentScope;
@@ -512,12 +689,20 @@ const Graph = /** @class */ (function () {
     };
 
 
-    // Calculate position of node in space for visualisation.
-    // The position depends on graph type and display mode,
-    // so need to be overriden in derrived classes
+    /**
+     * A placeholder function to calculate the position of a node in space for visualisation.
+     * The actual implementation will be provided by the derived classes, as the position
+     * depends on the type of graph and the display mode.
+     * @param {number} nodeId - The id of the node for which the position needs to be calculated.
+     * @returns {BABYLON.Vector3} - A new vector representing the position of the node.
+     */
     this.calcPosition = /*virtual*/ (nodeId) => new BABYLON.Vector3();
 
 
+    /**
+     * Sets the display mode of the graph.
+     * This function changes the position of all nodes and updates all edges according to the calculated positions.
+     */
     this.setDisplayMode = function () {
         for (const key in this.nodes) {
             this.nodes[key].position = this.calcPosition(key);
@@ -530,6 +715,10 @@ const Graph = /** @class */ (function () {
         Dispatcher.viewModeChanged();
     };
     
+    /**
+     * Sets whether labels are visible on the nodes of the graph.
+     * @param {boolean} b - If true, labels are shown. If false, they are hidden.
+     */
     this.showLabels = function (b) {
         this.labelsVisible = b;
         for (const key in this.nodes) {
@@ -538,6 +727,11 @@ const Graph = /** @class */ (function () {
     };
 
     
+    /**
+     * Creates the structure of the graph from a temporary structure.
+     * @param {object} struct - The temporary structure containing nodes and edges.
+     * @returns {Promise<string>} - Resolves to 'ok' when the structure has been created.
+     */
     this.createStructureFromTempStruct = function (struct) {
         return new Promise((resolve)=>{
             for (let tmpNode of struct.nodes){
@@ -559,12 +753,37 @@ const Graph = /** @class */ (function () {
             resolve('ok');
         });
     };
+    
+    /**
+     * Given a value, a minimum, and a maximum, it returns a value between 0 and 1 proportionate to the position of the value between the min and max.
+     * @param {number} value
+     * @param {number} min
+     * @param {number} max
+     * @returns {number}
+     */
+    this.scale = function (value, min, max) {
+        if (min === max) return 0.5;
+        return (value - min) / (max - min);
+    };
 
 });
 
+/**
+ * Available display modes for the graph.
+ * @type {string[]}
+ */
 Graph.displayModes = [ 'classic', 'triangle', 'diamond' ];
+
+/**
+ * Current display mode for the graph.
+ * @type {string}
+ */
 Graph.currentDisplayMode = 'classic';
 
+/**
+ * Switch the display mode of the graph to the next available mode.
+ * If the graph does not exist, a warning is logged and the function does nothing.
+ */
 Graph.switchDisplayMode = ()=>{
     if (sgv.graf === null) {
         console.warning('graf not defined');
@@ -578,14 +797,30 @@ Graph.switchDisplayMode = ()=>{
     sgv.graf.setDisplayMode();
 };
 
+// An object mapping known graph types to their corresponding constructor functions.
 Graph.knownGraphTypes = {};
+
+/**
+ * Registers a new graph type.
+ * @param {string} txt - The name of the graph type.
+ * @param {Function} Type - The constructor function of the graph type.
+ */
 Graph.registerType = (txt,Type)=>{Graph.knownGraphTypes[txt] = Type;};
+
+/**
+ * Checks if a graph type is known.
+ * @param {string} txt - The name of the graph type.
+ * @returns {boolean} - True if the graph type is known, false otherwise.
+ */
 Graph.knowType = (txt)=>(txt in Graph.knownGraphTypes);
 
 
 /**
- * @param {GraphDescr} gDesc - Graph structure description
- * @param {TempGraphStructure} struct - optional Graph data
+ * Create a new graph from a GraphDescr and optionally a TempGraphStructure.
+ * If a graph already exists, it is first removed.
+ * If the graph type is not known or not a GraphDescr, an error is logged and the function does nothing.
+ * @param {GraphDescr} gDesc - The description of the graph structure.
+ * @param {TempGraphStructure} struct - Optional. The graph data.
  */
 Graph.create = (gDesc, struct)=>{
     Graph.remove();
@@ -611,6 +846,9 @@ Graph.create = (gDesc, struct)=>{
     
 };
 
+/**
+ * Removes the current graph if it exists.
+ */
 Graph.remove = ()=>{
     if (sgv.graf !== null) {
         sgv.graf.dispose();

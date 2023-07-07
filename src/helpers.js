@@ -1,12 +1,36 @@
 /* global BABYLON, sgv */
 
+/**
+ * This block of code includes utility functions to convert numerical values
+ * into color values or edge widths for a graph. It also detects the type
+ * of client (mobile or desktop) and dynamically loads the appropriate stylesheet
+ * on window load.
+ * The DEMO_MODE constant is used to switch between normal and demonstration modes. 
+ */
+
+
+/** Set a flag for demonstration mode.
+ * @type Boolean
+ */
 const DEMO_MODE = false;
 
+/**
+ * Returns a random number between min and max values.
+ * @param {number} min - The minimum value.
+ * @param {number} max - The maximum value.
+ * @returns {number} A random number between min and max.
+ */
 function getRandom(min, max) {
     return (min + (Math.random() * (max - min)));
 };
 
 
+/**
+ * Converts a given value into a color.
+ * The colors are based on the current limits set on sgv.graf object.
+ * @param {number} val - The value to convert into a color.
+ * @returns {BABYLON.Color3} The color corresponding to the given value.
+ */
 function valueToColor(val) {
     if ((typeof val ==='undefined')||(val === null)|| isNaN(val)) {
         return new BABYLON.Color3(0.9, 0.9, 0.9);
@@ -42,6 +66,12 @@ function valueToColor(val) {
     return new BABYLON.Color3(r, g, b);
 }
 
+/**
+ * Converts a given value into a color. This is a backup version.
+ * The colors are based on the current limits set on sgv.graf object.
+ * @param {number} val - The value to convert into a color.
+ * @returns {BABYLON.Color3} The color corresponding to the given value.
+ */
 function valueToColorBAK(val) {
     if ((typeof val ==='undefined')||(val === null)|| isNaN(val)) {
         return new BABYLON.Color3(0.9, 0.9, 0.9);
@@ -68,6 +98,12 @@ function valueToColorBAK(val) {
 }
 
 
+/**
+ * Converts a given value into an edge width.
+ * The edge widths are based on the current limits set on sgv.graf object.
+ * @param {number} val - The value to convert into an edge width.
+ * @returns {number} The edge width corresponding to the given value.
+ */
 function valueToEdgeWidth(val) {
     if (DEMO_MODE) return 0.2;
     
@@ -105,8 +141,12 @@ function valueToEdgeWidth(val) {
 //    return PitchYawRollToMoveBetweenPointsToRef(start, target, ref);
 //}
 
+// Detect if the client is a mobile device. Default: false
 var isMobile = false;
 
+/**
+ * Detects the client type and updates the global variable isMobile accordingly.
+ */
 function detectClient() {
     //console.log(navigator.userAgent);
     //if(navigator.userAgent.match(/(Android|iPod|iPhone|iPad|BlackBerry|IEMobile|Opera Mini)/)) {}
@@ -121,8 +161,13 @@ function detectClient() {
 }
 
 
+// Detect the client type on load.
 detectClient();
 
+/**
+ * On window load, create a new link element for the appropriate stylesheet (mobile or desktop),
+ * and append it to the head of the document. Update CSS variables accordingly.
+ */
 window.addEventListener('load', () => {
     var r = document.querySelector(':root');
     var linkElement = this.document.createElement('link');

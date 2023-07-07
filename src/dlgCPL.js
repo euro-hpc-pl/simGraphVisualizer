@@ -2,6 +2,9 @@
 "use strict";
 /* global sgv, Chimera, Pegasus, UI, parserGEXF, dialog, FileIO, Graph */
 
+/**
+ * The sgv.dlgCPL object is responsible for handling the Control Panel (CPL) dialog functionalities.
+ */
 sgv.dlgCPL = new function () {
     var switchableContent; 
     var selectionPanel, descriptionPanel;
@@ -10,13 +13,24 @@ sgv.dlgCPL = new function () {
     
     var ui = createDialog();
 
+    /**
+     * Add the created dialog to the DOM upon window load event.
+     */
     window.addEventListener('load', () => {
         window.document.body.appendChild(ui);
     });
 
+    /**
+     * Creates the Control Panel dialog with multiple components.
+     * @returns {HTMLElement} The created dialog element.
+     */
     function createDialog() {
         let ui = UI.tag("div", {"class": "sgvUIwindow disable-select", "id": "sgvDlgCPL"});
 
+        /**
+         * Creates the Selection Panel component of the Control Panel dialog.
+         * @returns {Object} The Selection Panel component along with show and hide functions.
+         */
         function SelectionPanel() {
             let btnShowConsole2, btnCreate, btnLoad;
             var divSel = UI.tag("div", {"class": "content", "id": "graphSelection"});
@@ -45,6 +59,10 @@ sgv.dlgCPL = new function () {
             };
         }
 
+        /**
+         * Creates the Description Panel component of the Control Panel dialog.
+         * @returns {Object} The Description Panel component along with show, hide, and addButton functions.
+         */
         function DescriptionPanel() {
             function InfoBlock() {
                 let i = UI.tag("div", {});
@@ -152,25 +170,40 @@ sgv.dlgCPL = new function () {
     }
 
 
+    /**
+     * Show the switchable content of the Control Panel dialog.
+     */
     function showDialog() {
         switchableContent.style.display = "block";
     }
 
 
+    /**
+     * Hide the switchable content of the Control Panel dialog.
+     */
     function hideDialog() {
         switchableContent.style.display = "none";
     }
 
 
+    /**
+     * Switches the display of the switchable content of the Control Panel dialog between show and hide.
+     */
     function switchDialog() {
         (switchableContent.style.display === "none") ? showDialog() : hideDialog();
     }
 
+    /**
+     * Switches to the Selection mode of the Control Panel dialog.
+     */
     function setModeSelectionX() {
         selectionPanel.show();
         descriptionPanel.hide();
     }
 
+    /**
+     * Switches to the Description mode of the Control Panel dialog.
+     */
     function setModeDescriptionX() {
         descriptionPanel.updateInfo();
         slidersPanel.refresh();
@@ -180,6 +213,9 @@ sgv.dlgCPL = new function () {
         descriptionPanel.show();
     }
 
+    /**
+     * Refreshes the sliders and scope panels of the Control Panel dialog.
+     */
     function refreshX() {
         slidersPanel.refresh();
         scopePanel.refresh();

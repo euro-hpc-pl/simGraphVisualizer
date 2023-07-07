@@ -1,32 +1,20 @@
-/* 
- * Copyright 2022 Dariusz Pojda.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 /* global BABYLON, sgv */
 
 /**
- * Class Label
- * @param {Number|String} labelId is usually Node.id
- * @param {String} txt text to be displayed
- * @param {BABYLON.Vector3} position position over which the label is to be displayed
- * @returns {Label}
+ * Represents a label that can be displayed in a 3D scene. It's attached to a plane, with the plane being displayed at a certain position.
+ * @constructor
+ * @param {number|string} labelId - Usually Node.id. 
+ * @param {string} txt - The text to be displayed on the label.
+ * @param {BABYLON.Vector3} position - The position over which the label is to be displayed.
+ * @returns {Label} - The Label object.
  */
 var Label = (function (labelId, txt, position) {
+
     /**
-     * @param {BABYLON.Vector3} position
-     * @param {boolean} enabled
+     * Creates the label at a given position.
+     * @async
+     * @param {BABYLON.Vector3} position - The position at which to create the label.
+     * @param {boolean} enabled - Indicates whether the label is enabled.
      * @returns {undefined}
      */
     this.createMe = async function (position, enabled) {
@@ -38,8 +26,10 @@ var Label = (function (labelId, txt, position) {
     };
 
     /**
-     * @param {string} txt
-     * @param {boolean} enabled
+     * Sets the text for the label.
+     * @async
+     * @param {string} txt - The text to set.
+     * @param {boolean} enabled - Indicates whether the label is enabled.
      * @returns {undefined}
      */
     this.setText = async function(txt, enabled) {
@@ -52,14 +42,16 @@ var Label = (function (labelId, txt, position) {
     };
     
     /**
-     * @returns {string}
+     * Gets the text for the label.
+     * @returns {string} - The text of the label.
      */
     this.getText = function() {
         return this.text;
     };
     
     /**
-     * @param {BABYLON.Vector3} position
+     * Sets the position for the label.
+     * @param {BABYLON.Vector3} pos - The position to set.
      * @returns {undefined}
      */
     this.setPosition = function(pos) {
@@ -70,7 +62,8 @@ var Label = (function (labelId, txt, position) {
     };
 
     /**
-     * @returns {BABYLON.Plane}
+     * Creates the plane on which the label is displayed.
+     * @returns {BABYLON.Plane} - The plane created.
      */
     this.createPlane = function() {
         let font_size = 64;
@@ -109,7 +102,8 @@ var Label = (function (labelId, txt, position) {
     };
 
     /**
-     * @param {boolean} b
+     * Sets whether the label is enabled.
+     * @param {boolean} b - If true, the label is enabled. If false, it is not.
      * @returns {undefined}
      */
     this.setEnabled = function (b) {
