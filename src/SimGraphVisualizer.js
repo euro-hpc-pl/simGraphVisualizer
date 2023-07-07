@@ -31,6 +31,10 @@ sgv.scene = null;
 sgv.camera = null;
 sgv.graf = null;
 
+/**
+ * Creates a new scene, along with its camera and lights, and initializes a new Solid Particle System for nodes/edges visualisation.
+ * @function
+ */
 sgv.createScene = function () {
     sgv.scene = new BABYLON.Scene(sgv.engine);
 
@@ -51,7 +55,9 @@ sgv.createScene = function () {
     
     sgv.scene.clearColor = new BABYLON.Color3(0.7, 0.7, 0.7);
 
-
+    /**
+     * create camera and set its properties
+     */
     function createCamera() {
         sgv.camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(0, 0, 0), sgv.scene);
         
@@ -69,6 +75,9 @@ sgv.createScene = function () {
         //BABYLON.Camera.angularSensibilityY = 200;
     };
 
+    /**
+     * create default lights
+     */
     function createLights() {
         var light = new BABYLON.HemisphericLight("HemiLight", new BABYLON.Vector3(0, 1, 0), sgv.scene);
         //var light = new BABYLON.SpotLight("Spot0", new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(0, 0, 1), 1.8, 0.01, sgv.scene);
@@ -82,13 +91,20 @@ sgv.createScene = function () {
     };
 };
 
-
+/**
+ * Adds event listeners to the scene for various pointer events, including tapping, double tapping, pressing down, releasing, and moving.
+ * @function
+ */
 sgv.addEventsListeners = function () {
     var startingPoint;
     var currentMesh;
     var ground = null;//BABYLON.MeshBuilder.CreateGround("ground", {width:10*graf.N+20, height:10*graf.N+20}, scene, false);
     //ground.material = groundMaterial;
 
+    /**
+     * Retrieves the position of the ground based on pointer coordinates.
+     * @returns {BABYLON.Vector3} The position of the ground.
+     */
     function getGroundPosition()
     {
         var pickinfo = sgv.scene.pick(sgv.scene.pointerX, sgv.scene.pointerY, function (mesh) {
@@ -102,6 +118,10 @@ sgv.addEventsListeners = function () {
         return null;
     };
 
+    /**
+     * Handles the double tap event on a mesh.
+     * @param {BABYLON.AbstractMesh} mesh - The picked mesh.
+     */
     function pointerDblTap(mesh) {
         var n2 = mesh.name.split(":");
         if (n2[0] === "edge")
@@ -110,6 +130,10 @@ sgv.addEventsListeners = function () {
         }
     };
 
+    /**
+     * Handles the pointer down event.
+     * @param {BABYLON.PointerInfo} event - The pointer event info.
+     */
     function pointerDown(event) {
         console.log("POINTER.DOWN");
         currentMesh = event.pickInfo.pickedMesh;
@@ -123,6 +147,9 @@ sgv.addEventsListeners = function () {
         }
     };
 
+    /**
+     * Handles the pointer up event.
+     */
     function onPointerUp() {
         if (sgv.graf !== null) {
             sgv.graf.showLabels(true);
@@ -135,6 +162,9 @@ sgv.addEventsListeners = function () {
         }
     };
 
+    /**
+     * Handles the pointer move event.
+     */
     function onPointerMove() {
         if (sgv.graf === null)
             return;
@@ -160,7 +190,10 @@ sgv.addEventsListeners = function () {
         }
     };
 
-
+    /**
+     * Handles the pointer tap event.
+     * @param {BABYLON.PointerInfo} pointerInfo - The pointer event info.
+     */
     function onPointerTap(pointerInfo) {
         function onLMBtap(pointerInfo) {
             function onMeshPicked(pickInfo) {
@@ -234,6 +267,7 @@ sgv.addEventsListeners = function () {
         }
     };
 
+    // Add event listeners to the scene
     sgv.scene.onPointerObservable.add(function (pointerInfo) {
         switch (pointerInfo.type) {
             case BABYLON.PointerEventTypes.POINTERTAP:
@@ -264,7 +298,11 @@ sgv.addEventsListeners = function () {
     });
 };
 
-
+/**
+ * Displays the scene and attaches it to a specified HTML element, or creates a new one if none is specified. It also creates and initializes a new engine, and sets up a render loop.
+ * @function
+ * @param {object} args - An object containing optional parameters, such as the target HTML element.
+ */
 sgv.display = function(args) {
     if ((typeof args === 'undefined') || (typeof args !== 'object')) {
         args = {};

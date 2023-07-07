@@ -1,5 +1,9 @@
 /* global UI, sgv, Edge, Dispatcher, SVG */
 
+/**
+ * Represents a value panel component.
+ * @returns An object with properties and methods related to the value panel component.
+ */
 const ValuePanel = (function() {
     var btnSetN, checkValueN, editWagaN;
     var nodeId, scope;
@@ -24,12 +28,21 @@ const ValuePanel = (function() {
     });
     valueBlock.appendChild(btnSetN);
 
+    /**
+     * Updates the value of a node in the graph based on the input from the user.
+     * @returns None
+     */
     function edycjaN() {
         let val = parseFloat(editWagaN.value.replace(/,/g, '.'));
         sgv.graf.setNodeValue(nodeId, val, scope);
         Dispatcher.graphChanged();
     };
 
+    /**
+     * Activates or deactivates a feature based on the given isActive parameter.
+     * @param {boolean} isActive - Indicates whether the feature should be activated or deactivated.
+     * @returns None
+     */
     function activateN(isActive) {
         if (isActive) {
             editWagaN.disabled = "";
@@ -49,6 +62,12 @@ const ValuePanel = (function() {
         Dispatcher.graphChanged();
     };
 
+    /**
+     * Updates the UI to show the current value of a node.
+     * If the current value is null or NaN, the checkbox is unchecked and the input field and button are disabled.
+     * If the current value is not null or NaN, the checkbox is checked and the input field and button are enabled.
+     * @returns None
+     */
     function showX() {
         let currentValue = sgv.graf.nodeValue(nodeId, scope);
         if ((currentValue===null)||isNaN(currentValue)) {
@@ -64,16 +83,32 @@ const ValuePanel = (function() {
         }
     }
     
+    /**
+     * Sets the value of the nodeId variable to the given id and calls the showX function.
+     * @param {any} id - The id to set the nodeId variable to.
+     * @returns None
+     */
     function setNodeX(id) {
         nodeId = id;
         showX();
     }
 
+    /**
+     * Sets the scope to the given value and calls the showX() function.
+     * @param {any} sc - The scope.
+     * @returns None
+     */
     function setScopeX(sc) {
         scope = sc;
         showX();
     }
 
+    /**
+     * Sets the value of the nodeId in scope and calls the showX function.
+     * @param {any} id - The value to assign to the nodeId variable.
+     * @param {any} sc - The scope.
+     * @returns None
+     */
     function setX(id, sc) {
         nodeId = id;
         scope = sc;
@@ -88,6 +123,10 @@ const ValuePanel = (function() {
     };
 });
 
+/**
+ * Represents a dialog for displaying and editing properties of a node in a graph.
+ * @returns An object with methods for showing, hiding, refreshing, and checking visibility of the dialog.
+ */
 sgv.dlgNodeProperties = new function() {
    
     var hidNodeId;
@@ -119,6 +158,10 @@ sgv.dlgNodeProperties = new function() {
         console.log('onOrientationChange()');
     }
 
+    /**
+     * Creates the user interface for the application.
+     * @returns None
+     */
     function createUI() {
         let ui = UI.createEmptyWindow("sgvUIwindow", "sgvNodeProperties", "Node properties", true);
 
@@ -216,6 +259,11 @@ sgv.dlgNodeProperties = new function() {
         return ui;
     }
 
+    /**
+     * Draws connected edges for a given node.
+     * @param {Node} n1 - The node for which to draw connected edges.
+     * @returns None
+     */
     function drawConnectedEdges(n1) {
         let connected = sgv.graf.findAllConnected(n1);
         
@@ -256,6 +304,11 @@ sgv.dlgNodeProperties = new function() {
         });
     }
 
+    /**
+     * Draws a node with the specified ID.
+     * @param {string} nodeId - The ID of the node to draw.
+     * @returns None
+     */
     function drawNode(nodeId) {
         if (typeof nodeId === 'undefined') {
             nodeId = hidNodeId.value;
@@ -275,6 +328,13 @@ sgv.dlgNodeProperties = new function() {
         }
     }
 
+    /**
+     * Displays a dialog box at the specified coordinates.
+     * @param {string} nodeId - The ID of the node to display the dialog box on.
+     * @param {number} x - The x-coordinate of the dialog box.
+     * @param {number} y - The y-coordinate of the dialog box.
+     * @returns None
+     */
     function showDialog(nodeId, x, y) {
         if (typeof nodeId !== 'undefined') {
             nodeId = nodeId.toString();

@@ -19,11 +19,25 @@
 /* global Graph, BABYLON, sgv, QbDescr, qD, GraphSize */
 "use strict";
 
+/**
+ * Represents a Chimera graph structure.
+ * @class
+ * @extends Graph
+ * @param {GraphSize} gSize - The size of the graph.
+ */
 const Chimera = /** @class */ (function (gSize) {
     Graph.call(this);
 
+    /**
+     * The type of the graph.
+     * @type {string}
+     */
     this.type = 'chimera';
 
+    /**
+     * Sets the size of the graph.
+     * @param {GraphSize} gSize - The size of the graph.
+     */
     this.setSize = function(gSize) {
         if (gSize instanceof GraphSize) {
             this.cols = gSize.cols;
@@ -43,15 +57,20 @@ const Chimera = /** @class */ (function (gSize) {
 
     this.setSize(gSize);
 
+    /**
+     * Calculates the maximum node ID in the graph.
+     * @returns {number} The maximum node ID.
+     */
     this.maxNodeId = function () {
         return this.cols * this.rows * 8;
     };
 
 
-    /*
-     * @param {QbDescr} qdA
-     * @param {QbDescr} qdB
-     * @param {Number} value
+    /**
+     * Connects two nodes in the graph.
+     * @param {QbDescr} qdA - The first node descriptor.
+     * @param {QbDescr} qdB - The second node descriptor.
+     * @param {number} value - The value to set for the edge (optional).
      */
     this.connect = function (qdA, qdB, value) {
         let idA = qdA.toNodeId(this.rows, this.cols);
@@ -65,6 +84,12 @@ const Chimera = /** @class */ (function (gSize) {
         }
     };
 
+    /**
+     * Connects the vertical edges between nodes in the graph.
+     * @param {number} x - The x-coordinate of the node.
+     * @param {number} y - The y-coordinate of the node.
+     * @param {number} z - The z-coordinate of the node.
+     */
     this.connectVertical = function (x, y, z) {
         for (let j of [0,1]) {
             for (let k of [0,1]) {
@@ -74,6 +99,12 @@ const Chimera = /** @class */ (function (gSize) {
         }
     };
 
+    /**
+     * Connects the horizontal edges between nodes in the graph.
+     * @param {number} x - The x-coordinate of the node.
+     * @param {number} y - The y-coordinate of the node.
+     * @param {number} z - The z-coordinate of the node.
+     */
     this.connectHorizontal = function (x, y, z) {
         for (let j of [0,1]) {
             for (let k of [0,1]) {
@@ -83,6 +114,12 @@ const Chimera = /** @class */ (function (gSize) {
         }
     };
 
+    /**
+     * Connects the internal Chimera edges between nodes in the graph.
+     * @param {number} x - The x-coordinate of the node.
+     * @param {number} y - The y-coordinate of the node.
+     * @param {number} z - The z-coordinate of the node.
+     */
     this.connectInternalChimeraEdges = function (x, y, z) {
         let v;
 
@@ -113,6 +150,13 @@ const Chimera = /** @class */ (function (gSize) {
         return new BABYLON.Vector3(mX, mZ, mY);
     };
 
+    /**
+     * Calculates the position of a module in the graph.
+     * @param {number} x - The x-coordinate of the module.
+     * @param {number} y - The y-coordinate of the module.
+     * @param {number} z - The z-coordinate of the module.
+     * @returns {BABYLON.Vector3} The position of the module.
+     */
     this.modulePosition = function( x, y, z ) {
         let d = 50.0;
         let mX = (d * ( ( this.cols - 1 ) / 2.0 ))-(d * y);
@@ -121,26 +165,63 @@ const Chimera = /** @class */ (function (gSize) {
         return new BABYLON.Vector3(mX, mZ, mY);
     };
     
+    /**
+     * Calculates the position of a node in the graph.
+     * @param {number} x - The x-coordinate of the node.
+     * @param {number} y - The y-coordinate of the node.
+     * @param {number} z - The z-coordinate of the node.
+     * @param {number} n0 - The n0 index of the node.
+     * @returns {BABYLON.Vector3} The position of the node.
+     */
     this.calcPosition2 = function (x, y, z, n0) {
         let newPos = this.modulePosition(x, y, z);
         newPos.addInPlace(this.getNodeOffset2(n0));
         return newPos;
     };
 
+    /**
+     * Calculates the position of a node in the graph.
+     * @param {number} nodeId - The ID of the node.
+     * @returns {BABYLON.Vector3} The position of the node.
+     */
     this.calcPosition = function (nodeId) {
         let qd = QbDescr.fromNodeId(nodeId, this.rows, this.cols);
         return this.calcPosition2(qd.x, qd.y, qd.z, qd.n0());
     };
 
 
+    /**
+     * Adds a node to the graph based on the XYZIJK coordinates.
+     * @param {number} x - The x-coordinate of the node.
+     * @param {number} y - The y-coordinate of the node.
+     * @param {number} z - The z-coordinate of the node.
+     * @param {number} i - The i index of the node.
+     * @param {number} j - The j index of the node.
+     * @param {number} k - The k index of the node.
+     * @returns {number} The ID of the added node.
+     */
     this.addNodeXYZIJK = function(x,y,z,i,j,k) {
         return this.addNode(qD(x,y,z,i,j,k).toNodeId(this.rows, this.cols));
     };
 
+    /**
+     * Adds a node to the graph based on the XYZn coordinates.
+     * @param {number} x - The x-coordinate of the node.
+     * @param {number} y - The y-coordinate of the node.
+     * @param {number} z - The z-coordinate of the node.
+     * @param {number} n - The n index of the node.
+     * @returns {number} The ID of the added node.
+     */
     this.addNodeXYZn = function(x,y,z,n) {
         return this.addNode(qD(x,y,z,(n>>2)&1,(n>>1)&1,n&1).toNodeId(this.rows, this.cols));
     };
 
+    /**
+     * Creates the nodes for a module in the graph.
+     * @param {number} x - The x-coordinate of the module.
+     * @param {number} y - The y-coordinate of the module.
+     * @param {number} z - The z-coordinate of the module.
+     */
     this.createModuleNodes = function (x, y, z) {
         for (let n = 0; n < this.KL; n++) {
             this.addNodeXYZn(x,y,z,n);
@@ -150,6 +231,11 @@ const Chimera = /** @class */ (function (gSize) {
         }
     };
 
+    /**
+     * Retrieves the offset position of a node based on its index.
+     * @param {number} idx - The index of the node.
+     * @returns {BABYLON.Vector3} The offset position of the node.
+     */
     this.getNodeOffset2 = function (idx) {
         let nodeOffset = {
             'classic': [
@@ -187,6 +273,9 @@ const Chimera = /** @class */ (function (gSize) {
         return nodeOffset[Graph.currentDisplayMode][idx];
     };
 
+    /**
+     * Connects the vertical edges between modules in the graph.
+     */
     this.verticalConnections = ()=>{
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < (this.rows - 1); y++) {
@@ -197,6 +286,9 @@ const Chimera = /** @class */ (function (gSize) {
         }
     };
 
+    /**
+     * Connects the horizontal edges between modules in the graph.
+     */
     this.horizontalConnections = ()=>{
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < this.rows; y++) {
@@ -207,6 +299,9 @@ const Chimera = /** @class */ (function (gSize) {
         }
     };
 
+    /**
+     * Creates the modules and their connections in the graph.
+     */
     this.createModules = ()=>{
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < this.rows; y++) {
@@ -218,6 +313,10 @@ const Chimera = /** @class */ (function (gSize) {
         }
     };
 
+    /**
+     * Creates the default Chimera graph structure.
+     * @param {function} then - The callback function to be called after the structure is created.
+     */
     this.createDefaultStructure = function (then) {
         if (this.layers>1) this.layers=1; //for safety
         
@@ -245,4 +344,9 @@ const Chimera = /** @class */ (function (gSize) {
 Chimera.prototype = Object.create(Graph.prototype);
 Chimera.prototype.constructor = Chimera;
 
+/**
+ * Registers the Chimera type in the Graph.
+ * @param {string} 'chimera' - The type name of the graph.
+ * @param {function} Chimera - The Chimera class.
+ */
 Graph.registerType('chimera', Chimera);

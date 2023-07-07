@@ -17,14 +17,30 @@
 
 /* global UI, sgv, Dispatcher */
 
+/**
+ * ScopePanel module for managing scope-related operations in a user interface.
+ * @param {boolean} [addButtons=true] - Flag indicating whether to add buttons to the panel.
+ * @param {string} [lbl] - Label for the scope display.
+ * @returns {Object} ScopePanel instance.
+ */
 const ScopePanel = (function(addButtons,lbl) {
     let divNS, divDS;
-    
+
+    /**
+     * Adds a scope to the select element.
+     * @param {string} scope - The scope to add.
+     * @param {number} idx - The index of the added scope.
+     */
     this.addScope = (scope, idx) => {
         selectScope.add(UI.option(scope, scope));
         selectScope.selectedIndex = idx;
     };
     
+    /**
+     * Deletes a scope from the select element.
+     * @param {string} scope - The scope to delete.
+     * @param {number} idx2 - The index of the selected scope.
+     */
     this.delScope = (scope, idx2) => {
         let i = UI.findOption(selectScope, scope);
         if (i > -1) {
@@ -33,6 +49,10 @@ const ScopePanel = (function(addButtons,lbl) {
         selectScope.selectedIndex = idx2;
     };
 
+    /**
+     * Selects a scope in the select element.
+     * @param {string} scope - The scope to select.
+     */
     this.selScope = (scope)=>{
         let i = UI.findOption(selectScope, scope);
         if (i > -1) {
@@ -40,14 +60,25 @@ const ScopePanel = (function(addButtons,lbl) {
         }
     };
     
+    /**
+     * Gets the value of the selected scope.
+     * @returns {string} The value of the selected scope.
+     */
     this.getScope = ()=> {
         return selectScope.value;
     };
 
+    /**
+     * Gets the index of the selected scope.
+     * @returns {number} The index of the selected scope.
+     */
     this.getScopeIndex = ()=> {
         return selectScope.selectedIndex;
     };
     
+    /**
+     * Refreshes the scope panel by updating the select element with available scopes.
+     */
     this.refresh = () => {
         if (sgv.graf !== null) {
             UI.clearSelect(selectScope, true);
@@ -63,6 +94,11 @@ const ScopePanel = (function(addButtons,lbl) {
     };
     
     
+    /**
+     * EditPanel constructor function for creating an edit panel for adding or editing a scope.
+     * @param {string} [scopeToEdit] - The scope to edit. If provided, it's an edit operation; otherwise, it's an add operation.
+     * @returns {Object} EditPanel instance.
+     */
     function EditPanel(scopeToEdit) {
         let createNew = true;
         if ((typeof scopeToEdit === 'string')&&(scopeToEdit!=='')) createNew = false;
@@ -108,6 +144,10 @@ const ScopePanel = (function(addButtons,lbl) {
     
     if (typeof addButtons!=='boolean') addButtons = true;
     
+    /**
+     * The UI element representing the ScopePanel.
+     * @type {HTMLElement}
+     */
     this.ui = UI.tag("div", {'class': "sgvSelectBox", 'id': "ScopePanel"});
     
     //divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': isMobile?'':"current scope: "});

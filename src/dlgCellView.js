@@ -1,43 +1,135 @@
 /* global sgv, UI, Edge, qD, QbDescr */
 
+/**
+ * Cell view dialog module for graph visualization.
+ * @module sgv.dlgCellView
+ */
 sgv.dlgCellView = new function () {
+    /**
+     * Select elements for choosing the column, row, and layer of the cell view.
+     * @type {HTMLSelectElement}
+     */
     var selectGraphCols, selectGraphRows, selectGraphLays, selectScope;
+
+    /**
+     * Buttons for navigating the cell view.
+     * @type {HTMLButtonElement}
+     */
     var upButton, leftButton, rightButton, downButton;
+
+    /**
+     * SVG element for rendering the graph visualization.
+     * @type {SVGElement}
+     */
     var svgView;
+
+    /**
+     * Variables to store the current row, column, and layer of the cell view.
+     * @type {number}
+     */
     var r, c, l;
 
+    /**
+     * Previously focused element.
+     * @type {HTMLElement}
+     */
     var prevFocused = null;
 
+    /**
+     * Width of the SVG view.
+     * @type {number}
+     * @constant
+     */
     const _width = 600;
+
+    /**
+     * Height of the SVG view.
+     * @type {number}
+     * @constant
+     */
     const _height = 600;
+
+    /**
+     * Center X coordinate of the SVG view.
+     * @type {number}
+     * @constant
+     */
     const ctrX = _width / 2;
+
+    /**
+     * Center Y coordinate of the SVG view.
+     * @type {number}
+     * @constant
+     */
     const ctrY = _height / 2;
 
+    /**
+     * User interface element for the cell view dialog.
+     * @type {HTMLElement}
+     */
     var ui = createUI();
 
+    /**
+     * Event listener for keydown events in the dialog.
+     * @param {KeyboardEvent} event - The keydown event.
+     */
     ui.addEventListener('keydown', onKeyDownX);
 
+    /**
+     * X coordinate of the initial touch.
+     * @type {number}
+     */
     var xDown = null;                                                        
+
+    /**
+     * Y coordinate of the initial touch.
+     * @type {number}
+     */
     var yDown = null;
 
+    /**
+     * Event listener for touchstart events in the dialog.
+     * @param {TouchEvent} evt - The touchstart event.
+     */
     ui.addEventListener('touchstart', handleTouchStart, false);        
+
+    /**
+     * Event listener for touchmove events in the dialog.
+     * @param {TouchEvent} evt - The touchmove event.
+     */
     ui.addEventListener('touchmove', handleTouchMove, false);
 
+    /**
+     * Event listener for the window load event.
+     */
     window.addEventListener('load', () => {
         window.document.body.appendChild(ui);
     });
 
+    /**
+     * Get touches from the touch event.
+     * @param {TouchEvent} evt - The touch event.
+     * @returns {TouchList} The touches from the event.
+     */
     function getTouches(evt) {
       return evt.touches ||             // browser API
              evt.originalEvent.touches; // jQuery
     }    
 
+    /**
+     * Event handler for touchstart events.
+     * @param {TouchEvent} evt - The touchstart event.
+     */
     function handleTouchStart(evt) {
         const firstTouch = getTouches(evt)[0];                                      
         xDown = firstTouch.clientX;                                      
         yDown = firstTouch.clientY;                                      
     };                                                
 
+    /**
+     * Event handler for touchmove events.
+     * @param {TouchEvent} evt - The touchmove event.
+     */
     function handleTouchMove(evt) {
         if ( ! xDown || ! yDown ) {
             return;
@@ -79,6 +171,10 @@ sgv.dlgCellView = new function () {
         yDown = null;                                             
     };
 
+    /**
+     * Event handler for keydown events in the dialog.
+     * @param {KeyboardEvent} event - The keydown event.
+     */
     function onKeyDownX(event) {
         let key = event.key;
         //console.log(key);
@@ -111,18 +207,27 @@ sgv.dlgCellView = new function () {
         }
     }
 
+    /**
+     * Creates the user interface for the cell view dialog.
+     * @returns {HTMLElement} The UI element.
+     */
     function createUI() {
+        // Initialize variables
         r = c = l = 0;
 
+        // Create the main UI element
         let ui = UI.createEmptyWindow("sgvUIwindow", "sgvCellView", "Cell view", true);
 
+        // Add event listener for the hide button
         ui.querySelector(".hidebutton").addEventListener('click', function () {
             hideDialogX();
         });
 
+        // Create the content div
         let content = UI.tag("div", {"class": "content", "id": "main"});
 
 
+        // Create the SVG view element
         let div = UI.tag('div',{'id':'svg'});
 
         svgView = SVG.createSVG2('svgView', _width, _height, (event) => {
@@ -141,6 +246,8 @@ sgv.dlgCellView = new function () {
 
         g.style['text-align'] = 'center';
 
+        // Select elements for choosing the column, row, and layer of the cell view
+        
         selectGraphCols = UI.tag('select', {'id': 'graphCols'});
         selectGraphCols.addEventListener('change', () => {
             drawModule(
@@ -180,100 +287,21 @@ sgv.dlgCellView = new function () {
         
         content.appendChild(UI.createTransparentBtn1('CLOSE', 'CloseButton', ()=>{hideDialogX();}));
 
-//        const tbl = document.createElement("table");
-//        const tblBody = document.createElement("tbody");
-//
-//        let t = [];
-//        
-//        for (let i = 0; i < 3; i++) {
-//            const row = document.createElement("tr");
-//            row.style['padding']='0';
-//            row.style['margin']='0';
-//            t.push([]);
-//            for (let j = 0; j < 3; j++) {
-//                const cell = document.createElement("td");
-//                //const cellText = document.createTextNode(`cell in row ${i}, column ${j}`);
-//                //cell.appendChild(cellText);
-//                row.appendChild(cell);
-//                cell.style['padding']='0';
-//                cell.style['margin']='0';
-//                t[i][j] = cell;
-//            }
-//            tblBody.appendChild(row);
-//        }
-//
-//        console.log(t);
-//        tbl.appendChild(tblBody);
-//        content.appendChild(tbl);
-//        
-//        tbl.setAttribute("border", "0");
-//        tbl.setAttribute("bgcolor", "#ffffff");
-//        tbl.setAttribute("cellpadding", "0");
-//        tbl.setAttribute("cellspacing", "0");
-
-//        upButton = UI.tag('button',{'class':''},{'innerHTML':'^'});
-//        upButton.style['width'] = '400px';
-//        upButton.style['height'] = '24px';
-//        upButton.style['border'] = '0';
-//        upButton.style['margin'] = '0';
-//        upButton.style['padding'] = '0';
-//        upButton.addEventListener('click', ()=>{
-//           if (r<(sgv.graf.rows-1)) {
-//               drawModule(c,r+1,l);
-//           }
-//        });
-//        t[0][1].appendChild(upButton);
-
-//        leftButton = UI.tag('button',{'class':''},{'innerHTML':'<'});
-//        leftButton.style['height'] = '600px';
-//        leftButton.style['width'] = '24px';
-//        leftButton.style['border'] = '0';
-//        leftButton.style['margin'] = '0';
-//        leftButton.style['padding'] = '0';
-//        leftButton.addEventListener('click', ()=>{
-//           if (c>0) {
-//               drawModule(c-1,r,l);
-//           }
-//        });
-//        t[1][0].appendChild(leftButton);
-
-
-//        t[1][1].appendChild(div);
-//        rightButton = UI.tag('button',{'class':''},{'innerHTML':'>'});
-//        rightButton.style['height'] = '600px';
-//        rightButton.style['width'] = '24px';
-//        rightButton.style['border'] = '0';
-//        rightButton.style['margin'] = '0';
-//        rightButton.style['padding'] = '0';
-//        rightButton.addEventListener('click', ()=>{
-//           if (c<(sgv.graf.cols-1)) {
-//               drawModule(c+1,r,l);
-//           }
-//        });
-//        t[1][2].appendChild(rightButton);
-
-//        downButton = UI.tag('button',{'class':''},{'innerHTML':'v'});
-//        downButton.style['width'] = '400px';
-//        downButton.style['height'] = '24px';
-//        downButton.style['border'] = '0';
-//        downButton.style['margin'] = '0';
-//        downButton.style['padding'] = '0';
-//        downButton.addEventListener('click', ()=>{
-//           if (r>0) {
-//               drawModule(c,r-1,l);
-//           }
-//        });
-//        t[2][1].appendChild(downButton);
-
+        // Append content to the UI element
         ui.appendChild(content);
 
+        // Set initial display style to "none"
         ui.style.display = "none";
-//        ui.style['top'] = isMobile?winS*0.05:'10vh';
-//        ui.style['left'] = isMobile?winS*0.05:'10vh';
+
+        // Return the UI element
         return ui;
     }
     
 
+    /**
+     * Event handler for click events on elements.
+     * @param {MouseEvent} e - The click event.
+     */
     function onClick(e) {
         var element = e.target;
         var offsetX = 0, offsetY = 0;
@@ -291,6 +319,12 @@ sgv.dlgCellView = new function () {
         console.log(x, y);
     }
 
+    /**
+    * Calculates the position of a node based on its ID and mode.
+    * @param {number} id - The ID of the node.
+    * @param {string} mode - The mode of the position calculation.
+    * @returns {Object} The x and y coordinates of the node.
+    */
     function pos(id, mode) {
         const pos = {
             'classic': [
@@ -312,6 +346,10 @@ sgv.dlgCellView = new function () {
         };
     }
 
+    /**
+     * Event handler for click events on external nodes.
+     * @param {MouseEvent} event - The click event.
+     */
     function onExternalNodeClick(event) {
         event.preventDefault();
         let sp = event.target.id.split('_');
@@ -327,7 +365,10 @@ sgv.dlgCellView = new function () {
         sgv.dlgNodeProperties.show(id, rect.x, rect.y);
     }
     
-
+    /**
+     * Event handler for click events on nodes.
+     * @param {MouseEvent} event - The click event.
+     */
     function onNodeClick(event) {
         event.preventDefault();
         let sp = event.target.id.split('_');
@@ -338,7 +379,10 @@ sgv.dlgCellView = new function () {
             sgv.dlgNodeProperties.show(event.target.id, rect.x, rect.y);
     }
     
-
+    /**
+     * Event handler for click events on edges.
+     * @param {MouseEvent} event - The click event.
+     */
     function onEdgeClick(event) {
         event.preventDefault();
         let sp = event.target.id.split('_');
@@ -349,7 +393,14 @@ sgv.dlgCellView = new function () {
             sgv.dlgEdgeProperties.show(event.target.id, rect.x, rect.y);
     }
     
-
+    /**
+     * Draws an external edge.
+     * @param {number} offset - The offset of the module.
+     * @param {number} ijk - The index of the node.
+     * @param {number} e - The index of the connected external node.
+     * @param {number} endX - The x-coordinate of the end point of the edge.
+     * @param {number} endY - The y-coordinate of the end point of the edge.
+     */
     function drawExtEdge(offset, ijk, e, endX, endY) {
 
         let b = offset + ijk;
@@ -367,6 +418,12 @@ sgv.dlgCellView = new function () {
         }
     }
 
+    /**
+     * Draws an internal edge.
+     * @param {number} offset - The offset of the module.
+     * @param {number} iB - The index of the starting node.
+     * @param {number} iE - The index of the ending node.
+     */
     function drawInternalEdge(offset, iB, iE) {
         let b = offset + iB;
         let e = offset + iE;
@@ -383,7 +440,11 @@ sgv.dlgCellView = new function () {
         }
     }
 
-
+    /**
+     * Draws a node.
+     * @param {number} offset - The offset of the module.
+     * @param {number} id - The ID of the node.
+     */
     function drawNode(offset, id) {
         let nodeId = offset + id;
         if ((nodeId) in sgv.graf.nodes) {
@@ -395,7 +456,13 @@ sgv.dlgCellView = new function () {
         }
     }
 
-
+    /**
+     * Calculates the offset based on the column, row, and layer.
+     * @param {number} col - The column index.
+     * @param {number} row - The row index.
+     * @param {number} layer - The layer index.
+     * @returns {number} The calculated offset.
+     */
     function calcOffset(col, row, layer) {
         let offset = layer * sgv.graf.cols * sgv.graf.rows;
         offset += row * sgv.graf.cols;
@@ -407,6 +474,12 @@ sgv.dlgCellView = new function () {
         return offset;
     }
 
+    /**
+     * Draws the module based on the column, row, and layer.
+     * @param {number} col - The column index.
+     * @param {number} row - The row index.
+     * @param {number} layer - The layer index.
+     */
     function drawModule(col, row, layer) {
         svgView.innerHTML = '';
 
@@ -527,7 +600,11 @@ sgv.dlgCellView = new function () {
     
 
 
+    /**
+     * Shows the cell view dialog.
+     */
     function showDialogX() {
+        // Clear and populate the select elements with options
         UI.clearSelect(selectGraphCols, true);
         for (let i = 0; i < sgv.graf.cols; i++)
             selectGraphCols.appendChild(UI.option(i, i));
@@ -543,34 +620,44 @@ sgv.dlgCellView = new function () {
             selectGraphLays.appendChild(UI.option(i, i));
         selectGraphLays.selectedIndex = l;
 
+        // Disable the layer select if there's only one layer
         if (sgv.graf.layers === 1) {
             selectGraphLays.disabled = 'disabled';
         } else {
             selectGraphLays.disabled = '';
         }
 
+        // Refresh the selectScope element
         selectScope.refresh();
-//        UI.clearSelect(selectScope, true);
-//        for (let s in sgv.graf.scopeOfValues)
-//            selectScope.appendChild(UI.option(sgv.graf.scopeOfValues[s], sgv.graf.scopeOfValues[s]));
-//        UI.selectByKey(selectScope, sgv.graf.currentScope);
 
+        // Draw the module based on the current column, row, and layer
         drawModule();
 
+        // Show the dialog
         ui.style.display = "block";
+
+        // Store the previously focused element and set focus to the UI element
         prevFocused = window.document.activeElement;
         ui.focus({focusVisible: false});
     }
     
 
 
+    /**
+     * Hides the cell view dialog.
+     */
     function hideDialogX() {
+        // Restore focus to the previously focused element
         if (prevFocused !== null)
             prevFocused.focus({focusVisible: false});
+        // Hide the dialog
         ui.style.display = "none";
     }
     
 
+    /**
+     * Switches the visibility of the cell view dialog.
+     */
     function switchDialogX() {
         if (ui.style.display === "none") {
             showDialogX();
@@ -580,7 +667,7 @@ sgv.dlgCellView = new function () {
     }
     
 
-
+    // Return public methods and properties
     return {
         refresh: drawModule,
         switchDialog: switchDialogX,

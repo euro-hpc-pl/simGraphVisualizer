@@ -17,9 +17,20 @@
 
 /* global UI */
 
+/**
+ * Represents a generic window UI component.
+ * @class
+ * @param {string} _id - The ID of the window.
+ * @param {string} _title - The title of the window.
+ * @param {Object} args - Additional arguments.
+ */
 const GenericWindow = /** @class */ (function (_id, _title, args) {
     var prevFocused = null;
 
+    /**
+     * The UI element of the window.
+     * @type {HTMLElement}
+     */
     this.ui = UI.tag("div", {'class': 'sgvUIwindow'});
     var movable = false;
     
@@ -27,6 +38,10 @@ const GenericWindow = /** @class */ (function (_id, _title, args) {
         this.ui.setAttribute("id", _id);
     }
 
+    /**
+     * The title bar of the window.
+     * @type {HTMLElement}
+     */
     let titleBar = UI.tag( "div", { "class": "title" });
     titleBar.appendChild( UI.tag( "span", { "class": "titleText" }, {"textContent": _title}) );
     
@@ -44,6 +59,10 @@ const GenericWindow = /** @class */ (function (_id, _title, args) {
 
     window.addEventListener('load', () => window.document.body.appendChild(this.ui));
     
+    /**
+     * Sets the window as movable.
+     * @param {HTMLElement} ui - The UI element of the window.
+     */
     function setMovable(ui) {
         ui.offset = {x:0,y:0};
         ui.isDown = false;
@@ -83,17 +102,26 @@ const GenericWindow = /** @class */ (function (_id, _title, args) {
         }, true);
     }
     
+    /**
+     * Shows the window.
+     */
     this._show = ()=>{
         prevFocused = window.document.activeElement;
         this.ui.style.display = "block";
         this.ui.focus({focusVisible: false});
     };
     
+    /**
+     * Hides the window.
+     */
     this._hide = ()=>{
         this.ui.style.display = "none";
         if (prevFocused !== null) prevFocused.focus({focusVisible: false});
     };
     
+    /**
+     * Toggles the visibility of the window.
+     */
     this._switch = ()=>{
         if (this.ui.style.display === "none") {
             this._show();
@@ -102,19 +130,36 @@ const GenericWindow = /** @class */ (function (_id, _title, args) {
         }
     };
     
+    /**
+     * A test method.
+     */
     this._test = function() { console.log('test 1a'); };
-    
 });
 
+/**
+ * Shows the window.
+ */
 GenericWindow.prototype.show = this._show;
-GenericWindow.prototype.hide = this._hide;
-GenericWindow.prototype.switch = this._switch;
-GenericWindow.prototype.test = ()=> { console.log('test 1'); };
-    
-/****************************************************************************/
-/*                            TESTY                                         */
-/****************************************************************************/
 
+/**
+ * Hides the window.
+ */
+GenericWindow.prototype.hide = this._hide;
+
+/**
+ * Toggles the visibility of the window.
+ */
+GenericWindow.prototype.switch = this._switch;
+
+/**
+ * A test method.
+ */
+GenericWindow.prototype.test = ()=> { console.log('test 1'); };
+
+
+/****************************************************************************/
+/*   the following code is for testing purposes only                        */
+/****************************************************************************/
 
 function ExePanel() {
     function PathLine(id) {

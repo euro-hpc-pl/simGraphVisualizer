@@ -1,5 +1,3 @@
-
-
 /* 
  * Copyright 2022 Dariusz Pojda.
  *
@@ -19,7 +17,18 @@
 "use strict";
 /* global BABYLON, sgv */
 
+/**
+ * Edge class representing an edge in a graph.
+ * @class
+ * @param {object} graf - The parent graph object.
+ * @param {number|string} b - The identifier of the beginning node of the edge.
+ * @param {number|string} e - The identifier of the ending node of the edge.
+ */
 var Edge = /** @class */ (function (graf, b, e) {
+    /**
+     * Creates an instance of the Edge class.
+     * @constructor
+     */
     this.parentGraph = graf;
 
     this.values = {
@@ -50,12 +59,22 @@ var Edge = /** @class */ (function (graf, b, e) {
 
     this._checked = false;
 
+    /**
+     * Retrieves the identifier of the mesh associated with the edge.
+     * @returns {number} The mesh identifier.
+     */
     this.meshId = ()=>mesh.idx;
     
+    /**
+     * Clears the edge by unbinding it from the scene particle system.
+     */
     this.clear = function() {
         sgv.SPS.unbindEdge(this);
     };
 
+    /**
+     * Toggles the check flag of the edge.
+     */
     this.switchCheckFlag = function () {
         this._checked = !this._checked;
 
@@ -65,6 +84,10 @@ var Edge = /** @class */ (function (graf, b, e) {
         //this.instance.material = this._checked ? sgv.grayMat1 : sgv.grayMat0;
     };
 
+    /**
+     * Deletes the value associated with a scope for the edge.
+     * @param {string} [scope] - The scope for which to delete the value. If not provided, the current scope is used.
+     */
     this.delValue = function(scope) {
         if (typeof scope === 'undefined') {
             scope = this.parentGraph.currentScope;
@@ -75,6 +98,11 @@ var Edge = /** @class */ (function (graf, b, e) {
         }
     };
 
+    /**
+     * Retrieves the value associated with a scope for the edge.
+     * @param {string} [scope] - The scope for which to retrieve the value. If not provided, the current scope is used.
+     * @returns {number} The value associated with the scope.
+     */
     this.getValue = function (scope) {
         if (typeof scope === 'undefined') {
             scope = this.parentGraph.currentScope;
@@ -87,6 +115,11 @@ var Edge = /** @class */ (function (graf, b, e) {
         }
     };
 
+    /**
+     * Sets the value associated with a scope for the edge.
+     * @param {number} val - The value to set.
+     * @param {string} [valId='default'] - The value identifier. Defaults to 'default'.
+     */
     this.setValue = function (val, valId) {
         if (typeof valId === 'undefined') {
             valId = 'default';
@@ -99,6 +132,10 @@ var Edge = /** @class */ (function (graf, b, e) {
         this.displayValue(valId);
     };
 
+    /**
+     * Displays the value associated with a value identifier for the edge.
+     * @param {string} [valId='default'] - The value identifier. Defaults to 'default'.
+     */
     this.displayValue = function (valId) {
         if (typeof valId === 'undefined') {
             valId = 'default';
@@ -114,6 +151,9 @@ var Edge = /** @class */ (function (graf, b, e) {
         sgv.SPS.updateEdgeValue(this, edgeColor, edgeWidth);
     };
 
+    /**
+     * Updates the edge by setting its color, width, and position based on the current value.
+     */
     this.update = ()=>{
         let val = this.values[this.parentGraph.currentScope];
         
@@ -136,7 +176,14 @@ var Edge = /** @class */ (function (graf, b, e) {
 
 });
 
-//static
+// Static method
+
+/**
+ * Calculates the identifier for an edge based on the beginning and ending node identifiers.
+ * @param {number|string} b - The identifier of the beginning node of the edge.
+ * @param {number|string} e - The identifier of the ending node of the edge.
+ * @returns {string} The calculated identifier.
+ */
 Edge.calcId = (b, e) => {
     if (typeof b==='string') b = parseInt(b,10); 
     if (typeof e==='string') e = parseInt(e,10); 

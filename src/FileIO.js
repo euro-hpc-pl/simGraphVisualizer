@@ -1,13 +1,21 @@
-
 /* global sgv, UI, URL, Chimera, Pegasus, ParserGEXF, ParserTXT, Graph, Dispatcher */
+
+/**
+ * FileIO namespace for file input/output operations.
+ * @namespace
+ */
 var FileIO = {};
 
+/**
+ * Event handler for the load button.
+ */
 FileIO.onLoadButton = () => {
     let btnLoad1 = UI.tag('input',{
         'type':'file',
         'id':'inputfile',
         'display':'none'
     });
+    // Add event listener to handle file selection
     btnLoad1.addEventListener('change', (e)=>{
         if (typeof btnLoad1.files[0]!=='undefined') {
             showSplashAndRun(()=>{
@@ -17,9 +25,14 @@ FileIO.onLoadButton = () => {
         }
     });
 
+    // Simulate a click event to trigger file selection dialog
     btnLoad1.click();
 };
 
+/**
+ * Event handler for the save button.
+ * @returns {Promise} A promise that resolves or rejects based on the save operation.
+ */
 FileIO.onSaveButton = ()=>{
     return new Promise((resolve,reject)=>{
         if (typeof window.showSaveFilePicker === 'function') {
@@ -67,6 +80,12 @@ FileIO.onSaveButton = ()=>{
     
 }; 
 
+/**
+ * Downloads a file.
+ * @param {string} text - The text content of the file.
+ * @param {string} name - The name of the file.
+ * @param {string} type - The MIME type of the file.
+ */
 FileIO.download = (text, name, type) => {
     let a = document.createElement("a");
     let fileAsBlob = new Blob([text], {type: type});
@@ -90,6 +109,11 @@ FileIO.download = (text, name, type) => {
     a.click();
 };
 
+/**
+ * Saves the graph with an alternate file name and extension.
+ * @param {string} name - The name of the file.
+ * @param {string} ext - The extension of the file.
+ */
 FileIO.alternateSave = (name, ext) => {
     if (ext === '.txt') {
         let string = ParserTXT.exportGraph(sgv.graf);
@@ -100,6 +124,11 @@ FileIO.alternateSave = (name, ext) => {
     }
 };
 
+/**
+ * Converts a string representation of graph data to the specified scope.
+ * @param {string} data - The string representation of the graph data.
+ * @param {string} newScope - The new scope for the graph.
+ */
 sgv.stringToScope = (data,newScope) => {
     let r = sgv.graf.loadScopeValues(newScope,data);
             
@@ -110,6 +139,10 @@ sgv.stringToScope = (data,newScope) => {
 };
 
 
+/**
+ * Loads a graph from a selected file.
+ * @param {File} selectedFile - The selected file.
+ */
 FileIO.loadGraph = function(selectedFile) {
     const name = selectedFile.name;
     const reader = new FileReader();
@@ -130,6 +163,11 @@ FileIO.loadGraph = function(selectedFile) {
     }                    
 };
         
+/**
+ * Loads a graph with the specified name and data.
+ * @param {string} name - The name of the graph.
+ * @param {string} data - The data of the graph.
+ */
 FileIO.loadGraph2 = function(name,data) {
     if (name.endsWith("txt")) {
         Graph.remove();

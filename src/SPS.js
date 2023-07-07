@@ -1,24 +1,79 @@
 /* global sgv, BABYLON, Edge */
 
+/**
+ * Solid Particle System module for creating and managing node and edge particles in a scene.
+ * @param {BABYLON.Scene} scene - The Babylon.js scene.
+ * @returns {Object} An object with functions for initializing, updating, and managing node and edge particles.
+ */
 var SPS = (function(scene) {
+    /**
+     * Solid Particle System for nodes.
+     * @type {BABYLON.SolidParticleSystem}
+     */
     var NodeSPS = new BABYLON.SolidParticleSystem("NodeSPS", scene, { isPickable: true, expandable: true, enableDepthSort: true });
+
+    /**
+     * Solid Particle System for edges.
+     * @type {BABYLON.SolidParticleSystem}
+     */
     var EdgeSPS = new BABYLON.SolidParticleSystem("EdgeSPS", scene, { isPickable: true, expandable: true, enableDepthSort: true });
 
+    /**
+     * Mesh representing node particles.
+     * @type {?BABYLON.Mesh}
+     */
     var NodeSPSmesh = null;
+
+    /**
+     * Mesh representing edge particles.
+     * @type {?BABYLON.Mesh}
+     */
     var EdgeSPSmesh = null;
     
+    /**
+     * Counter for node particles.
+     * @type {number}
+     */
     var eCnt = 0;
+    
+    /**
+     * Counter for edge particles.
+     * @type {number}
+     */
     var nCnt = 0;
     
+    /**
+     * Array to store indices of killed node particles.
+     * @type {number[]}
+     */
     var nKilled = [];
+
+    /**
+     * Array to store indices of killed edge particles.
+     * @type {number[]}
+     */
     var eKilled = [];
     
+    /**
+     * Default sphere mesh used for node particles.
+     * @type {BABYLON.Mesh}
+     */
     var defaultSphere = BABYLON.MeshBuilder.CreateSphere("defaultSphere", {diameter: 3, segments: 8, updatable: false});
+
+    /**
+     * Default cylinder mesh used for edge particles.
+     * @type {BABYLON.Mesh}
+     */
     var defaultCylinder = BABYLON.MeshBuilder.CreateCylinder("cylinder", {height:1, diameter:1, tessellation:6, updatable: false});
     
     defaultSphere.setEnabled(false);
     defaultCylinder.setEnabled(false);
     
+    /**
+     * Initializes the solid particle systems with the specified number of nodes and edges.
+     * @param {number} [nbN=100] - The initial number of node particles.
+     * @param {number} [nbE=500] - The initial number of edge particles.
+     */
     function initX(nbN, nbE) {
         if (typeof nbN !== 'number') nbN = 100;
         if (typeof nbE !== 'number') nbE = 500;
@@ -40,6 +95,10 @@ var SPS = (function(scene) {
         refreshX();
     };
 
+    /**
+     * Adds additional space for edge particles in the particle system.
+     * @param {number} [nb=500] - The number of additional edge particles to add.
+     */
     function addSpaceForEdgesX(nb) {
         if (typeof nb !== 'number') nb = 500;
 
@@ -55,6 +114,10 @@ var SPS = (function(scene) {
         //console.log('EdgeSPS: ',EdgeSPS.nbParticles);
     }
         
+    /**
+     * Adds additional space for node particles in the particle system.
+     * @param {number} [nb=100] - The number of additional node particles to add.
+     */
     function addSpaceForNodesX(nb) {
         if (typeof nb !== 'number') nb = 100;
         
@@ -70,21 +133,35 @@ var SPS = (function(scene) {
         //console.log('NodeSPS: ',NodeSPS.nbParticles);
     }
 
+    /**
+     * Refreshes the state and visibility of node particles in the particle system.
+     */
     function refreshNodesX() {
         NodeSPS.setParticles();
         NodeSPS.refreshVisibleSize();
     };
 
+    /**
+     * Refreshes the state and visibility of edge particles in the particle system.
+     */
     function refreshEdgesX() {
         EdgeSPS.setParticles();
         EdgeSPS.refreshVisibleSize();
     };
 
+    /**
+     * Refreshes the state and visibility of both node and edge particles in the particle system.
+     */
     function refreshX() {
         refreshNodesX();
         refreshEdgesX();
     };
     
+    /**
+     * Generates a unique ID for a node particle.
+     * @private
+     * @returns {number} The unique ID.
+     */
     function _uniqueNodeId() {
 //        if (nKilled.length>0) {
 //            return nKilled.pop();
@@ -96,6 +173,11 @@ var SPS = (function(scene) {
         return id;
     };
     
+    /**
+     * Generates a unique ID for an edge particle.
+     * @private
+     * @returns {number} The unique ID.
+     */
     function _uniqueEdgeId() {
 //        if (eKilled.length>0) {
 //            return eKilled.pop();
@@ -107,6 +189,13 @@ var SPS = (function(scene) {
         return id;
     };
 
+    /**
+     * Binds a node to a particle in the particle system.
+     * @param {Object} node - The node object to bind.
+     * @param {BABYLON.Vector3} position - The position of the node.
+     * @param {BABYLON.Color3} color - The color of the node.
+     * @returns {?BABYLON.SolidParticle} The bound particle, or null if not found.
+     */
     function bindNodeX(node, position, color) {
         let id = _uniqueNodeId();
         let m = NodeSPS.particles[id];
@@ -124,6 +213,11 @@ var SPS = (function(scene) {
         return null;
     }
 
+    /**
+     * Updates the value (color) of a bound node particle.
+     * @param {Object} node - The node object whose value to update.
+     * @param {BABYLON.Color3} nodeColor - The new color value.
+     */
     function updateNodeValueX(node, nodeColor) {
         let idx = node.meshId();
         let mesh = NodeSPS.particles[idx];
@@ -132,6 +226,10 @@ var SPS = (function(scene) {
         mesh.isVisible = true;
     }
 
+    /**
+     * Unbinds a node from its associated particle.
+     * @param {Object} node - The node object to unbind.
+     */
     function unbindNodeX(node) {
         let idx = node.meshId();
         //console.log(node);
@@ -142,6 +240,14 @@ var SPS = (function(scene) {
         nKilled.push(idx);
     }
 
+    /**
+     * Sets the properties of an edge particle in the particle system.
+     * @param {Object} edge - The edge object.
+     * @param {BABYLON.Color3} edgeColor - The color of the edge.
+     * @param {number} edgeWidth - The width of the edge.
+     * @param {BABYLON.Vector3} b - The starting position of the edge.
+     * @param {BABYLON.Vector3} e - The ending position of the edge.
+     */
     function setEdgeX(edge, edgeColor, edgeWidth, b, e) {
         let idx = edge.meshId();
         let mesh = EdgeSPS.particles[idx];
@@ -162,6 +268,12 @@ var SPS = (function(scene) {
         mesh.isVisible = true;
     }
 
+    /**
+     * Updates the geometry (position and rotation) of a bound edge particle.
+     * @param {Object} edge - The edge object.
+     * @param {BABYLON.Vector3} b - The starting position of the edge.
+     * @param {BABYLON.Vector3} e - The ending position of the edge.
+     */
     function updateEdgeGeometryX(edge, b, e) {
         let idx = edge.meshId();
         let mesh = EdgeSPS.particles[idx];
@@ -179,6 +291,12 @@ var SPS = (function(scene) {
         mesh.isVisible = true;
     }
 
+    /**
+     * Updates the value (color and width) of a bound edge particle.
+     * @param {Object} edge - The edge object.
+     * @param {BABYLON.Color3} edgeColor - The new color value.
+     * @param {number} edgeWidth - The new width value.
+     */
     function updateEdgeValueX(edge, edgeColor, edgeWidth) {
         let idx = edge.meshId();
         let mesh = EdgeSPS.particles[idx];
@@ -189,6 +307,11 @@ var SPS = (function(scene) {
         mesh.isVisible = true;
     }
     
+    /**
+     * Binds an edge to a particle in the particle system.
+     * @param {Object} edge - The edge object to bind.
+     * @returns {?BABYLON.SolidParticle} The bound particle, or null if not found.
+     */
     function bindEdgeX(edge) {
         let id = _uniqueEdgeId();
         let m = EdgeSPS.particles[id];
@@ -201,6 +324,10 @@ var SPS = (function(scene) {
         return null;
     }
     
+    /**
+     * Unbinds an edge from its associated particle.
+     * @param {Object} edge - The edge object to unbind.
+     */
     function unbindEdgeX(edge) {
         let idx = edge.meshId();
         //console.log(edge);
@@ -211,6 +338,11 @@ var SPS = (function(scene) {
         eKilled.push(idx);
     }
     
+    /**
+     * Handles the picking event on the particle systems and returns the type and ID of the picked element.
+     * @param {Object} pickInfo - The pick information.
+     * @returns {Object} An object with the type and ID of the picked element.
+     */
     function onPickX(pickInfo) {
         let name = pickInfo.pickedMesh.name;
 
@@ -226,11 +358,17 @@ var SPS = (function(scene) {
         return { type: 'unknown', id: -1 };
     }
     
+    /**
+     * Resets the particle system counters to their initial values.
+     */
     function resetX() {
         nCnt = 0;
         eCnt = 0;
     }
     
+    /**
+     * public interface
+     */
     return {
         init: initX,
         reset: resetX,

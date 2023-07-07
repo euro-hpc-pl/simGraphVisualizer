@@ -18,11 +18,24 @@
 "use strict";
 /* global BABYLON, sgv, Graph, QbDescr, Chimera, DEMO_MODE */
 
+/**
+ * Represents a Pegasus graph structure.
+ * @class
+ * @extends Chimera
+ * @param {number} gSize - The size of the graph.
+ */
 var Pegasus = /** @class */ (function (gSize) {
     Chimera.call(this, gSize);
 
+    /**
+     * The type of the graph.
+     * @type {string}
+     */
     this.type = 'pegasus';
 
+    /**
+     * Connects the Pegasus edges.
+     */
     this.pegasusConnections = () => {
         for (let z = 0; z < this.layers; z++) {
             for (let y = 0; y < this.rows; y++) {
@@ -34,6 +47,10 @@ var Pegasus = /** @class */ (function (gSize) {
         }
     };
 
+    /**
+     * Creates the default Pegasus graph structure.
+     * @param {function} then - The callback function to be called after the structure is created.
+     */
     this.createDefaultStructure = function (then) {
         sgv.dlgLoaderSplash.setInfo('creating modules', () => {
             this.createModules(); // derrived from Chimera
@@ -56,6 +73,12 @@ var Pegasus = /** @class */ (function (gSize) {
         });
     };
 
+    /**
+     * Connects the external Pegasus edges.
+     * @param {number} x - The x-coordinate of the node.
+     * @param {number} y - The y-coordinate of the node.
+     * @param {number} z - The z-coordinate of the node.
+     */
     this.connectExternalPegasusEdges = function (x, y, z) {
         let v12, v13, v14, v15, v16, v17, v18, v19;
 
@@ -113,6 +136,12 @@ var Pegasus = /** @class */ (function (gSize) {
         }
     };
 
+    /**
+     * Connects the internal Pegasus edges.
+     * @param {number} x - The x-coordinate of the node.
+     * @param {number} y - The y-coordinate of the node.
+     * @param {number} z - The z-coordinate of the node.
+     */
     this.connectInternalPegasusEdges = function (x, y, z) {
         let v;
 
@@ -135,4 +164,9 @@ var Pegasus = /** @class */ (function (gSize) {
 Pegasus.prototype = Object.create(Chimera.prototype);
 Pegasus.prototype.constructor = Pegasus;
 
+/**
+ * Registers the Pegasus type in the Graph.
+ * @param {string} 'pegasus' - The type name of the graph.
+ * @param {function} Pegasus - The Pegasus class.
+ */
 Graph.registerType('pegasus', Pegasus);
