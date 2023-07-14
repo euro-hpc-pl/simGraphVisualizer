@@ -1,7 +1,16 @@
 /* global sgv */
 
+/**
+ * @namespace
+ * @description This object provides functionality related to dispatching events in the application.
+ */
 var Dispatcher = {};
 
+/**
+ * Triggers UI updates when the graph has been deleted.
+ * 
+ * @function
+ */
 Dispatcher.graphDeleted = ()=>{
     sgv.SPS.reset();
     sgv.SPS.refresh();
@@ -16,6 +25,11 @@ Dispatcher.graphDeleted = ()=>{
     enableMenu('menuViewCellView', false);
 };
 
+/**
+ * Triggers UI updates when the graph has been created.
+ *
+ * @function
+ */
 Dispatcher.graphCreated = ()=>{
     sgv.dlgCellView.hide();
     sgv.dlgCPL.setModeDescription();
@@ -29,6 +43,11 @@ Dispatcher.graphCreated = ()=>{
     enableMenu('menuViewCellView', true);
 };
 
+/**
+ * Triggers UI updates when the graph has been changed.
+ *
+ * @function
+ */
 Dispatcher.graphChanged = ()=>{
     sgv.dlgCPL.refresh();
     sgv.dlgCellView.refresh();
@@ -37,6 +56,11 @@ Dispatcher.graphChanged = ()=>{
     sgv.SPS.refresh();
 };
 
+/**
+ * Triggers UI updates when the current scope has been changed.
+ *
+ * @function
+ */
 Dispatcher.currentScopeChanged = ()=>{
     sgv.dlgCPL.refresh();
     sgv.dlgCellView.refresh();
@@ -45,6 +69,11 @@ Dispatcher.currentScopeChanged = ()=>{
     sgv.SPS.refresh();
 };
 
+/**
+ * Triggers UI updates when the view mode has been changed.
+ *
+ * @function
+ */
 Dispatcher.viewModeChanged = ()=>{
     sgv.dlgCellView.refresh();
     sgv.dlgNodeProperties.refresh();

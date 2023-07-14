@@ -1,11 +1,28 @@
 
 /* global sgv, Chimera, Pegasus, Graph */
 
+/**
+ * @fileoverview This script imports and exports graphs in GEXF (Graph Exchange XML Format) format.
+ * 
+ * @module ParserGEXF
+ */
+
 "use strict";
 
+/** @type {Object} Module exporting GEXF parsing functionality */
 var ParserGEXF = {};
 
+/**
+ * Function to import graph data from GEXF format.
+ * 
+ * @function importGraph
+ * @memberof ParserGEXF
+ * @param {string} string - Input graph data in GEXF format
+ * @returns {boolean} - Returns true upon successful completion
+ */
 ParserGEXF.importGraph = (string) => {
+    // Initialize data structures
+    
     //var graphType = "unknown";
     //var graphSize = { cols:0, rows:0, lays:0, KL:0, KR:0 };
     var graphDescr = new GraphDescr();
@@ -13,6 +30,11 @@ ParserGEXF.importGraph = (string) => {
     var edgeAttrs = {};
     var struct = new TempGraphStructure();
     
+    /**
+     * Parses node elements from the GEXF XML data.
+     *
+     * @param {Element} parentNode - Parent XML node to parse nodes from
+     */
     function parseNodes(parentNode) {
         let nodes = parentNode.getElementsByTagName("nodes");
         let node = nodes[0].getElementsByTagName("node");
@@ -47,6 +69,11 @@ ParserGEXF.importGraph = (string) => {
         }
     };
     
+    /**
+     * Parses edge elements from the GEXF XML data.
+     *
+     * @param {Element} parentNode - Parent XML node to parse edges from
+     */
     function parseEdges(parentNode) {
         let nodes = parentNode.getElementsByTagName("edges");
         let node = nodes[0].getElementsByTagName("edge");
@@ -78,6 +105,12 @@ ParserGEXF.importGraph = (string) => {
         }
     };
 
+    /**
+     * Parses node attributes from the GEXF XML data.
+     *
+     * @param {Element} attributeNode - XML node to parse attributes from
+     * @returns {Object} - Returns an object containing the parsed attribute data
+     */
     function parseNodeAttribute(attributeNode) {
         let id = attributeNode.getAttribute("id");
         let title = attributeNode.getAttribute("title");
@@ -96,6 +129,12 @@ ParserGEXF.importGraph = (string) => {
     };
     
 
+    /**
+     * Parses edge attributes from the GEXF XML data.
+     *
+     * @param {Element} attributeNode - XML node to parse attributes from
+     * @returns {Object} - Returns an object containing the parsed attribute data
+     */
     function parseEdgeAttribute(attributeNode) {
         let id = attributeNode.getAttribute("id");
         let title = attributeNode.getAttribute("title");
@@ -103,6 +142,11 @@ ParserGEXF.importGraph = (string) => {
     };
 
 
+    /**
+     * Parses attributes from the GEXF XML data.
+     *
+     * @param {Element} parentNode - Parent XML node to parse attributes from
+     */
     function parseAttributes(parentNode){
         let attrs = parentNode.getElementsByTagName("attributes");
 
@@ -142,6 +186,7 @@ ParserGEXF.importGraph = (string) => {
     };
     
     
+    // Parse the input string as XML
     if (window.DOMParser) {
         parser = new DOMParser();
         xmlDoc = parser.parseFromString(string, "text/xml");
@@ -154,10 +199,12 @@ ParserGEXF.importGraph = (string) => {
     
     //console.log(xmlDoc);
     
+    // Parse the XML data
     parseAttributes(xmlDoc);
     parseNodes(xmlDoc);
     parseEdges(xmlDoc);
    
+    // Create graph and return
     Graph.create(graphDescr, struct);
     
     for (const i in nodeAttrs) {
@@ -168,9 +215,23 @@ ParserGEXF.importGraph = (string) => {
     return true;
 };
 
+/**
+ * Exports a graph to GEXF format.
+ * 
+ * @function exportGraph
+ * @memberof ParserGEXF
+ * @param {Graph} graph - The graph object to export
+ * @returns {?string} - The exported graph in GEXF format, or null if the graph is undefined or null
+ */
 ParserGEXF.exportGraph = function(graph) {
     if ((typeof graph==='undefined')||(graph === null)) return null;
     
+    /**
+     * Converts a graph node to GEXF format.
+     *
+     * @param {Node} node - The node to export
+     * @returns {string} - The node exported to GEXF format
+     */
     function exportNode(node) {
         let xml = '      <node id="' + node.id;
         if (node.isLabelVisible()) {
@@ -186,6 +247,13 @@ ParserGEXF.exportGraph = function(graph) {
         return xml;
     };
 
+    /**
+     * Converts a graph edge to GEXF format.
+     *
+     * @param {Edge} edge - The edge to export
+     * @param {number} tmpId - The temporary ID for the edge
+     * @returns {string} - The edge exported to GEXF format
+     */
     function exportEdge(edge, tmpId) {
         let xml = "      <edge id=\""+tmpId+"\" source=\""+edge.begin+"\" target=\""+edge.end+"\">\n";
         xml += "        <attvalues>\n";

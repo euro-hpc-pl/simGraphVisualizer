@@ -1,15 +1,28 @@
 /* global sgv, UI, FileIO */
 
+/**
+ * @namespace
+ * @description This object provides functionality related to handling the alternative save file dialog if the browser does not allow to open the system window for selecting a file to save.
+ */
 sgv.dlgAlternateFileSave = new function() {
     var selectType, selectName, spanExt;
     var btnCancel, btnSave;
     
+    /**
+     * @type {HTMLElement}
+     * @description User interface element for the dialog
+     */
     var ui = createUI();
 
     window.addEventListener('load',()=>{
         window.document.body.appendChild(ui);
     });
 
+    /**
+     * @function
+     * @description Creates the user interface for the dialog.
+     * @returns {HTMLElement} The created user interface
+     */
     function createUI() {
         //let ui = UI.createEmptyWindow("sgvUIwindow sgvModalDialog", "sgvSaveGraphDlg", "Save graph", true);
         let ui = UI.tag( "dialog", { "class": "sgvUIwindow sgvModalDialog", "id": "sgvDlgAltSaveGraph" });
@@ -68,16 +81,25 @@ the default location (usually: Downloads) or a selection window will appear."
         return ui;
     };
     
+    /**
+     * @function
+     * @description Hides the dialog.
+     */
     function hideDialog() {
         ui.close();
         ui.style.display = "none";
     };
     
+    /**
+     * @function
+     * @description Shows the dialog.
+     */
     function showDialog() {
         ui.style.display = "block";
         ui.showModal();
     };
     
+    // Public interface
     return {
         show: showDialog,
         hide: hideDialog

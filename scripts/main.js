@@ -1,3 +1,19 @@
+/**
+ * The entry point of the Electron application.
+ * 
+ * The application is designed to provide a user interface for visualizing and
+ * manipulating graph structures, and relies on external scripts for data processing.
+ * 
+ * Some functionality, such as reading and writing files, launching external scripts, 
+ * and configuring the application, is provided by the Electron main process.
+ * 
+ * The application uses the Inter-Process Communication (IPC) to communicate between 
+ * the main process and renderer process (web page). 
+ * 
+ * @module main
+ */
+
+// Import required modules
 const {app, dialog, shell, BrowserWindow, ipcMain, net, session, Menu, MenuItem} = require("electron");
 const path = require("path");
 const axios = require("axios");
@@ -11,13 +27,17 @@ const dataFile = require(path.join(app.getAppPath(), 'scripts/workers/dataFile.j
 const settings = require(path.join(app.getAppPath(), 'scripts/workers/settings.js'));
 const menu = require(path.join(app.getAppPath(), 'scripts/workers/mainMenu.js'));
 
+// Determine the operating system
 const isMac = process.platform === 'darwin';
 
+// Specify whether the application is in development mode
 const DEVELOPEMENT_MODE = true;
 
+// Settings object for storing external application configurations and working directory
 var appSettings = {
     workingDir: "",
     externApps: [],
+    // Read settings from the settings file
     read: () => {
         let temp = settings.get('settings', 'externApps');
         if (temp!==null) {
@@ -43,6 +63,7 @@ var appSettings = {
         appSettings.save();
         rebuildExtRunMenu();
     },
+    // Save the settings into the settings file
     save: () => {
         settings.set('settings', 'workingDir', appSettings.workingDir);
         settings.set('settings', 'externApps', appSettings.externApps);
@@ -57,6 +78,7 @@ var showSettingsDlg = function () {
     mainWindow.webContents.send('showSettings',appSettings.externApps,appSettings.workingDir);
 };
 
+// Function to add a menu item
 function addMenuItem(_parentID, _label, _callback) {
     let m = Menu.getApplicationMenu();
     if (typeof m !== 'undefined'){
@@ -74,6 +96,7 @@ function addMenuItem(_parentID, _label, _callback) {
     return null;
 }
 
+// Function to add a separator
 function addSeparator(_parentID) {
     let m = Menu.getApplicationMenu();
     if (typeof m !== 'undefined'){
@@ -90,6 +113,7 @@ function addSeparator(_parentID) {
     return null;
 }
 
+// Function to rebuild external run menu
 function rebuildExtRunMenu() {
     let m = Menu.getApplicationMenu();
     if (typeof m !== 'undefined'){
@@ -107,7 +131,7 @@ function rebuildExtRunMenu() {
 }
 
 
-
+// Function to open a directory dialog and return the selected directory
 function getDirectoryDialog() {
     let dir = dialog.showOpenDialogSync(mainWindow, { properties: ['openDirectory'] });
     //console.log(dir);
@@ -116,6 +140,7 @@ function getDirectoryDialog() {
     return dir;
 }
 
+// Function to create the main window
 function createWindow() {
     // Create the browser window.
     mainWindow = new BrowserWindow({

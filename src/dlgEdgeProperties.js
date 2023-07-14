@@ -1,6 +1,19 @@
 
 /* global sgv, UI, Dispatcher */
 
+/**
+ * @fileoverview This script handles edge properties and provides dialog functionality.
+ * 
+ * @module sgv.dlgEdgeProperties
+ */
+
+/**
+ * @namespace sgv.dlgEdgeProperties
+ * @property {function} show - Function to show the dialog
+ * @property {function} hide - Function to hide the dialog
+ * @property {function} refresh - Function to refresh the dialog
+ * @property {function} isVisible - Function to check if the dialog is visible
+ */
 sgv.dlgEdgeProperties = new function() {
     var precontent, content, zeroInfo;
     var hidEdgeId;
@@ -20,6 +33,11 @@ sgv.dlgEdgeProperties = new function() {
         hideDialog();
     });
 
+    /**
+     * Function to create UI for the dialog.
+     *
+     * @returns {Object} - Returns the UI object for the dialog
+     */
     function createUI() {
         let ui = UI.createEmptyWindow("sgvUIwindow", "sgvEdgeProperties", "Edge properties", true);
         
@@ -77,6 +95,13 @@ sgv.dlgEdgeProperties = new function() {
         return ui;
     };
 
+    /**
+     * Function to show the dialog.
+     *
+     * @param {?string} edgeId - The ID of the edge
+     * @param {?number} x - The x position to show the dialog
+     * @param {?number} y - The y position to show the dialog
+     */
     function showDialog(edgeId, x, y) {
         if (typeof edgeId !== 'undefined') {
             edgeId = edgeId.toString();
@@ -129,6 +154,11 @@ sgv.dlgEdgeProperties = new function() {
         ui.focus({focusVisible: false});
     };
 
+    /**
+     * Function to handle keydown events in the dialog.
+     *
+     * @param {Object} event - The keydown event
+     */
     function onKeyDownX(event) {
 //        if (!ui.contains(document.activeElement)) return;
 
@@ -139,20 +169,32 @@ sgv.dlgEdgeProperties = new function() {
         }
     }
 
+    /**
+     * Function to hide the dialog.
+     */
     function hideDialog() {
         if (prevFocused!==null) prevFocused.focus({focusVisible: false});
         if (ui!==null) ui.style.display = "none";
     };
 
+    /**
+     * Function to handle selection change in the edge ID dropdown.
+     */
     function selectedEdgeId() {
         showDialog(event.target.value);
     }
 
+    /**
+     * Function to handle the Delete button click event.
+     */
     function onDeleteEdgeButton() {
         hideDialog();
         sgv.graf.delEdge(hidEdgeId.value);
     };
 
+    /**
+     * Function to handle the Set button click event.
+     */
     function onSetEdgeValueButton() {
         let val = parseFloat(editWagaE.value.replace(/,/g, '.'));
         let scope = selectScope.getScope();
@@ -166,6 +208,9 @@ sgv.dlgEdgeProperties = new function() {
         Dispatcher.graphChanged();
     };
 
+    /**
+     * Function to handle the value enable checkbox click event.
+     */
     function onValueEnableCheckbox() {
         let isActive = checkValueE.checked;
         let scope = selectScope.getScope();
@@ -182,10 +227,14 @@ sgv.dlgEdgeProperties = new function() {
         Dispatcher.graphChanged();
     };
 
+    /**
+     * Function to refresh the dialog.
+     */
     function refreshX() {
         if (ui.style.display === "block") showDialog();
     };
 
+    // The API exposed by this module
     return {
         show: showDialog,
         hide: hideDialog,

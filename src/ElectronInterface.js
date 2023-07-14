@@ -1,20 +1,3 @@
-
-/* 
- * Copyright 2022 Dariusz Pojda.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 //================================================
 // Short description of communication:
 // 
@@ -38,13 +21,25 @@
    // Electron-specific code
 //}
 
+/**
+ * Check if running inside Electron environment
+ */
 if (typeof window.api!=='undefined') {
     console.log("desktopApp!");
 
+    /**
+     * Event listener to show loader splash
+     */
     window.api.on( "showLoaderSplash", ()=>showSplash() );
 
+    /**
+     * Event listener to hide loader splash
+     */
     window.api.on( "hideLoaderSplash", ()=>hideSplash() );
 
+    /**
+     * Event listener to set display mode of the graph
+     */
     window.api.on( "setDisplayMode", (mode) => {
         if (sgv.graf !== null) {
             Graph.currentDisplayMode = mode;
@@ -57,6 +52,9 @@ if (typeof window.api!=='undefined') {
         hideSplash();
     });
 
+    /**
+     * Event listener to clear the graph
+     */
     window.api.on( "clearGraph", ()=>Graph.remove() );
 
     window.api.on( "showAbout", ()=>sgv.dlgAbout.show() );
@@ -108,12 +106,22 @@ if (typeof window.api!=='undefined') {
 
     /*==========================================================================*/
 
+    /**
+     * Initialization for desktop mode
+     * @function
+     */
     desktopInit = () => {
         setTimeout(function () {
             sgv.dlgCPL.hidePanel();
         }, 200);
     };
 
+    /**
+     * Enable menu item
+     * @function
+     * @param {string} id - The id of the menu item to enable or disable
+     * @param {boolean} [enabled=true] - The new state of the menu item
+     */
     enableMenu = (id, enabled) => {
         if (typeof enabled==='undefined')
         enabled=true;
@@ -122,10 +130,17 @@ if (typeof window.api!=='undefined') {
     };
 
 } else {
-    desktopInit = ()=>{
-    //        sgv.dlgCPL.addButton( "settings window", "cplElectronTestButton", ()=>{
-    //            sgv.dlgEditSettings.show();
-    //        } );
-    };
+    /**
+     * Initialization for web mode
+     * @function
+     */
+    desktopInit = ()=>{};
+
+    /**
+     * Stub for enableMenu when not in Electron environment
+     * @function
+     * @param {string} id - The id of the menu item to enable or disable
+     * @param {boolean} [enabled=true] - The new state of the menu item
+     */
     enableMenu = (id, enabled)=>{};
 }

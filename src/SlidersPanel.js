@@ -1,25 +1,27 @@
-/* 
- * Copyright 2022 pojdulos.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 
 /* global sgv, UI */
 
+/**
+ * @class
+ * @classdesc Represents a panel for controlling sliders.
+ */
 const SlidersPanel = (function() {
-    var sliderRedLimit, sliderGreenLimit;
-    var spanRed, spanGreen;
+    /** @type {HTMLElement} Represents the red limit slider. */
+    var sliderRedLimit;
 
+    /** @type {HTMLElement} Represents the green limit slider. */
+    var sliderGreenLimit;
+
+    /** @type {HTMLElement} Represents the display span for red limit. */
+    var spanRed;
+
+    /** @type {HTMLElement} Represents the display span for green limit. */
+    var spanGreen;
+
+    /**
+     * The UI for the sliders panel.
+     * @type {HTMLElement}
+     */
     this.ui = UI.tag('div', {'id': 'LimitSlidersPanel'});
 
     this.ui.appendChild(spanRed = UI.tag("span", {'id': 'spanRed'}, {'textContent': '-1.0'}));
@@ -71,6 +73,9 @@ const SlidersPanel = (function() {
 
     this.ui.appendChild(spanGreen = UI.tag("span", {'id': 'spanGreen'}, {'textContent': '1.0'}));
     
+    /**
+     * Refreshes the sliders panel based on the current graph data.
+     */
     this.refresh = () => {
         if (sgv.graf === null)
             return;

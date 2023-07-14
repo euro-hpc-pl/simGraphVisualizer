@@ -1,10 +1,25 @@
 
 /* global sgv, NaN, Graph */
 
+/**
+ * @fileoverview This script imports and exports graphs in TXT format.
+ * 
+ * @module ParserTXT
+ */
+
 "use strict";
 
+/** @type {Object} Module exporting TXT parsing functionality */
 var ParserTXT = {};
 
+/**
+ * Function to import graph data from TXT format.
+ * 
+ * @function importGraph
+ * @memberof ParserTXT
+ * @param {string} string - Input graph data in TXT format
+ * @returns {void}
+ */
 ParserTXT.importGraph = (string) => {
     var struct = new TempGraphStructure();
 
@@ -13,6 +28,11 @@ ParserTXT.importGraph = (string) => {
 
     let gDesc = new GraphDescr();
     
+    /**
+     * Parses comments from the TXT data.
+     *
+     * @param {string} string - String to parse comments from
+     */
     var parseComment = function (string) {
         var command = string.split("=");
         if (command[0] === 'type') {
@@ -37,6 +57,12 @@ ParserTXT.importGraph = (string) => {
         }
     };
 
+    /**
+     * Parses graph data from the TXT data.
+     *
+     * @param {string} string - String to parse data from
+     * @returns {?Object} - Returns an object containing the parsed data or null
+     */
     var parseData = function (string) {
         var line = string.trim().split(/\s+/);
         if (line.length < 3) return null;
@@ -49,6 +75,7 @@ ParserTXT.importGraph = (string) => {
         else return { n1: _n1, n2: _n2, val: _val };
     };
 
+    // Process each line of the input string
     while (lines.length > 0) {
         if (lines[0][0] !== '#')
         {
@@ -68,6 +95,7 @@ ParserTXT.importGraph = (string) => {
         lines.shift();
     }
 
+    // Create graph if type is defined, otherwise show graph creation dialog
     if (typeof gDesc.type==='undefined') {
         sgv.dlgCreateGraph.show('load', struct);
     } else {
@@ -75,9 +103,18 @@ ParserTXT.importGraph = (string) => {
     }
 };
 
+/**
+ * Exports a graph to TXT format.
+ * 
+ * @function exportGraph
+ * @memberof ParserTXT
+ * @param {Graph} graph - The graph object to export
+ * @returns {?string} - The exported graph in TXT format, or null if the graph is undefined or null
+ */
 ParserTXT.exportGraph = (graph) => {
     if ((typeof graph==='undefined')||(graph === null)) return null;
 
+    // Generate TXT data
     var string = "# type=" + graph.type + "\n";
     string += "# size=" + graph.cols + "," + graph.rows + "," + graph.layers + "," + graph.KL + "," + graph.KR + "\n";
 
