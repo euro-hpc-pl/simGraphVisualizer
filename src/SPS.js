@@ -1,7 +1,8 @@
 /* global sgv, BABYLON, Edge */
 
 /**
- * Solid Particle System module for creating and managing node and edge particles in a scene.
+ * @class Solid Particle System module for creating and managing node and edge particles in a scene.
+ * @constructor
  * @param {BABYLON.Scene} scene - The Babylon.js scene.
  * @returns {Object} An object with functions for initializing, updating, and managing node and edge particles.
  */

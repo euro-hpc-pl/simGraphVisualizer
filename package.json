@@ -37,6 +37,7 @@
         "gulp-rename": "",
         "gulp-sass": "^5.1.0",
         "gulp-uglify": "",
+        "jsdoc": "4.0.2",
         "sass": ""
     },
     "config": {

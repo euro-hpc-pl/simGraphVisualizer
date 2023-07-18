@@ -2,19 +2,15 @@
 /* global sgv, UI, Dispatcher */
 
 /**
- * @fileoverview This script handles edge properties and provides dialog functionality.
- * 
- * @module sgv.dlgEdgeProperties
- */
-
-/**
- * @namespace sgv.dlgEdgeProperties
+ * @class
+ * @classdesc Represents the DlgEdgeProperties class.
+ * @memberof sgv
  * @property {function} show - Function to show the dialog
  * @property {function} hide - Function to hide the dialog
  * @property {function} refresh - Function to refresh the dialog
  * @property {function} isVisible - Function to check if the dialog is visible
  */
-sgv.dlgEdgeProperties = new function() {
+const DlgEdgeProperties = (function() {
     var precontent, content, zeroInfo;
     var hidEdgeId;
     var selectEdgeId, selectScope;
@@ -243,4 +239,12 @@ sgv.dlgEdgeProperties = new function() {
             return (ui!==null)&&(ui.style.display === "block");
         }
     };
-};
+});
+
+/**
+ * Represents the static instance of DlgEdgeProperties in the sgv namespace.
+ * @type {DlgEdgeProperties}
+ * @memberof sgv
+ * @static
+ */
+sgv.dlgEdgeProperties = new DlgEdgeProperties();

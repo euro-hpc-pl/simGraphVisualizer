@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: FileIO.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: FileIO.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* global sgv, UI, URL, Chimera, Pegasus, ParserGEXF, ParserTXT, Graph, Dispatcher */
+
+/**
+ * FileIO namespace for file input/output operations.
+ * @namespace
+ */
+var FileIO = {};
+
+/**
+ * Event handler for the load button.
+ */
+FileIO.onLoadButton = () => {
+    let btnLoad1 = UI.tag('input',{
+        'type':'file',
+        'id':'inputfile',
+        'display':'none'
+    });
+    // Add event listener to handle file selection
+    btnLoad1.addEventListener('change', (e)=>{
+        if (typeof btnLoad1.files[0]!=='undefined') {
+            showSplashAndRun(()=>{
+                FileIO.loadGraph(btnLoad1.files[0]);
+                //btnLoad1.value = ""; //if I need to read the same file again
+            });
+        }
+    });
+
+    // Simulate a click event to trigger file selection dialog
+    btnLoad1.click();
+};
+
+/**
+ * Event handler for the save button.
+ * @returns {Promise} A promise that resolves or rejects based on the save operation.
+ */
+FileIO.onSaveButton = ()=>{
+    return new Promise((resolve,reject)=>{
+        if (typeof window.showSaveFilePicker === 'function') {
+            const options = {
+                suggestedName: 'name.txt',
+                excludeAcceptAllOption: true,
+                types: [
+                    {
+                        description: 'Text file',
+                        accept: {'text/plain': ['.txt']}
+                    }, {
+                        description: 'GEXF files',
+                        accept: {'application/xml': ['.gexf']}
+                    }]
+            };
+
+            window.showSaveFilePicker(options)
+                .then((handle)=>{
+                    let blob;
+
+                    if (handle.name.endsWith('.txt')) {
+                        blob = new Blob([ParserTXT.exportGraph(sgv.graf)]);    
+                    } else if (handle.name.endsWith('.gexf')) {
+                        blob = new Blob([ParserGEXF.exportGraph(sgv.graf)]);
+                    } else {
+                        reject('point 1');
+                    }
+
+                    handle.createWritable()
+                        .then( (writableStream)=> {
+                            writableStream.write(blob)
+                            .then( () => {
+                                writableStream.close();                        
+                                resolve('point 3 (OK)'); });
+                        }).catch( ()=>{
+                            reject('point 5'); });
+                }).catch(()=>{
+                    reject('point 2');
+                });
+        } else {
+            sgv.dlgAlternateFileSave.show();
+            resolve('point 4 (OK)');
+        }
+    });
+    
+}; 
+
+/**
+ * Downloads a file.
+ * @param {string} text - The text content of the file.
+ * @param {string} name - The name of the file.
+ * @param {string} type - The MIME type of the file.
+ */
+FileIO.download = (text, name, type) => {
+    let a = document.createElement("a");
+    let fileAsBlob = new Blob([text], {type: type});
+    
+    a.download = name;
+    a.innerHTML = "Download graph file";
+
+    if (window.webkitURL != null) {
+        // Chrome allows the link to be clicked without actually adding it to the DOM.
+        a.href = window.webkitURL.createObjectURL(fileAsBlob);
+    } else {
+        // Firefox requires the link to be added to the DOM before it can be clicked.
+        a.href = window.URL.createObjectURL(fileAsBlob);
+        a.onclick = function (event) {
+            document.body.removeChild(event.target);
+        };
+        a.style.display = "none";
+        document.body.appendChild(a);
+    }
+    
+    a.click();
+};
+
+/**
+ * Saves the graph with an alternate file name and extension.
+ * @param {string} name - The name of the file.
+ * @param {string} ext - The extension of the file.
+ */
+FileIO.alternateSave = (name, ext) => {
+    if (ext === '.txt') {
+        let string = ParserTXT.exportGraph(sgv.graf);
+        FileIO.download(string, name+ext, 'text/plain');
+    } else if (ext === '.gexf') {
+        let string = ParserGEXF.exportGraph(sgv.graf);
+        FileIO.download(string, name+ext, 'application/xml');
+    }
+};
+
+/**
+ * Converts a string representation of graph data to the specified scope.
+ * @param {string} data - The string representation of the graph data.
+ * @param {string} newScope - The new scope for the graph.
+ */
+sgv.stringToScope = (data,newScope) => {
+    let r = sgv.graf.loadScopeValues(newScope,data);
+            
+    if (r.n) {
+        sgv.dlgCPL.addScope(newScope);
+    }
+    sgv.dlgCPL.selScope(newScope);
+};
+
+
+/**
+ * Loads a graph from a selected file.
+ * @param {File} selectedFile - The selected file.
+ */
+FileIO.loadGraph = function(selectedFile) {
+    const name = selectedFile.name;
+    const reader = new FileReader();
+    if (selectedFile) {
+        reader.addEventListener('error', () => {
+            console.error(`Error occurred reading file: ${selectedFile.name}`);
+        });
+
+        reader.addEventListener('load', () => {
+            FileIO.loadGraph2(name, reader.result);
+        });
+
+        if ( name.endsWith("txt") || name.endsWith("gexf") ) {
+            reader.readAsText(selectedFile); 
+        } else {
+            console.error(`Incorrect file extension...`);
+        }
+    }                    
+};
+        
+/**
+ * Loads a graph with the specified name and data.
+ * @param {string} name - The name of the graph.
+ * @param {string} data - The data of the graph.
+ */
+FileIO.loadGraph2 = function(name,data) {
+    if (name.endsWith("txt")) {
+        Graph.remove();
+        ParserTXT.importGraph(data);
+    } else if(name.endsWith("gexf")) {
+        Graph.remove();
+        if (ParserGEXF.importGraph(data)){
+            Dispatcher.graphCreated();
+        }
+    };
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="Cookie.html">Cookie</a></li><li><a href="Dispatcher.html">Dispatcher</a></li><li><a href="FileIO.html">FileIO</a></li><li><a href="ParserGEXF.html">ParserGEXF</a></li><li><a href="ParserTXT.html">ParserTXT</a></li><li><a href="SVG.html">SVG</a></li><li><a href="Settings.html">Settings</a></li><li><a href="UI.html">UI</a></li><li><a href="sgv.html">sgv</a></li></ul><h3>Classes</h3><ul><li><a href="Chimera.html">Chimera</a></li><li><a href="Edge.html">Edge</a></li><li><a href="GenericWindow.html">GenericWindow</a></li><li><a href="Graph.html">Graph</a></li><li><a href="GraphDescr.html">GraphDescr</a></li><li><a href="GraphSize.html">GraphSize</a></li><li><a href="Label.html">Label</a></li><li><a href="Node.html">Node</a></li><li><a href="Pegasus.html">Pegasus</a></li><li><a href="QbDescr.html">QbDescr</a></li><li><a href="SPS.html">SPS</a></li><li><a href="ScopePanel.html">ScopePanel</a></li><li><a href="SingleFilePanel.html">SingleFilePanel</a></li><li><a href="SlidersPanel.html">SlidersPanel</a></li><li><a href="TempGraphStructure.html">TempGraphStructure</a></li><li><a href="ValuePanel.html">ValuePanel</a></li><li><a href="sgv.DlgAbout.html">DlgAbout</a></li><li><a href="sgv.DlgAlternateFileSave.html">DlgAlternateFileSave</a></li><li><a href="sgv.DlgCPL.html">DlgCPL</a></li><li><a href="sgv.DlgCellView.html">DlgCellView</a></li><li><a href="sgv.DlgConsole.html">DlgConsole</a></li><li><a href="sgv.DlgCreateGraph.html">DlgCreateGraph</a></li><li><a href="sgv.DlgEdgeProperties.html">DlgEdgeProperties</a></li><li><a href="sgv.DlgEditSettings.html">DlgEditSettings</a></li><li><a href="sgv.DlgLoaderSplash.html">DlgLoaderSplash</a></li><li><a href="sgv.DlgMissingNodes.html">DlgMissingNodes</a></li><li><a href="sgv.DlgNodeProperties.html">DlgNodeProperties</a></li></ul><h3>Global</h3><ul><li><a href="global.html#DEMO_MODE">DEMO_MODE</a></li><li><a href="global.html#createLabel">createLabel</a></li><li><a href="global.html#desktopInit">desktopInit</a></li><li><a href="global.html#detectClient">detectClient</a></li><li><a href="global.html#enableMenu">enableMenu</a></li><li><a href="global.html#getRandom">getRandom</a></li><li><a href="global.html#hideSplash">hideSplash</a></li><li><a href="global.html#qD">qD</a></li><li><a href="global.html#showSplash">showSplash</a></li><li><a href="global.html#showSplashAndRun">showSplashAndRun</a></li><li><a href="global.html#valueToColor">valueToColor</a></li><li><a href="global.html#valueToColorBAK">valueToColorBAK</a></li><li><a href="global.html#valueToEdgeWidth">valueToEdgeWidth</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Tue Jul 18 2023 14:28:39 GMT+0200 (czas środkowoeuropejski letni)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

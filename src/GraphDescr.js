@@ -1,5 +1,6 @@
 /**
- * Constructs a GraphSize object.
+ * @class
+ * @classdesc Constructs a GraphSize object.
  * @constructor
  * @param {number} c - The number of columns.
  * @param {number} r - The number of rows.
@@ -16,7 +17,8 @@ var GraphSize = (function(c, r, l, kl, kr) {
 });
 
 /**
- * Constructs a GraphDescr object.
+ * @class
+ * @classdesc Constructs a GraphDescr object.
  * @constructor
  */
 var GraphDescr = (function() {

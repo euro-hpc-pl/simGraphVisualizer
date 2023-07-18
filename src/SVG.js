@@ -15,7 +15,7 @@
  */
 
 /**
- * Namespace object for SVG operations.
+ * Namespace for SVG elements drawing.
  * @namespace SVG
  */
 const SVG = {};

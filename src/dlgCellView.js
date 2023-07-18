@@ -1,10 +1,11 @@
 /* global sgv, UI, Edge, qD, QbDescr */
 
 /**
- * Cell view dialog module for graph visualization.
- * @module sgv.dlgCellView
+ * @class
+ * @classdesc Represents the DlgCellView class.
+ * @memberof sgv
  */
-sgv.dlgCellView = new function () {
+const DlgCellView = (function () {
     /**
      * Select elements for choosing the column, row, and layer of the cell view.
      * @type {HTMLSelectElement}
@@ -674,4 +675,13 @@ sgv.dlgCellView = new function () {
         show: showDialogX,
         hide: hideDialogX
     };
-};
+});
+
+
+/**
+ * Represents the static instance of DlgCellView in the sgv namespace.
+ * @type {DlgCellView}
+ * @memberof sgv
+ * @static
+ */
+sgv.dlgCellView = new DlgCellView();

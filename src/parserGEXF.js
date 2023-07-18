@@ -4,12 +4,14 @@
 /**
  * @fileoverview This script imports and exports graphs in GEXF (Graph Exchange XML Format) format.
  * 
- * @module ParserGEXF
+ * @namespace ParserGEXF
  */
 
 "use strict";
 
-/** @type {Object} Module exporting GEXF parsing functionality */
+/** GEXF file parsing functionality
+ * @namespace
+ */
 var ParserGEXF = {};
 
 /**

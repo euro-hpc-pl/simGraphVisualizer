@@ -1,7 +1,7 @@
 /* global sgv */
 
 /**
- * UI module for creating HTML elements and handling UI-related tasks.
+ * UI namespace for creating HTML elements and handling UI-related tasks.
  * @namespace
  */
 var UI = (function () {});

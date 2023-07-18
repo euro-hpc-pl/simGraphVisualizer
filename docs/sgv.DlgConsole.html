@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Class: DlgConsole</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Class: DlgConsole</h1>
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        <h2><span class="attribs"><span class="type-signature"></span></span>
+            <span class="ancestors"><a href="sgv.html">sgv</a>.</span>DlgConsole<span class="signature">()</span><span class="type-signature"></span></h2>
+        
+            <div class="class-description">Represents the DlgConsole class.</div>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+    
+    <h2>Constructor</h2>
+    
+
+    
+    <h4 class="name" id="DlgConsole"><span class="type-signature"></span>new DlgConsole<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dlgConsole.js.html">dlgConsole.js</a>, <a href="dlgConsole.js.html#line10">line 10</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id="ui"><span class="type-signature"></span>ui<span class="type-signature"> :HTMLElement</span></h4>
+
+
+
+
+<div class="description">
+    User interface element representing the console.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">HTMLElement</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dlgConsole.js.html">dlgConsole.js</a>, <a href="dlgConsole.js.html#line20">line 20</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="createUI"><span class="type-signature"></span>createUI<span class="signature">(id)</span><span class="type-signature"> &rarr; {HTMLElement}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Creates a new UI window for a console with a specified ID.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>id</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The ID to be assigned to the new window.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dlgConsole.js.html">dlgConsole.js</a>, <a href="dlgConsole.js.html#line84">line 84</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    The created UI window element. The window includes a read-only textarea for the console history and a text input field for the command line.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">HTMLElement</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="hideConsole"><span class="type-signature"></span>hideConsole<span class="signature">()</span><span class="type-signature"> &rarr; {none}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Hides the console.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dlgConsole.js.html">dlgConsole.js</a>, <a href="dlgConsole.js.html#line648">line 648</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">none</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="initConsole"><span class="type-signature"></span>initConsole<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Initializes the console by setting up event listeners for the command line input field.The function sets up listeners for "Enter", "Up", and "Down" key presses. "Enter" executes the command written in the input field. "Up" and "Down" navigate through the command history.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dlgConsole.js.html">dlgConsole.js</a>, <a href="dlgConsole.js.html#line39">line 39</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="parseCommand"><span class="type-signature"></span>parseCommand<span class="signature">(line)</span><span class="type-signature"> &rarr; {string}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Parses and executes a command.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>line</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The command to parse and execute. The command name and its arguments should be separated by whitespace characters.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dlgConsole.js.html">dlgConsole.js</a>, <a href="dlgConsole.js.html#line101">line 101</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    A string message indicating the result of the operation. The exact message depends on the command and its arguments.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">string</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="showConsole"><span class="type-signature"></span>showConsole<span class="signature">()</span><span class="type-signature"> &rarr; {none}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Shows the console.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dlgConsole.js.html">dlgConsole.js</a>, <a href="dlgConsole.js.html#line639">line 639</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">none</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="switchConsole"><span class="type-signature"></span>switchConsole<span class="signature">()</span><span class="type-signature"> &rarr; {none}</span></h4>
+    
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dlgConsole.js.html">dlgConsole.js</a>, <a href="dlgConsole.js.html#line626">line 626</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">none</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="Cookie.html">Cookie</a></li><li><a href="Dispatcher.html">Dispatcher</a></li><li><a href="FileIO.html">FileIO</a></li><li><a href="ParserGEXF.html">ParserGEXF</a></li><li><a href="ParserTXT.html">ParserTXT</a></li><li><a href="SVG.html">SVG</a></li><li><a href="Settings.html">Settings</a></li><li><a href="UI.html">UI</a></li><li><a href="sgv.html">sgv</a></li></ul><h3>Classes</h3><ul><li><a href="Chimera.html">Chimera</a></li><li><a href="Edge.html">Edge</a></li><li><a href="GenericWindow.html">GenericWindow</a></li><li><a href="Graph.html">Graph</a></li><li><a href="GraphDescr.html">GraphDescr</a></li><li><a href="GraphSize.html">GraphSize</a></li><li><a href="Label.html">Label</a></li><li><a href="Node.html">Node</a></li><li><a href="Pegasus.html">Pegasus</a></li><li><a href="QbDescr.html">QbDescr</a></li><li><a href="SPS.html">SPS</a></li><li><a href="ScopePanel.html">ScopePanel</a></li><li><a href="SingleFilePanel.html">SingleFilePanel</a></li><li><a href="SlidersPanel.html">SlidersPanel</a></li><li><a href="TempGraphStructure.html">TempGraphStructure</a></li><li><a href="ValuePanel.html">ValuePanel</a></li><li><a href="sgv.DlgAbout.html">DlgAbout</a></li><li><a href="sgv.DlgAlternateFileSave.html">DlgAlternateFileSave</a></li><li><a href="sgv.DlgCPL.html">DlgCPL</a></li><li><a href="sgv.DlgCellView.html">DlgCellView</a></li><li><a href="sgv.DlgConsole.html">DlgConsole</a></li><li><a href="sgv.DlgCreateGraph.html">DlgCreateGraph</a></li><li><a href="sgv.DlgEdgeProperties.html">DlgEdgeProperties</a></li><li><a href="sgv.DlgEditSettings.html">DlgEditSettings</a></li><li><a href="sgv.DlgLoaderSplash.html">DlgLoaderSplash</a></li><li><a href="sgv.DlgMissingNodes.html">DlgMissingNodes</a></li><li><a href="sgv.DlgNodeProperties.html">DlgNodeProperties</a></li></ul><h3>Global</h3><ul><li><a href="global.html#DEMO_MODE">DEMO_MODE</a></li><li><a href="global.html#createLabel">createLabel</a></li><li><a href="global.html#desktopInit">desktopInit</a></li><li><a href="global.html#detectClient">detectClient</a></li><li><a href="global.html#enableMenu">enableMenu</a></li><li><a href="global.html#getRandom">getRandom</a></li><li><a href="global.html#hideSplash">hideSplash</a></li><li><a href="global.html#qD">qD</a></li><li><a href="global.html#showSplash">showSplash</a></li><li><a href="global.html#showSplashAndRun">showSplashAndRun</a></li><li><a href="global.html#valueToColor">valueToColor</a></li><li><a href="global.html#valueToColorBAK">valueToColorBAK</a></li><li><a href="global.html#valueToEdgeWidth">valueToEdgeWidth</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Tue Jul 18 2023 14:28:39 GMT+0200 (czas środkowoeuropejski letni)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

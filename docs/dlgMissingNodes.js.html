@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: dlgMissingNodes.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: dlgMissingNodes.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* global sgv, UI */
+
+/**
+ * @class
+ * @classdesc Represents the DlgMissingNodes class.
+ * @memberof sgv
+ */
+class DlgMissingNodes {
+    constructor() {
+        /**
+         * @property {HTMLElement} misN - Container for displaying missing nodes.
+         * @property {HTMLElement} ui - The user interface element for the dialog.
+         */
+        //this.misN = null;
+        this.ui = this.createUI('sgvMissingNodes');
+
+        // Append UI to the body once the window has loaded.
+        window.addEventListener('load',()=>{
+            window.document.body.appendChild(this.ui);
+        });
+    }
+    
+    /**
+     * Function to create user interface for the missing nodes dialog.
+     * 
+     * @param {string} id - The id for the UI element.
+     * @returns {HTMLElement} - The created UI element.
+     */
+    createUI(id) {
+        let o = UI.createEmptyWindow("sgvUIwindow", id, "removed nodes", true);
+
+        var content = UI.tag("div", {'class':'content'});
+        this.misN = UI.tag("div", {'id':'misN'});
+        content.appendChild(this.misN);
+
+        var del = UI.newInput("button", "clear history", "delbutton", "");
+        del.addEventListener('click', () => {
+            this.delAll();
+        });
+        content.appendChild(del);
+
+        o.appendChild(content);
+        return o;
+    }
+
+    /**
+     * Function to add a missing node.
+     * 
+     * @param {string} nodeId - The id of the missing node.
+     */
+    addNode(nodeId) {
+        let i = UI.newInput("button", " q" + nodeId + " ", "", "rest" + nodeId );
+
+        i.addEventListener('click', () => {
+            this.restoreNode(nodeId);
+        });
+        
+        this.misN.appendChild(i);
+        
+        this.ui.style.display = "block";
+    }
+    
+    /**
+     * Function to restore a missing node.
+     * 
+     * @param {string} nodeId - The id of the node to restore.
+     * @returns {boolean} - Returns true if node is restored, else false.
+     */
+    restoreNode(nodeId) {
+        if (sgv.graf.restoreNode(nodeId)) {
+            let but = this.ui.querySelector("#rest" + nodeId);
+            but.parentNode.removeChild(but);
+            
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Function to delete all missing nodes.
+     */
+    delAll() {
+        this.misN.innerHTML = "";
+
+        if (sgv.graf !== null) {
+            sgv.graf.missing = {};
+        }
+
+        this.hide();
+    }
+
+    
+    show() {
+        this.ui.style.display = "block";
+    }
+    
+    hide() {
+        this.ui.style.display = "none";
+    }
+    
+}
+
+/**
+ * Represents the static instance of DlgMissingNodes in the sgv namespace.
+ * @type {DlgMissingNodes}
+ * @memberof sgv
+ * @static
+ */
+sgv.dlgMissingNodes = new DlgMissingNodes;
+
+
+///**
+// * @description This object provides functionality related to the dialog for missing nodes.
+// */
+//sgv.dlgMissingNodes = new function() {
+//    
+//    /**
+//     * @property {HTMLElement} misN - Container for displaying missing nodes.
+//     * @property {HTMLElement} ui - The user interface element for the dialog.
+//     */
+//    var misN;
+//    var ui = createUI('sgvMissingNodes');
+//
+//    // Append UI to the body once the window has loaded.
+//    window.addEventListener('load',()=>{
+//        window.document.body.appendChild(ui);
+//    });
+//
+//
+//    /**
+//     * Function to create user interface for the missing nodes dialog.
+//     * 
+//     * @param {string} id - The id for the UI element.
+//     * @returns {HTMLElement} - The created UI element.
+//     */
+//    function createUI(id) {
+//        let o = UI.createEmptyWindow("sgvUIwindow", id, "removed nodes", true);
+//
+//        var content = UI.tag("div", {'class':'content'});
+//        misN = UI.tag("div", {'id':'misN'});
+//        content.appendChild(misN);
+//
+//        var del = UI.newInput("button", "clear history", "delbutton", "");
+//        del.addEventListener('click', function () {
+//            delMissingX();
+//        });
+//        content.appendChild(del);
+//
+//        o.appendChild(content);
+//        return o;
+//    };
+//
+//    /**
+//     * Function to add a missing node.
+//     * 
+//     * @param {string} nodeId - The id of the missing node.
+//     */
+//    function addNodeX(nodeId) {
+//        let i = UI.newInput("button", " q" + nodeId + " ", "", "rest" + nodeId );
+//
+//        i.addEventListener('click', function () {
+//            restoreNodeX(nodeId);
+//        });
+//        
+//        misN.appendChild(i);
+//        
+//        ui.style.display = "block";
+//    };
+//    
+//    /**
+//     * Function to restore a missing node.
+//     * 
+//     * @param {string} nodeId - The id of the node to restore.
+//     * @returns {boolean} - Returns true if node is restored, else false.
+//     */
+//    function restoreNodeX(nodeId) {
+//        if (sgv.graf.restoreNode(nodeId)) {
+//            let but = ui.querySelector("#rest" + nodeId);
+//            but.parentNode.removeChild(but);
+//            
+//            return true;
+//        }
+//        return false;
+//    };
+//    
+//    /**
+//     * Function to delete all missing nodes.
+//     */
+//    function delMissingX() {
+//        misN.innerHTML = "";
+//
+//        if (sgv.graf !== null) {
+//            sgv.graf.missing = {};
+//        }
+//
+//        ui.style.display = "none";
+//    };
+//
+//    
+//    /**
+//     * Returns an object containing methods for showing, hiding, adding, restoring, and deleting nodes.
+//     */
+//    return {
+//        show: ()=>{ui.style.display = "block";},
+//        hide: ()=>{ui.style.display = "none";},
+//        addNode: addNodeX,
+//        restoreNode: restoreNodeX,
+//        delAll: delMissingX
+//    };
+//
+//};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="Cookie.html">Cookie</a></li><li><a href="Dispatcher.html">Dispatcher</a></li><li><a href="FileIO.html">FileIO</a></li><li><a href="ParserGEXF.html">ParserGEXF</a></li><li><a href="ParserTXT.html">ParserTXT</a></li><li><a href="SVG.html">SVG</a></li><li><a href="Settings.html">Settings</a></li><li><a href="UI.html">UI</a></li><li><a href="sgv.html">sgv</a></li></ul><h3>Classes</h3><ul><li><a href="Chimera.html">Chimera</a></li><li><a href="Edge.html">Edge</a></li><li><a href="GenericWindow.html">GenericWindow</a></li><li><a href="Graph.html">Graph</a></li><li><a href="GraphDescr.html">GraphDescr</a></li><li><a href="GraphSize.html">GraphSize</a></li><li><a href="Label.html">Label</a></li><li><a href="Node.html">Node</a></li><li><a href="Pegasus.html">Pegasus</a></li><li><a href="QbDescr.html">QbDescr</a></li><li><a href="SPS.html">SPS</a></li><li><a href="ScopePanel.html">ScopePanel</a></li><li><a href="SingleFilePanel.html">SingleFilePanel</a></li><li><a href="SlidersPanel.html">SlidersPanel</a></li><li><a href="TempGraphStructure.html">TempGraphStructure</a></li><li><a href="ValuePanel.html">ValuePanel</a></li><li><a href="sgv.DlgAbout.html">DlgAbout</a></li><li><a href="sgv.DlgAlternateFileSave.html">DlgAlternateFileSave</a></li><li><a href="sgv.DlgCPL.html">DlgCPL</a></li><li><a href="sgv.DlgCellView.html">DlgCellView</a></li><li><a href="sgv.DlgConsole.html">DlgConsole</a></li><li><a href="sgv.DlgCreateGraph.html">DlgCreateGraph</a></li><li><a href="sgv.DlgEdgeProperties.html">DlgEdgeProperties</a></li><li><a href="sgv.DlgEditSettings.html">DlgEditSettings</a></li><li><a href="sgv.DlgLoaderSplash.html">DlgLoaderSplash</a></li><li><a href="sgv.DlgMissingNodes.html">DlgMissingNodes</a></li><li><a href="sgv.DlgNodeProperties.html">DlgNodeProperties</a></li></ul><h3>Global</h3><ul><li><a href="global.html#DEMO_MODE">DEMO_MODE</a></li><li><a href="global.html#createLabel">createLabel</a></li><li><a href="global.html#desktopInit">desktopInit</a></li><li><a href="global.html#detectClient">detectClient</a></li><li><a href="global.html#enableMenu">enableMenu</a></li><li><a href="global.html#getRandom">getRandom</a></li><li><a href="global.html#hideSplash">hideSplash</a></li><li><a href="global.html#qD">qD</a></li><li><a href="global.html#showSplash">showSplash</a></li><li><a href="global.html#showSplashAndRun">showSplashAndRun</a></li><li><a href="global.html#valueToColor">valueToColor</a></li><li><a href="global.html#valueToColorBAK">valueToColorBAK</a></li><li><a href="global.html#valueToEdgeWidth">valueToEdgeWidth</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Tue Jul 18 2023 14:28:39 GMT+0200 (czas środkowoeuropejski letni)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

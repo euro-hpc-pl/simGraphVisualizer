@@ -4,12 +4,14 @@
 /**
  * @fileoverview This script imports and exports graphs in TXT format.
  * 
- * @module ParserTXT
+ * @namespace ParserTXT
  */
 
 "use strict";
 
-/** @type {Object} Module exporting TXT parsing functionality */
+/** TXT file parsing functionality
+ * @namespace
+ */
 var ParserTXT = {};
 
 /**

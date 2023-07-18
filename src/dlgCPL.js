@@ -3,9 +3,11 @@
 /* global sgv, Chimera, Pegasus, UI, parserGEXF, dialog, FileIO, Graph */
 
 /**
- * The sgv.dlgCPL object is responsible for handling the Control Panel (CPL) dialog functionalities.
+ * @class
+ * @classdesc Represents the DlgCPL class.
+ * @memberof sgv
  */
-sgv.dlgCPL = new function () {
+const DlgCPL = (function () {
     var switchableContent; 
     var selectionPanel, descriptionPanel;
     var scopePanel, slidersPanel;
@@ -236,5 +238,12 @@ sgv.dlgCPL = new function () {
         refresh: refreshX
     };
     
-};
+});
 
+/**
+ * Represents the static instance of control panel (DlgCPL) in the sgv namespace.
+ * @type {DlgCPL}
+ * @memberof sgv
+ * @static
+ */
+sgv.dlgCPL = new DlgCPL();

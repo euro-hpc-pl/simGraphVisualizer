@@ -130,13 +130,37 @@ if (typeof window.api==='undefined') {
 
 /* global BABYLON, sgv */
 
+/**
+ * This block of code includes utility functions to convert numerical values
+ * into color values or edge widths for a graph. It also detects the type
+ * of client (mobile or desktop) and dynamically loads the appropriate stylesheet
+ * on window load.
+ * The DEMO_MODE constant is used to switch between normal and demonstration modes. 
+ */
+
+
+/** Set a flag for demonstration mode.
+ * @type Boolean
+ */
 const DEMO_MODE = false;
 
+/**
+ * Returns a random number between min and max values.
+ * @param {number} min - The minimum value.
+ * @param {number} max - The maximum value.
+ * @returns {number} A random number between min and max.
+ */
 function getRandom(min, max) {
     return (min + (Math.random() * (max - min)));
 };
 
 
+/**
+ * Converts a given value into a color.
+ * The colors are based on the current limits set on sgv.graf object.
+ * @param {number} val - The value to convert into a color.
+ * @returns {BABYLON.Color3} The color corresponding to the given value.
+ */
 function valueToColor(val) {
     if ((typeof val ==='undefined')||(val === null)|| isNaN(val)) {
         return new BABYLON.Color3(0.9, 0.9, 0.9);
@@ -172,6 +196,12 @@ function valueToColor(val) {
     return new BABYLON.Color3(r, g, b);
 }
 
+/**
+ * Converts a given value into a color. This is a backup version.
+ * The colors are based on the current limits set on sgv.graf object.
+ * @param {number} val - The value to convert into a color.
+ * @returns {BABYLON.Color3} The color corresponding to the given value.
+ */
 function valueToColorBAK(val) {
     if ((typeof val ==='undefined')||(val === null)|| isNaN(val)) {
         return new BABYLON.Color3(0.9, 0.9, 0.9);
@@ -198,6 +228,12 @@ function valueToColorBAK(val) {
 }
 
 
+/**
+ * Converts a given value into an edge width.
+ * The edge widths are based on the current limits set on sgv.graf object.
+ * @param {number} val - The value to convert into an edge width.
+ * @returns {number} The edge width corresponding to the given value.
+ */
 function valueToEdgeWidth(val) {
     if (DEMO_MODE) return 0.2;
     
@@ -235,8 +271,12 @@ function valueToEdgeWidth(val) {
 //    return PitchYawRollToMoveBetweenPointsToRef(start, target, ref);
 //}
 
+// Detect if the client is a mobile device. Default: false
 var isMobile = false;
 
+/**
+ * Detects the client type and updates the global variable isMobile accordingly.
+ */
 function detectClient() {
     //console.log(navigator.userAgent);
     //if(navigator.userAgent.match(/(Android|iPod|iPhone|iPad|BlackBerry|IEMobile|Opera Mini)/)) {}
@@ -251,8 +291,13 @@ function detectClient() {
 }
 
 
+// Detect the client type on load.
 detectClient();
 
+/**
+ * On window load, create a new link element for the appropriate stylesheet (mobile or desktop),
+ * and append it to the head of the document. Update CSS variables accordingly.
+ */
 window.addEventListener('load', () => {
     var r = document.querySelector(':root');
     var linkElement = this.document.createElement('link');
@@ -449,8 +494,17 @@ SVG.drawSvgEdge = (svgView, eid, bX, bY, eX, eY, color, wth, onClick) => {
 
 /* global sgv */
 
+/**
+ * @namespace
+ * @description This object provides functionality related to dispatching events in the application.
+ */
 var Dispatcher = {};
 
+/**
+ * Triggers UI updates when the graph has been deleted.
+ * 
+ * @function
+ */
 Dispatcher.graphDeleted = ()=>{
     sgv.SPS.reset();
     sgv.SPS.refresh();
@@ -465,6 +519,11 @@ Dispatcher.graphDeleted = ()=>{
     enableMenu('menuViewCellView', false);
 };
 
+/**
+ * Triggers UI updates when the graph has been created.
+ *
+ * @function
+ */
 Dispatcher.graphCreated = ()=>{
     sgv.dlgCellView.hide();
     sgv.dlgCPL.setModeDescription();
@@ -478,6 +537,11 @@ Dispatcher.graphCreated = ()=>{
     enableMenu('menuViewCellView', true);
 };
 
+/**
+ * Triggers UI updates when the graph has been changed.
+ *
+ * @function
+ */
 Dispatcher.graphChanged = ()=>{
     sgv.dlgCPL.refresh();
     sgv.dlgCellView.refresh();
@@ -486,6 +550,11 @@ Dispatcher.graphChanged = ()=>{
     sgv.SPS.refresh();
 };
 
+/**
+ * Triggers UI updates when the current scope has been changed.
+ *
+ * @function
+ */
 Dispatcher.currentScopeChanged = ()=>{
     sgv.dlgCPL.refresh();
     sgv.dlgCellView.refresh();
@@ -494,6 +563,11 @@ Dispatcher.currentScopeChanged = ()=>{
     sgv.SPS.refresh();
 };
 
+/**
+ * Triggers UI updates when the view mode has been changed.
+ *
+ * @function
+ */
 Dispatcher.viewModeChanged = ()=>{
     sgv.dlgCellView.refresh();
     sgv.dlgNodeProperties.refresh();
@@ -890,36 +964,87 @@ var SPS = (function(scene) {
     };
 });
 
+/**
+ * Constructs a GraphSize object.
+ * @constructor
+ * @param {number} c - The number of columns.
+ * @param {number} r - The number of rows.
+ * @param {number} l - The number of layers.
+ * @param {number} kl - The K left parameter.
+ * @param {number} kr - The K right parameter.
+ */
 var GraphSize = (function(c, r, l, kl, kr) {
-        this.cols = c;
-        this.rows = r;
-        this.lays = l;
-        this.KL = kl;
-        this.KR = kr;
+    this.cols = c;
+    this.rows = r;
+    this.lays = l;
+    this.KL = kl;
+    this.KR = kr;
 });
 
+/**
+ * Constructs a GraphDescr object.
+ * @constructor
+ */
 var GraphDescr = (function() {
     this.size = new GraphSize(0,0,0,0,0);
 
+    /**
+     * Sets the type and size of the graph.
+     * @param {string} _t - The type of the graph.
+     * @param {number} _c - The number of columns.
+     * @param {number} _r - The number of rows.
+     * @param {number} _l - The number of layers.
+     * @param {number} _kl - The K left parameter.
+     * @param {number} _kr - The K right parameter.
+     */
     this.set = function(_t, _c, _r, _l, _kl, _kr) {
         this.setType(_t);
         this.setSize(_c, _r, _l, _kl, _kr);
     };
     
+    /**
+     * Sets the type of the graph.
+     * @param {string} _t - The type of the graph.
+     */
     this.setType = function(_t) {
         this.type = _t;
     };
 
+    /**
+     * Sets the size of the graph.
+     * @param {number} _c - The number of columns.
+     * @param {number} _r - The number of rows.
+     * @param {number} _l - The number of layers.
+     * @param {number} _kl - The K left parameter.
+     * @param {number} _kr - The K right parameter.
+     */
     this.setSize = function(_c, _r, _l, _kl, _kr) {
         this.size = new GraphSize( _c, _r, _l, _kl, _kr );
     };
 });
 
-
+/**
+ * @class
+ * 
+ * @description
+ * This class represents a temporary structure for storing graph data. It provides methods
+ * for adding edges and nodes to the structure.
+ */
 var TempGraphStructure = (function() {
+
+    /** @property {Array} nodes - An array for storing nodes. */
     this.nodes = [];
+
+    /** @property {Array} edges - An array for storing edges. */
     this.edges = [];
     
+    /**
+     * Function to add an edge to the structure with a single value.
+     *
+     * @param {number} _n1 - The ID of the first node of the edge.
+     * @param {number} _n2 - The ID of the second node of the edge.
+     * @param {number} _value - The value of the edge.
+     */
     this.addEdge1 = function(_n1, _n2, _value) {
         this.edges.push({
             n1: _n1,
@@ -930,6 +1055,13 @@ var TempGraphStructure = (function() {
         });
     };
 
+    /**
+     * Function to add an edge to the structure with multiple values.
+     *
+     * @param {number} _n1 - The ID of the first node of the edge.
+     * @param {number} _n2 - The ID of the second node of the edge.
+     * @param {Object} _values - The values of the edge.
+     */
     this.addEdge2 = function(_n1, _n2, _values) {
         this.edges.push({
             n1: _n1,
@@ -938,6 +1070,13 @@ var TempGraphStructure = (function() {
         });
     };
     
+    /**
+     * Function to add a node to the structure with a single value.
+     *
+     * @param {number} _id - The ID of the node.
+     * @param {number} _value - The value of the node.
+     * @param {?string} _label - The label of the node.
+     */
     this.addNode1 = function(_id, _value, _label) {
         let node = {
             id: _id,
@@ -957,6 +1096,13 @@ var TempGraphStructure = (function() {
         this.nodes.push( node );
     };
 
+    /**
+     * Function to add a node to the structure with multiple values.
+     *
+     * @param {number} _id - The ID of the node.
+     * @param {Object} _values - The values of the node.
+     * @param {?string} _label - The label of the node.
+     */
     this.addNode2 = function(_id, _values, _label) {
         let node = {
             id: _id,
@@ -976,35 +1122,23 @@ var TempGraphStructure = (function() {
 
 });
 
-/* 
- * Copyright 2022 Dariusz Pojda.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 /* global BABYLON, sgv */
 
 /**
- * Class Label
- * @param {Number|String} labelId is usually Node.id
- * @param {String} txt text to be displayed
- * @param {BABYLON.Vector3} position position over which the label is to be displayed
- * @returns {Label}
+ * Represents a label that can be displayed in a 3D scene. It's attached to a plane, with the plane being displayed at a certain position.
+ * @constructor
+ * @param {number|string} labelId - Usually Node.id. 
+ * @param {string} txt - The text to be displayed on the label.
+ * @param {BABYLON.Vector3} position - The position over which the label is to be displayed.
+ * @returns {Label} - The Label object.
  */
 var Label = (function (labelId, txt, position) {
+
     /**
-     * @param {BABYLON.Vector3} position
-     * @param {boolean} enabled
+     * Creates the label at a given position.
+     * @async
+     * @param {BABYLON.Vector3} position - The position at which to create the label.
+     * @param {boolean} enabled - Indicates whether the label is enabled.
      * @returns {undefined}
      */
     this.createMe = async function (position, enabled) {
@@ -1016,8 +1150,10 @@ var Label = (function (labelId, txt, position) {
     };
 
     /**
-     * @param {string} txt
-     * @param {boolean} enabled
+     * Sets the text for the label.
+     * @async
+     * @param {string} txt - The text to set.
+     * @param {boolean} enabled - Indicates whether the label is enabled.
      * @returns {undefined}
      */
     this.setText = async function(txt, enabled) {
@@ -1030,14 +1166,16 @@ var Label = (function (labelId, txt, position) {
     };
     
     /**
-     * @returns {string}
+     * Gets the text for the label.
+     * @returns {string} - The text of the label.
      */
     this.getText = function() {
         return this.text;
     };
     
     /**
-     * @param {BABYLON.Vector3} position
+     * Sets the position for the label.
+     * @param {BABYLON.Vector3} pos - The position to set.
      * @returns {undefined}
      */
     this.setPosition = function(pos) {
@@ -1048,7 +1186,8 @@ var Label = (function (labelId, txt, position) {
     };
 
     /**
-     * @returns {BABYLON.Plane}
+     * Creates the plane on which the label is displayed.
+     * @returns {BABYLON.Plane} - The plane created.
      */
     this.createPlane = function() {
         let font_size = 64;
@@ -1087,7 +1226,8 @@ var Label = (function (labelId, txt, position) {
     };
 
     /**
-     * @param {boolean} b
+     * Sets whether the label is enabled.
+     * @param {boolean} b - If true, the label is enabled. If false, it is not.
      * @returns {undefined}
      */
     this.setEnabled = function (b) {
@@ -1106,29 +1246,29 @@ var Label = (function (labelId, txt, position) {
 });
 
 
-/* 
- * Copyright 2022 Dariusz Pojda.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 "use strict";
 /* global BABYLON, greenMat, redMat, grayMat0, grayMat1, advancedTexture, sgv */
 
+/**
+ * Create a new label with given id at the specified position.
+ * @param {number|string} id - The id of the label to be created.
+ * @param {BABYLON.Vector3} position - The position where the label will be created.
+ * @returns {Label} The created Label instance.
+ */
 const createLabel = function(id, position) {
     return new Label("q" + id, "q" + id, position);
 };
 
+/**
+ * Represents a Node in the graph. Each Node has various properties including its id, position, label, etc.
+ * @constructor
+ * @param {object} graf - The parent graph this node belongs to.
+ * @param {number|string} id - The id of the node.
+ * @param {number} x - The x-coordinate of the node's position.
+ * @param {number} y - The y-coordinate of the node's position.
+ * @param {number} z - The z-coordinate of the node's position.
+ * @param {object} _values - The initial values of the node.
+ */
 var Node = /** @class */ (function(graf, id, x, y, z, _values) {
     var name = "node:" + id;
 
@@ -1153,6 +1293,7 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         this.values[key] = _values[key];
     }
 
+    // Define the 'position' property to be able to get or set the position of the node.
     Object.defineProperty(this, 'position', {
         get() {
             return this.mesh.position;
@@ -1165,6 +1306,10 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         }
     });
 
+    /**
+     * Disposes the node by unbinding it and disposing its label.
+     * @returns {undefined}
+     */
     this.dispose = function() {
         sgv.SPS.unbindNode(this);
         
@@ -1175,10 +1320,19 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         delete this.label;
     };
 
+    /**
+     * Clears the node by calling dispose function.
+     * @returns {undefined}
+     */
     this.clear = function() {
         this.dispose();
     };
 
+    /**
+     * Shows or hides the label depending on the argument.
+     * @param {boolean} b - If true, the label will be shown; if false, the label will be hidden.
+     * @returns {undefined}
+     */
     this.showLabel = function(b) {
         if (typeof b!== 'undefined') {
             this.labelIsVisible = b;
@@ -1186,6 +1340,12 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         label.setEnabled(this.labelIsVisible && this.parentGraph.labelsVisible);
     };
 
+    /**
+     * Sets the label text and visibility status.
+     * @param {string} t - The text to set for the label.
+     * @param {boolean} b - The visibility status to set for the label.
+     * @returns {undefined}
+     */
     this.setLabel = function( t, b ) {
         if (typeof b!== 'undefined') {
             this.labelIsVisible = b;
@@ -1193,30 +1353,56 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         label.setText(t, this.labelIsVisible && this.parentGraph.labelsVisible);
     };
 
+    /**
+     * Returns the visibility status of the label.
+     * @returns {boolean} True if the label is visible, false otherwise.
+     */
     this.isLabelVisible = function() {
         return this.labelIsVisible;
     };
 
+    /**
+     * Returns the text of the label.
+     * @returns {string} The text of the label.
+     */
     this.getLabel = function() {
         return label.getText();
     };
 
+    /**
+     * Moves the node by a given vector.
+     * @param {BABYLON.Vector3} diff - The vector to add to the current position of the node.
+     * @returns {undefined}
+     */
     this.move = function(diff) {
         this.mesh.position.addInPlace(diff);
         //this.updateLabel();
     };
 
+    /**
+     * Increments the edge check count of the node.
+     * @returns {undefined}
+     */
     this.addCheck = function() {
         this._chckedEdges++;
         //mesh.material = sgv.grayMat1;
     };
 
+    /**
+     * Decrements the edge check count of the node.
+     * @returns {undefined}
+     */
     this.delCheck = function() {
         this._chckedEdges--;
         //if (this._chckedEdges === 0)
         //    mesh.material = sgv.grayMat0;
     };
 
+    /**
+     * Retrieves the value of the node in the specified scope.
+     * @param {string} scope - The scope from which to get the value.
+     * @returns {Number|NaN} - The value of the node in the specified scope. If no value is present, NaN is returned.
+     */
     this.getValue = function(scope) {
         if (typeof scope === 'undefined') {
             scope = this.parentGraph.currentScope;
@@ -1229,6 +1415,11 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         }
     };
 
+    /**
+     * Deletes the value of the node in the specified scope.
+     * @param {string} scope - The scope from which to delete the value.
+     * @returns {undefined}
+     */
     this.delValue = function(scope) {
         if (typeof scope === 'undefined') {
             scope = this.parentGraph.currentScope;
@@ -1239,6 +1430,12 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         }
     };
     
+    /**
+     * Sets the value of the node in the specified scope.
+     * @param {number} val - The value to set.
+     * @param {string} scope - The scope in which to set the value.
+     * @returns {undefined}
+     */
     this.setValue = function(val, scope) {
         if (typeof scope === 'undefined') {
             scope = this.parentGraph.currentScope;
@@ -1246,6 +1443,11 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         this.values[scope] = val;
     };
     
+    /**
+     * Updates the color of the node based on the value in the specified scope.
+     * @param {string} scope - The scope based on which the node color is updated.
+     * @returns {undefined}
+     */
     this.displayValue = function(scope) {
         if (typeof scope === 'undefined') {
             scope = this.parentGraph.currentScope;
@@ -1256,6 +1458,11 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         sgv.SPS.updateNodeValue(this, color);
     };
 
+    /**
+     * Returns the color of the node based on the value in the specified scope.
+     * @param {string} scope - The scope based on which the node color is returned.
+     * @returns {BABYLON.Color4} - The color of the node based on the value in the specified scope.
+     */
     this.currentColor = function(scope) {
         if (typeof scope === 'undefined') {
             scope = this.parentGraph.currentScope;
@@ -1268,6 +1475,10 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         }
     };
 
+    /**
+     * Returns the mesh ID of the node.
+     * @returns {number} - The mesh ID of the node.
+     */
     this.meshId = ()=>this.mesh.idx;
 
     this.mesh = sgv.SPS.bindNode(this, new BABYLON.Vector3( x, y, z ), this.currentColor());
@@ -1281,11 +1492,28 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
 
 });
 
+/**
+ * Creates a Node from a QDescr.
+ * @param {object} graf - The parent graph this node belongs to.
+ * @param {object} qd - The QDescr to use when creating the Node.
+ * @returns {Node} The created Node instance.
+ */
 Node.fromQDescr = (graf, qd)=>{
     let pos = graf.calcPosition2(qd.x, qd.y, qd.z, qd.n0());
     return new Node(graf, qd.toNodeId(graf.rows, graf.cols), pos.x, pos.y, pos.z );
 };
 
+/**
+ * Creates a Node from XYZ and IJK.
+ * @param {object} graf - The parent graph this node belongs to.
+ * @param {number} x - The x-coordinate of the node's position.
+ * @param {number} y - The y-coordinate of the node's position.
+ * @param {number} z - The z-coordinate of the node's position.
+ * @param {number} i - The i-coordinate of the node's position.
+ * @param {number} j - The j-coordinate of the node's position.
+ * @param {number} k - The k-coordinate of the node's position.
+ * @returns {Node} The created Node instance.
+ */
 Node.fromXYZIJK = (graf, x, y, z, i, j, k)=>{
     return Node.fromQDescr(graf, qD(x,y,z,i,j,k));
 };
@@ -1318,10 +1546,6 @@ Node.fromXYZIJK = (graf, x, y, z, i, j, k)=>{
  * @param {number|string} e - The identifier of the ending node of the edge.
  */
 var Edge = /** @class */ (function (graf, b, e) {
-    /**
-     * Creates an instance of the Edge class.
-     * @constructor
-     */
     this.parentGraph = graf;
 
     this.values = {
@@ -1488,37 +1712,32 @@ Edge.calcId = (b, e) => {
     return (b < e)?("" + b + "," + e):("" + e + "," + b);
 };
 
-
-/* 
- * Copyright 2022 darek.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 "use strict";
 
+/**
+ * Constructs a QbDescr object and returns it.
+ * @function
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ * @param {number} i - Either 0 or 1
+ * @param {number} j - Either 0 or 1
+ * @param {number} k - Either 0 or 1
+ * @returns {QbDescr}
+ */
 const qD = function (x, y, z, i, j, k) {
     return new QbDescr(x, y, z, i, j, k);
 };
 
-/*
- * @class QbDescr
- * @param {Int} x
- * @param {Int} y
- * @param {Int} z
- * @param {[0,1]} i
- * @param {[0,1]} j
- * @param {[0,1]} k
+/**
+ * @class Represents the QbDescr.
+ * @constructor
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ * @param {number} i - Either 0 or 1
+ * @param {number} j - Either 0 or 1
+ * @param {number} k - Either 0 or 1
  */
 const QbDescr = (function (x, y, z, i, j, k) {
     this.x = x;
@@ -1528,18 +1747,43 @@ const QbDescr = (function (x, y, z, i, j, k) {
     this.j = j;
     this.k = k;
 
+    /**
+     * Returns the value for n0.
+     * @returns {number}
+     */
     this.n0 = function () {
         return (((this.i << 1) + this.j) << 1) + this.k;
     };
+
+    /**
+     * Returns the value for n1.
+     * @returns {number}
+     */
     this.n1 = function () {
         return (((this.i << 1) + this.j) << 1) + this.k + 1;
     };
+
+    /**
+     * Returns the node ID.
+     * @param {number} rows - The number of rows.
+     * @param {number} cols - The number of columns.
+     * @returns {number}
+     */
     this.toNodeId = function(rows, cols) {
         return 8 * (this.x + (this.y + this.z * rows) * cols) + this.n1();
     };
 
 });
 
+/**
+ * Static method to create a QbDescr object from a given node ID, rows and columns.
+ * @function
+ * @static
+ * @param {number} nodeIdA - The node ID.
+ * @param {number} rows - The number of rows.
+ * @param {number} cols - The number of columns.
+ * @returns {QbDescr}
+ */
 QbDescr.fromNodeId = function (nodeIdA, rows, cols) {
     let nodeId = nodeIdA - 1;
 
@@ -1551,7 +1795,6 @@ QbDescr.fromNodeId = function (nodeIdA, rows, cols) {
 
     let modId = nodeId >> 3;
 
-    
     let layerSize = cols * rows;
 
     let z = Math.floor(modId / layerSize);
@@ -1559,11 +1802,11 @@ QbDescr.fromNodeId = function (nodeIdA, rows, cols) {
     let modIdInLayer = modId % layerSize;
     let y = Math.floor(modIdInLayer / cols);
     let x = modIdInLayer % cols;
+    
     let q =new QbDescr(x, y, z, i, j, k);
     
     return q;
 };
-
 
 
 /* 
@@ -1585,19 +1828,35 @@ QbDescr.fromNodeId = function (nodeIdA, rows, cols) {
 "use strict";
 /* global BABYLON, labelsVisible, sgv, Edge, Dispatcher, QbDescr, TempGraphStructure, GraphDescr */
 
+/**
+ * @class Graph - Represents a graph with nodes and edges.
+ */
 const Graph = /** @class */ (function () {
+    /** Object that holds nodes of the graph. Keys are node IDs. */
     this.nodes = {};
+    /** Object that holds edges of the graph. Keys are edge IDs. */
     this.edges = {};
+    /** Object that holds nodes that have been deleted. Keys are node IDs. */
     this.missing = {};
     //this.delEdges = {};
+    /** Represents the type of graph. Default is 'generic'. */
     this.type = 'generic';
+    /** Array of value scopes available for this graph. Default is ['default']. */
     this.scopeOfValues = ['default'];
+    /** Current scope of values to be shown on the graph. Default is 'default'. */
     this.currentScope = 'default';
+    /** Limit of green color representation for values on the graph. Default is 1.0. */
     this.greenLimit = 1.0;
+    /** Limit of red color representation for values on the graph. Default is -1.0. */
     this.redLimit = -1.0;
 
+    /** Indicates whether node labels are visible or not. Default is false. */
     this.labelsVisible = false;
 
+    /**
+     * Dispose of the graph by deleting all its edges and nodes.
+     * Also triggers graphDeleted event.
+     */
     this.dispose = function () {
         for (const key in this.edges) {
             this.edges[key].clear();
@@ -1611,15 +1870,29 @@ const Graph = /** @class */ (function () {
         Dispatcher.graphDeleted();
     };
 
+    /**
+     * Alias for dispose function.
+     * @alias Graph.dispose
+     */
     this.clear = function () {
         this.dispose();
     };
 
+    /**
+     * Returns the number of nodes in the graph.
+     * @returns {number}
+     */
     this.maxNodeId = function () {
         return Object.keys(this.nodes).length;
     };
 
 
+    /**
+     * Add a node to the graph with given nodeId and value.
+     * @param {number} nodeId
+     * @param {number} val - Initial value for the node.
+     * @returns {Node}
+     */
     this.addNode = function(nodeId, val) {
         values = {};
         
@@ -1635,14 +1908,32 @@ const Graph = /** @class */ (function () {
         return n;
     };
 
+    /**
+     * Given an object and a value, it returns the key corresponding to the value.
+     * @param {object} object
+     * @param {*} value
+     * @returns {*}
+     */
     this.getKeyByValue = function(object, value) {
         return Object.keys(object).find(key => object[key] === value);
     };
 
+    /**
+     * Given a scope, it returns the index of the scope in the scopeOfValues array.
+     * @param {string} scope
+     * @returns {number}
+     */
     this.getScopeIndex = function(scope) {
         return Object.keys(this.scopeOfValues).find(key => this.scopeOfValues[key] === scope);
     };
     
+    /**
+     * Add an edge to the graph between given nodes. 
+     * If edge already exists, return the existing edge.
+     * @param {Node} node1
+     * @param {Node} node2
+     * @returns {Edge}
+     */
     this.addEdge = function (node1, node2) {
         let id = Edge.calcId(node1, node2);
         if (id in this.edges) {
@@ -1656,6 +1947,11 @@ const Graph = /** @class */ (function () {
         }            
     };
 
+    /**
+     * Delete an edge from the graph.
+     * Also triggers graphChanged event.
+     * @param {number} edgeId
+     */
     this.delEdge = function (edgeId) {
         this.edges[edgeId].clear();
         delete this.edges[edgeId];
@@ -1663,6 +1959,11 @@ const Graph = /** @class */ (function () {
         Dispatcher.graphChanged();
     };
 
+    /**
+     * Returns all nodes connected to the given node.
+     * @param {number} nodeId
+     * @returns {object} - An object containing arrays of different types of connected nodes.
+     */
     this.findAllConnected = (nodeId) => {
         var connected = {
                 //all: [],
@@ -1710,6 +2011,11 @@ const Graph = /** @class */ (function () {
         return connected;
     };
 
+    /**
+     * Find and delete all edges connected to a node. Return removed edges.
+     * @param {number} nodeId
+     * @returns {object} - Removed edges.
+     */
     this.findAndDeleteEdges = function (nodeId) {
         var removedEdges = {};
 
@@ -1732,6 +2038,11 @@ const Graph = /** @class */ (function () {
         return removedEdges;
     };
 
+    /**
+     * Delete a node from the graph.
+     * Also triggers graphChanged event.
+     * @param {number} nodeId
+     */
     this.delNode = function (nodeId) {
         var tmpEdges = this.findAndDeleteEdges(nodeId);
 
@@ -1757,6 +2068,12 @@ const Graph = /** @class */ (function () {
         Dispatcher.graphChanged();
     };
 
+    /**
+     * Restore a deleted node back to the graph.
+     * Also triggers graphChanged event.
+     * @param {number} nodeId
+     * @returns {boolean}
+     */
     this.restoreNode = function (nodeId) {
         if (nodeId in this.nodes) return false;
         
@@ -1795,6 +2112,10 @@ const Graph = /** @class */ (function () {
     };
 
 
+    /**
+     * Update all edges connected to a node.
+     * @param {number} nodeId
+     */
     this.findAndUpdateEdges = function (nodeId) {
         for (const key in this.edges) {
             if ((this.edges[key].begin.toString() === nodeId) || (this.edges[key].end.toString() === nodeId)) {
@@ -1803,6 +2124,11 @@ const Graph = /** @class */ (function () {
         }
     };
 
+    /**
+     * Converts a string representing graph structure into a structured object.
+     * @param {string} string - String representation of the graph.
+     * @returns {object|null}
+     */
     this.stringToStruct = (string) => {
        if ((typeof string==='undefined')||(string===null)) return null;
     
@@ -1843,6 +2169,12 @@ const Graph = /** @class */ (function () {
         return result;
     };
 
+    /**
+     * Load scope values into the graph. If the scope is new, add it to the scopeOfValues array.
+     * @param {string} scope
+     * @param {string} data - String representation of the graph structure.
+     * @returns {object} - An object indicating whether the scope was new and its index in scopeOfValues array.
+     */
     this.loadScopeValues = (scope, data) => {
         let isNew = false;
         if ( (typeof scope !== 'undefined') && ! this.scopeOfValues.includes(scope) ) {
@@ -1865,6 +2197,11 @@ const Graph = /** @class */ (function () {
         return {n:isNew, i:this.scopeOfValues.indexOf(scope)};
     };
 
+    /**
+     * Add a scope to the scopeOfValues array. Returns the index of the added scope.
+     * @param {string} scope
+     * @returns {number} - Index of the added scope.
+     */
     this.addScopeOfValues = function(scope) {
         if ( (typeof scope !== 'undefined') && ! this.scopeOfValues.includes(scope) ) {
             this.scopeOfValues.push(scope);
@@ -1873,6 +2210,13 @@ const Graph = /** @class */ (function () {
         return -1;
     };
 
+    /**
+     * Delete a scope from the scopeOfValues array except 'default'. 
+     * If the deleted scope was the currentScope, set the currentScope to 'default'.
+     * Returns the index of the currentScope.
+     * @param {string} scope
+     * @returns {number} - Index of the current scope.
+     */
     this.delScopeOfValues = function(scope) {
         if ( (typeof scope !== 'undefined') && (scope !== 'default') ) {
 
@@ -1896,10 +2240,20 @@ const Graph = /** @class */ (function () {
         return -1;
     };
 
+    /**
+     * Check if a scope exists in the scopeOfValues array.
+     * @param {string} scope
+     * @returns {boolean} - true if the scope exists, false otherwise.
+     */
     this.hasScope = function (scope) {
         return (typeof scope !== 'undefined') && this.scopeOfValues.includes(scope);
     };
     
+    /**
+     * Display values of the given scope on the graph. If no scope is given, use currentScope.
+     * @param {string} scope - optional
+     * @returns {Promise<boolean>}
+     */
     this.displayValues = async function (scope) {
         if ( (typeof scope === 'undefined') || ! this.scopeOfValues.includes(scope) ) {
             scope = this.currentScope;
@@ -1919,16 +2273,21 @@ const Graph = /** @class */ (function () {
         return true;
     };
 
-//    updateNodeLabels(show) {
-//        for (const key in nodes) {
-//            nodes[key].updateLabel(show);
-//        }
-//    }
 
+    /**
+     * Get the position of a node in the graph.
+     * @param {number} nodeId
+     * @returns {BABYLON.Vector3}
+     */
     this.nodePosition = function (nodeId) {
         return this.nodes[nodeId].position;
     };
 
+    /**
+     * Add or remove check mark from a node.
+     * @param {number} nodeId
+     * @param {boolean} check - If true, add check mark, otherwise remove it.
+     */
     this.checkNode = function (nodeId, check) {
         if (check) {
             this.nodes[nodeId].addCheck();
@@ -1937,43 +2296,92 @@ const Graph = /** @class */ (function () {
         }
     };
 
+    /**
+     * Switch the check flag of an edge.
+     * @param {number} id - ID of the edge.
+     */
     this.edgeDoubleClicked = function (id) {
         this.edges[id].switchCheckFlag();
     };
 
+    /**
+     * Move a node by a given difference in position. Also updates all edges connected to the node.
+     * @param {number} nodeId
+     * @param {BABYLON.Vector3} diff - Difference in position.
+     */
     this.moveNode = function (nodeId, diff) {
         this.nodes[nodeId].move(diff);
         this.findAndUpdateEdges(nodeId);
     };
 
+    /**
+     * Set the value of an edge for a given scope. Also updates the display.
+     * @param {number} edgeId
+     * @param {number} value
+     * @param {string} scope
+     */
     this.setEdgeValue = function (edgeId, value, scope) {
         this.edges[edgeId].setValue(value, scope);
         this.edges[edgeId].displayValue();
     };
 
+    /**
+     * Delete the value of an edge for a given scope. Also updates the display.
+     * @param {number} edgeId
+     * @param {string} scope
+     */
     this.delEdgeValue = function (edgeId, scope) {
         this.edges[edgeId].delValue(scope);
         this.edges[edgeId].displayValue();
     };
 
+    /**
+     * Get the value of an edge for a given scope.
+     * @param {number} edgeId
+     * @param {string} scope
+     * @returns {number}
+     */
     this.edgeValue = function(edgeId, scope) {
         return this.edges[edgeId].getValue(scope);
     };
 
+    /**
+     * Set the value of a node for a given scope. Also updates the display.
+     * @param {number} nodeId
+     * @param {number} value
+     * @param {string} scope
+     */
     this.setNodeValue = function (nodeId, value, scope) {
         this.nodes[nodeId].setValue(value, scope);
         this.nodes[nodeId].displayValue();
     };
 
+    /**
+     * Delete the value of a node for a given scope. Also updates the display.
+     * @param {number} nodeId
+     * @param {string} scope
+     */
     this.delNodeValue = function (nodeId, scope) {
         this.nodes[nodeId].delValue(scope);
         this.nodes[nodeId].displayValue();
     };
 
+    /**
+     * Get the value of a node for a given scope.
+     * @param {number} nodeId
+     * @param {string} scope
+     * @returns {number}
+     */
     this.nodeValue = function (nodeId,scope) {
         return this.nodes[nodeId].getValue(scope);
     };
 
+    /**
+     * Get the minimum and maximum edge value for a given scope. 
+     * If no scope is given, use currentScope.
+     * @param {string} scope - optional
+     * @returns {object} - An object containing minimum and maximum edge value.
+     */
     this.getMinMaxEdgeVal = function (scope) {
         if ( (typeof scope === 'undefined') || ! this.scopeOfValues.includes(scope) ) {
             scope = this.currentScope;
@@ -2012,6 +2420,12 @@ const Graph = /** @class */ (function () {
         return result;
     };
 
+    /**
+     * Get the minimum and maximum node value for a given scope. 
+     * If no scope is given, use currentScope.
+     * @param {string} scope - optional
+     * @returns {object} - An object containing minimum and maximum node value.
+     */
     this.getMinMaxNodeVal = function (scope) {
         if ( (typeof scope === 'undefined') || ! this.scopeOfValues.includes(scope) ) {
             scope = this.currentScope;
@@ -2050,6 +2464,12 @@ const Graph = /** @class */ (function () {
         return result;
     };
 
+    /**
+     * Get the minimum and maximum value for a given scope from nodes and edges. 
+     * If no scope is given, use currentScope.
+     * @param {string} scope - optional
+     * @returns {object} - An object containing minimum and maximum value.
+     */
     this.getMinMaxVal = function (scope) {
         if ( (typeof scope === 'undefined') || ! this.scopeOfValues.includes(scope) ) {
             scope = this.currentScope;
@@ -2079,12 +2499,20 @@ const Graph = /** @class */ (function () {
     };
 
 
-    // Calculate position of node in space for visualisation.
-    // The position depends on graph type and display mode,
-    // so need to be overriden in derrived classes
+    /**
+     * A placeholder function to calculate the position of a node in space for visualisation.
+     * The actual implementation will be provided by the derived classes, as the position
+     * depends on the type of graph and the display mode.
+     * @param {number} nodeId - The id of the node for which the position needs to be calculated.
+     * @returns {BABYLON.Vector3} - A new vector representing the position of the node.
+     */
     this.calcPosition = /*virtual*/ (nodeId) => new BABYLON.Vector3();
 
 
+    /**
+     * Sets the display mode of the graph.
+     * This function changes the position of all nodes and updates all edges according to the calculated positions.
+     */
     this.setDisplayMode = function () {
         for (const key in this.nodes) {
             this.nodes[key].position = this.calcPosition(key);
@@ -2097,6 +2525,10 @@ const Graph = /** @class */ (function () {
         Dispatcher.viewModeChanged();
     };
     
+    /**
+     * Sets whether labels are visible on the nodes of the graph.
+     * @param {boolean} b - If true, labels are shown. If false, they are hidden.
+     */
     this.showLabels = function (b) {
         this.labelsVisible = b;
         for (const key in this.nodes) {
@@ -2105,6 +2537,11 @@ const Graph = /** @class */ (function () {
     };
 
     
+    /**
+     * Creates the structure of the graph from a temporary structure.
+     * @param {object} struct - The temporary structure containing nodes and edges.
+     * @returns {Promise<string>} - Resolves to 'ok' when the structure has been created.
+     */
     this.createStructureFromTempStruct = function (struct) {
         return new Promise((resolve)=>{
             for (let tmpNode of struct.nodes){
@@ -2126,12 +2563,37 @@ const Graph = /** @class */ (function () {
             resolve('ok');
         });
     };
+    
+    /**
+     * Given a value, a minimum, and a maximum, it returns a value between 0 and 1 proportionate to the position of the value between the min and max.
+     * @param {number} value
+     * @param {number} min
+     * @param {number} max
+     * @returns {number}
+     */
+    this.scale = function (value, min, max) {
+        if (min === max) return 0.5;
+        return (value - min) / (max - min);
+    };
 
 });
 
+/**
+ * Available display modes for the graph.
+ * @type {string[]}
+ */
 Graph.displayModes = [ 'classic', 'triangle', 'diamond' ];
+
+/**
+ * Current display mode for the graph.
+ * @type {string}
+ */
 Graph.currentDisplayMode = 'classic';
 
+/**
+ * Switch the display mode of the graph to the next available mode.
+ * If the graph does not exist, a warning is logged and the function does nothing.
+ */
 Graph.switchDisplayMode = ()=>{
     if (sgv.graf === null) {
         console.warning('graf not defined');
@@ -2145,14 +2607,30 @@ Graph.switchDisplayMode = ()=>{
     sgv.graf.setDisplayMode();
 };
 
+// An object mapping known graph types to their corresponding constructor functions.
 Graph.knownGraphTypes = {};
+
+/**
+ * Registers a new graph type.
+ * @param {string} txt - The name of the graph type.
+ * @param {Function} Type - The constructor function of the graph type.
+ */
 Graph.registerType = (txt,Type)=>{Graph.knownGraphTypes[txt] = Type;};
+
+/**
+ * Checks if a graph type is known.
+ * @param {string} txt - The name of the graph type.
+ * @returns {boolean} - True if the graph type is known, false otherwise.
+ */
 Graph.knowType = (txt)=>(txt in Graph.knownGraphTypes);
 
 
 /**
- * @param {GraphDescr} gDesc - Graph structure description
- * @param {TempGraphStructure} struct - optional Graph data
+ * Create a new graph from a GraphDescr and optionally a TempGraphStructure.
+ * If a graph already exists, it is first removed.
+ * If the graph type is not known or not a GraphDescr, an error is logged and the function does nothing.
+ * @param {GraphDescr} gDesc - The description of the graph structure.
+ * @param {TempGraphStructure} struct - Optional. The graph data.
  */
 Graph.create = (gDesc, struct)=>{
     Graph.remove();
@@ -2178,6 +2656,9 @@ Graph.create = (gDesc, struct)=>{
     
 };
 
+/**
+ * Removes the current graph if it exists.
+ */
 Graph.remove = ()=>{
     if (sgv.graf !== null) {
         sgv.graf.dispose();
@@ -3295,6 +3776,10 @@ DlgPreferences.prototype = parentPrototype;
 
 const DEFAULT_SCOPE = 'default';
 
+/**
+ * Global namespace for SimGraphVisualizer.
+ * @namespace
+ */
 var sgv = (typeof exports === "undefined") ? (function sgv() {}) : (exports);
 if (typeof global !== "undefined") {
     global.sgv = sgv;
@@ -3651,10 +4136,25 @@ sgv.display = function(args) {
 
 /* global sgv, NaN, Graph */
 
+/**
+ * @fileoverview This script imports and exports graphs in TXT format.
+ * 
+ * @namespace ParserTXT
+ */
+
 "use strict";
 
+/** @type {Object} Module exporting TXT parsing functionality */
 var ParserTXT = {};
 
+/**
+ * Function to import graph data from TXT format.
+ * 
+ * @function importGraph
+ * @memberof ParserTXT
+ * @param {string} string - Input graph data in TXT format
+ * @returns {void}
+ */
 ParserTXT.importGraph = (string) => {
     var struct = new TempGraphStructure();
 
@@ -3663,6 +4163,11 @@ ParserTXT.importGraph = (string) => {
 
     let gDesc = new GraphDescr();
     
+    /**
+     * Parses comments from the TXT data.
+     *
+     * @param {string} string - String to parse comments from
+     */
     var parseComment = function (string) {
         var command = string.split("=");
         if (command[0] === 'type') {
@@ -3687,6 +4192,12 @@ ParserTXT.importGraph = (string) => {
         }
     };
 
+    /**
+     * Parses graph data from the TXT data.
+     *
+     * @param {string} string - String to parse data from
+     * @returns {?Object} - Returns an object containing the parsed data or null
+     */
     var parseData = function (string) {
         var line = string.trim().split(/\s+/);
         if (line.length < 3) return null;
@@ -3699,6 +4210,7 @@ ParserTXT.importGraph = (string) => {
         else return { n1: _n1, n2: _n2, val: _val };
     };
 
+    // Process each line of the input string
     while (lines.length > 0) {
         if (lines[0][0] !== '#')
         {
@@ -3718,6 +4230,7 @@ ParserTXT.importGraph = (string) => {
         lines.shift();
     }
 
+    // Create graph if type is defined, otherwise show graph creation dialog
     if (typeof gDesc.type==='undefined') {
         sgv.dlgCreateGraph.show('load', struct);
     } else {
@@ -3725,9 +4238,18 @@ ParserTXT.importGraph = (string) => {
     }
 };
 
+/**
+ * Exports a graph to TXT format.
+ * 
+ * @function exportGraph
+ * @memberof ParserTXT
+ * @param {Graph} graph - The graph object to export
+ * @returns {?string} - The exported graph in TXT format, or null if the graph is undefined or null
+ */
 ParserTXT.exportGraph = (graph) => {
     if ((typeof graph==='undefined')||(graph === null)) return null;
 
+    // Generate TXT data
     var string = "# type=" + graph.type + "\n";
     string += "# size=" + graph.cols + "," + graph.rows + "," + graph.layers + "," + graph.KL + "," + graph.KR + "\n";
 
@@ -3747,11 +4269,28 @@ ParserTXT.exportGraph = (graph) => {
 
 /* global sgv, Chimera, Pegasus, Graph */
 
+/**
+ * @fileoverview This script imports and exports graphs in GEXF (Graph Exchange XML Format) format.
+ * 
+ * @namespace ParserGEXF
+ */
+
 "use strict";
 
+/** @type {Object} Module exporting GEXF parsing functionality */
 var ParserGEXF = {};
 
+/**
+ * Function to import graph data from GEXF format.
+ * 
+ * @function importGraph
+ * @memberof ParserGEXF
+ * @param {string} string - Input graph data in GEXF format
+ * @returns {boolean} - Returns true upon successful completion
+ */
 ParserGEXF.importGraph = (string) => {
+    // Initialize data structures
+    
     //var graphType = "unknown";
     //var graphSize = { cols:0, rows:0, lays:0, KL:0, KR:0 };
     var graphDescr = new GraphDescr();
@@ -3759,6 +4298,11 @@ ParserGEXF.importGraph = (string) => {
     var edgeAttrs = {};
     var struct = new TempGraphStructure();
     
+    /**
+     * Parses node elements from the GEXF XML data.
+     *
+     * @param {Element} parentNode - Parent XML node to parse nodes from
+     */
     function parseNodes(parentNode) {
         let nodes = parentNode.getElementsByTagName("nodes");
         let node = nodes[0].getElementsByTagName("node");
@@ -3793,6 +4337,11 @@ ParserGEXF.importGraph = (string) => {
         }
     };
     
+    /**
+     * Parses edge elements from the GEXF XML data.
+     *
+     * @param {Element} parentNode - Parent XML node to parse edges from
+     */
     function parseEdges(parentNode) {
         let nodes = parentNode.getElementsByTagName("edges");
         let node = nodes[0].getElementsByTagName("edge");
@@ -3824,6 +4373,12 @@ ParserGEXF.importGraph = (string) => {
         }
     };
 
+    /**
+     * Parses node attributes from the GEXF XML data.
+     *
+     * @param {Element} attributeNode - XML node to parse attributes from
+     * @returns {Object} - Returns an object containing the parsed attribute data
+     */
     function parseNodeAttribute(attributeNode) {
         let id = attributeNode.getAttribute("id");
         let title = attributeNode.getAttribute("title");
@@ -3842,6 +4397,12 @@ ParserGEXF.importGraph = (string) => {
     };
     
 
+    /**
+     * Parses edge attributes from the GEXF XML data.
+     *
+     * @param {Element} attributeNode - XML node to parse attributes from
+     * @returns {Object} - Returns an object containing the parsed attribute data
+     */
     function parseEdgeAttribute(attributeNode) {
         let id = attributeNode.getAttribute("id");
         let title = attributeNode.getAttribute("title");
@@ -3849,6 +4410,11 @@ ParserGEXF.importGraph = (string) => {
     };
 
 
+    /**
+     * Parses attributes from the GEXF XML data.
+     *
+     * @param {Element} parentNode - Parent XML node to parse attributes from
+     */
     function parseAttributes(parentNode){
         let attrs = parentNode.getElementsByTagName("attributes");
 
@@ -3888,6 +4454,7 @@ ParserGEXF.importGraph = (string) => {
     };
     
     
+    // Parse the input string as XML
     if (window.DOMParser) {
         parser = new DOMParser();
         xmlDoc = parser.parseFromString(string, "text/xml");
@@ -3900,10 +4467,12 @@ ParserGEXF.importGraph = (string) => {
     
     //console.log(xmlDoc);
     
+    // Parse the XML data
     parseAttributes(xmlDoc);
     parseNodes(xmlDoc);
     parseEdges(xmlDoc);
    
+    // Create graph and return
     Graph.create(graphDescr, struct);
     
     for (const i in nodeAttrs) {
@@ -3914,9 +4483,23 @@ ParserGEXF.importGraph = (string) => {
     return true;
 };
 
+/**
+ * Exports a graph to GEXF format.
+ * 
+ * @function exportGraph
+ * @memberof ParserGEXF
+ * @param {Graph} graph - The graph object to export
+ * @returns {?string} - The exported graph in GEXF format, or null if the graph is undefined or null
+ */
 ParserGEXF.exportGraph = function(graph) {
     if ((typeof graph==='undefined')||(graph === null)) return null;
     
+    /**
+     * Converts a graph node to GEXF format.
+     *
+     * @param {Node} node - The node to export
+     * @returns {string} - The node exported to GEXF format
+     */
     function exportNode(node) {
         let xml = '      <node id="' + node.id;
         if (node.isLabelVisible()) {
@@ -3932,6 +4515,13 @@ ParserGEXF.exportGraph = function(graph) {
         return xml;
     };
 
+    /**
+     * Converts a graph edge to GEXF format.
+     *
+     * @param {Edge} edge - The edge to export
+     * @param {number} tmpId - The temporary ID for the edge
+     * @returns {string} - The edge exported to GEXF format
+     */
     function exportEdge(edge, tmpId) {
         let xml = "      <edge id=\""+tmpId+"\" source=\""+edge.begin+"\" target=\""+edge.end+"\">\n";
         xml += "        <attvalues>\n";
@@ -4175,27 +4765,10 @@ FileIO.loadGraph2 = function(name,data) {
     };
 };
 
-/* 
- * Copyright 2022 pojdulos.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-
 /* global UI, sgv, Dispatcher */
 
 /**
- * ScopePanel module for managing scope-related operations in a user interface.
+ * @class ScopePanel module for managing scope-related operations in a user interface.
  * @param {boolean} [addButtons=true] - Flag indicating whether to add buttons to the panel.
  * @param {string} [lbl] - Label for the scope display.
  * @returns {Object} ScopePanel instance.
@@ -4372,28 +4945,30 @@ const ScopePanel = (function(addButtons,lbl) {
 
 
 
-/* 
- * Copyright 2022 pojdulos.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 
 /* global sgv, UI */
 
+/**
+ * @class
+ * @classdesc Represents a panel for controlling sliders.
+ */
 const SlidersPanel = (function() {
-    var sliderRedLimit, sliderGreenLimit;
-    var spanRed, spanGreen;
+    /** @type {HTMLElement} Represents the red limit slider. */
+    var sliderRedLimit;
 
+    /** @type {HTMLElement} Represents the green limit slider. */
+    var sliderGreenLimit;
+
+    /** @type {HTMLElement} Represents the display span for red limit. */
+    var spanRed;
+
+    /** @type {HTMLElement} Represents the display span for green limit. */
+    var spanGreen;
+
+    /**
+     * The UI for the sliders panel.
+     * @type {HTMLElement}
+     */
     this.ui = UI.tag('div', {'id': 'LimitSlidersPanel'});
 
     this.ui.appendChild(spanRed = UI.tag("span", {'id': 'spanRed'}, {'textContent': '-1.0'}));
@@ -4445,6 +5020,9 @@ const SlidersPanel = (function() {
 
     this.ui.appendChild(spanGreen = UI.tag("span", {'id': 'spanGreen'}, {'textContent': '1.0'}));
     
+    /**
+     * Refreshes the sliders panel based on the current graph data.
+     */
     this.refresh = () => {
         if (sgv.graf === null)
             return;
@@ -4510,7 +5088,12 @@ const SlidersPanel = (function() {
 "use strict";
 /* global sgv, Chimera, Pegasus, UI, parserGEXF, dialog, FileIO, Graph */
 
-sgv.dlgCPL = new function () {
+/**
+ * @class
+ * @classdesc Represents the DlgCPL class.
+ * @memberof sgv
+ */
+const DlgCPL = (function () {
     var switchableContent; 
     var selectionPanel, descriptionPanel;
     var scopePanel, slidersPanel;
@@ -4518,13 +5101,24 @@ sgv.dlgCPL = new function () {
     
     var ui = createDialog();
 
+    /**
+     * Add the created dialog to the DOM upon window load event.
+     */
     window.addEventListener('load', () => {
         window.document.body.appendChild(ui);
     });
 
+    /**
+     * Creates the Control Panel dialog with multiple components.
+     * @returns {HTMLElement} The created dialog element.
+     */
     function createDialog() {
         let ui = UI.tag("div", {"class": "sgvUIwindow disable-select", "id": "sgvDlgCPL"});
 
+        /**
+         * Creates the Selection Panel component of the Control Panel dialog.
+         * @returns {Object} The Selection Panel component along with show and hide functions.
+         */
         function SelectionPanel() {
             let btnShowConsole2, btnCreate, btnLoad;
             var divSel = UI.tag("div", {"class": "content", "id": "graphSelection"});
@@ -4553,6 +5147,10 @@ sgv.dlgCPL = new function () {
             };
         }
 
+        /**
+         * Creates the Description Panel component of the Control Panel dialog.
+         * @returns {Object} The Description Panel component along with show, hide, and addButton functions.
+         */
         function DescriptionPanel() {
             function InfoBlock() {
                 let i = UI.tag("div", {});
@@ -4660,25 +5258,40 @@ sgv.dlgCPL = new function () {
     }
 
 
+    /**
+     * Show the switchable content of the Control Panel dialog.
+     */
     function showDialog() {
         switchableContent.style.display = "block";
     }
 
 
+    /**
+     * Hide the switchable content of the Control Panel dialog.
+     */
     function hideDialog() {
         switchableContent.style.display = "none";
     }
 
 
+    /**
+     * Switches the display of the switchable content of the Control Panel dialog between show and hide.
+     */
     function switchDialog() {
         (switchableContent.style.display === "none") ? showDialog() : hideDialog();
     }
 
+    /**
+     * Switches to the Selection mode of the Control Panel dialog.
+     */
     function setModeSelectionX() {
         selectionPanel.show();
         descriptionPanel.hide();
     }
 
+    /**
+     * Switches to the Description mode of the Control Panel dialog.
+     */
     function setModeDescriptionX() {
         descriptionPanel.updateInfo();
         slidersPanel.refresh();
@@ -4688,6 +5301,9 @@ sgv.dlgCPL = new function () {
         descriptionPanel.show();
     }
 
+    /**
+     * Refreshes the sliders and scope panels of the Control Panel dialog.
+     */
     function refreshX() {
         slidersPanel.refresh();
         scopePanel.refresh();
@@ -4708,58 +5324,46 @@ sgv.dlgCPL = new function () {
         refresh: refreshX
     };
     
-};
-
-
-
-/* 
- * Copyright 2022 Dariusz Pojda.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+});
 
 /**
- * Dialog Console module for managing a console dialog.
- * @module dlgConsole
+ * Represents the static instance of control panel (DlgCPL) in the sgv namespace.
+ * @type {DlgCPL}
+ * @memberof sgv
+ * @static
  */
+sgv.dlgCPL = new DlgCPL();
 
 "use strict";
 /* global scene, sgv, Chimera, Pegasus, UI, Graph */
 
-/**
- * Creates a new instance of the Dialog Console.
- * @constructor
- */
-sgv.dlgConsole = new function () {
-    var isDown;
-    var cmdHistory = [];
-    var cmdHistoryPtr = -1;
-    var movable = false;
-    
-    /**
-    * User interface element representing the console.
-    * @type {HTMLElement}
-    */    
-    var ui = createUI("sgvConsole");
-    
-    /**
-    * Initializes the console.
-    */
-    initConsole();
 
-    window.addEventListener('load',()=>{
-        window.document.body.appendChild(ui);
-    });
+/**
+ * @class
+ * @classdesc Represents the DlgConsole class.
+ * @memberof sgv
+ */
+class DlgConsole {
+    constructor () {
+        this.cmdHistory = [];
+        this.cmdHistoryPtr = -1;
+        this.movable = false;
+
+        /**
+        * User interface element representing the console.
+        * @type {HTMLElement}
+        */    
+        this.ui = this.createUI("sgvConsole");
+
+        /**
+        * Initializes the console.
+        */
+        this.initConsole();
+
+        window.addEventListener('load',()=>{
+            window.document.body.appendChild(this.ui);
+        });
+    }
 
     /**
      * Initializes the console by setting up event listeners for the command line input field.
@@ -4768,43 +5372,43 @@ sgv.dlgConsole = new function () {
      * "Enter" executes the command written in the input field. 
      * "Up" and "Down" navigate through the command history.
      */
-    function initConsole() {
-        let domCmdline = ui.querySelector("#commandline");
+    initConsole() {
+        let domCmdline = this.ui.querySelector("#commandline");
 
-        domCmdline.addEventListener("keydown", function(event) {
+        domCmdline.addEventListener("keydown", (event) => {
             if (event.key === "Enter") {
                 let txtarea = document.getElementById("consoleHistory");
                 //txtarea.disabled = false;
                 txtarea.textContent += "> " + domCmdline.value + "\n";
 
-                txtarea.textContent += parseCommand(domCmdline.value) + "\n";
+                txtarea.textContent += this.parseCommand(domCmdline.value) + "\n";
 
                 txtarea.scrollTop = txtarea.scrollHeight;
                 //txtarea.disabled = true;
 
-                if (cmdHistory.length > 10)
-                    cmdHistory.shift();
-                cmdHistory.push(domCmdline.value);
-                cmdHistoryPtr = cmdHistory.length;
+                if (this.cmdHistory.length > 10)
+                    this.cmdHistory.shift();
+                this.cmdHistory.push(domCmdline.value);
+                this.cmdHistoryPtr = this.cmdHistory.length;
 
                 domCmdline.value = "";
             } else if (event.keyCode === 38) {
-                if (cmdHistoryPtr > 0) {
-                    cmdHistoryPtr--;
-                    domCmdline.value = cmdHistory[cmdHistoryPtr];
+                if (this.cmdHistoryPtr > 0) {
+                    this.cmdHistoryPtr--;
+                    domCmdline.value = this.cmdHistory[this.cmdHistoryPtr];
                 }
             } else if (event.keyCode === 40) {
-                if (cmdHistoryPtr < cmdHistory.length) {
-                    domCmdline.value = cmdHistory[cmdHistoryPtr];
-                    cmdHistoryPtr++;
+                if (this.cmdHistoryPtr < this.cmdHistory.length) {
+                    domCmdline.value = this.cmdHistory[this.cmdHistoryPtr];
+                    this.cmdHistoryPtr++;
                 } else {
                     domCmdline.value = "";
                 }
             }
         });
 
-        ui.querySelector(".hidebutton").addEventListener('click', function() { sgv.dlgConsole.hideConsole(); });
-    };
+        this.ui.querySelector(".hidebutton").addEventListener('click', () => { this.hideConsole(); });
+    }
 
     /**
      * Creates a new UI window for a console with a specified ID.
@@ -4813,7 +5417,7 @@ sgv.dlgConsole = new function () {
      * 
      * @returns {HTMLElement} The created UI window element. The window includes a read-only textarea for the console history and a text input field for the command line.
      */
-    function createUI(id) {
+    createUI(id) {
         var o = UI.createEmptyWindow("sgvUIwindow", id, "console", true);
 
         o.innerHTML += '<div class="content"> \
@@ -4830,7 +5434,7 @@ sgv.dlgConsole = new function () {
      * 
      * @returns {string} A string message indicating the result of the operation. The exact message depends on the command and its arguments.
      */
-    function parseCommand(line) {
+    parseCommand(line) {
 
         /**
         * Sets the value of a specified node in the graph, if the node exists.
@@ -5349,47 +5953,56 @@ sgv.dlgConsole = new function () {
 
         return result;
     }
+    
+    /**
+     * 
+     * @public
+     * @return {none}
+     */
+    switchConsole() {
+        if (this.ui.style.display !== "block") {
+            this.ui.style.display = "block";
+        } else {
+            this.ui.style.display = "none";
+        }
+    }
 
     /**
-    * Public interface for the console.
-    * @returns {Object} Object containing public methods.
-    */
-    return {
-        
-        /**
-        * Toggles the visibility of the console. If the console is visible, it hides it. If the console is hidden, it shows it.
-        */
-        switchConsole: function () {
-            if (ui.style.display !== "block") {
-                ui.style.display = "block";
-            } else {
-                ui.style.display = "none";
-            }
-        },
+     * Shows the console.
+     * @public
+     * @return {none}
+     */
+    showConsole() {
+        this.ui.style.display = "block";
+    }
 
-        /**
-         * Shows the console.
-         */
-        showConsole: function () {
-            ui.style.display = "block";
-        },
+    /**
+     * Hides the console.
+     * @public
+     * @return {none}
+     */
+    hideConsole() {
+        this.ui.style.display = "none";
+    }
+    
+}
 
-        /**
-         * Hides the console.
-         */
-        hideConsole: function () {
-            ui.style.display = "none";
-        }
-    };
-};
+/**
+ * Represents the static instance of DlgConsole in the sgv namespace.
+ * @type {DlgConsole}
+ * @memberof sgv
+ * @static
+ */
+sgv.dlgConsole = new DlgConsole();
 
 /* global sgv, UI, Edge, qD, QbDescr */
 
 /**
- * Cell view dialog module for graph visualization.
- * @module sgv.dlgCellView
+ * @class
+ * @classdesc Represents the DlgCellView class.
+ * @memberof sgv
  */
-sgv.dlgCellView = new function () {
+const DlgCellView = (function () {
     /**
      * Select elements for choosing the column, row, and layer of the cell view.
      * @type {HTMLSelectElement}
@@ -6059,10 +6672,25 @@ sgv.dlgCellView = new function () {
         show: showDialogX,
         hide: hideDialogX
     };
-};
+});
+
+
+/**
+ * Represents the static instance of DlgCellView in the sgv namespace.
+ * @type {DlgCellView}
+ * @memberof sgv
+ * @static
+ */
+sgv.dlgCellView = new DlgCellView();
+
 /* global sgv, UI, Graph, TempGraphStructure */
 
-sgv.dlgCreateGraph = new function() {
+/**
+ * @class
+ * @classdesc Represents the DlgCreateGraph class. Handles the display and functionality of a dialog for creating a graph
+ * @memberof sgv
+ */
+const DlgCreateGraph = (function() {
     var selectGraphType;
     var selectGraphCols, selectGraphRows, selectGraphLays;
     var selectGraphKL, selectGraphKR;
@@ -6071,23 +6699,37 @@ sgv.dlgCreateGraph = new function() {
 
     var graphData;
     
+    // Listen for the load event on the window object
+    // This event is fired when the entire page has loaded, including all dependent resources such as stylesheets and images
+    // When the load event is fired, append the ui element to the body of the window document
     window.addEventListener('load',()=>{
         window.document.body.appendChild(ui);
     });
 
+    /**
+     * Creates the UI for the graph creation dialog.
+     * @returns {Object} The UI for the graph creation dialog.
+     */
     function createUI() {
+        // Create a dialog HTML element with the specified properties and assign it to "ui"
         let ui = UI.tag( "dialog", { "class": "sgvUIwindow sgvModalDialog", "id": "sgvDlgCreateGraph" });
 
+        // Create a title bar with the specified title and add it to the dialog
         let t = UI.createTitlebar("Create graph", false);
         ui.appendChild(t);
 
+        // Create a content div for the graph selection and add it to the dialog
         let divSel = UI.tag( "div", { "class": "content", "id": "graphSelection" });
 
+        // Append several child elements to the divSel element
         divSel.appendChild(UI.tag('div',{'id':'description'}));
         let g = UI.tag('div',{'id':'description'});
 
+        // Center align the text in the "g" div
         g.style['text-align']='center';
 
+        // Create a select element for the graph type and add it to the "g" div
+        // Also add an event listener that disables the selectGraphLays element when the graph type is "chimera"
         selectGraphType = UI.tag('select',{'id':'graphType'});
         selectGraphType.appendChild(UI.option('chimera','chimera'));
         selectGraphType.appendChild(UI.option('pegasus','pegasus'));
@@ -6103,8 +6745,11 @@ sgv.dlgCreateGraph = new function() {
         g.appendChild(UI.tag('label',{'for':'graphType'},{'innerHTML':'graph type: '}));
         g.appendChild(selectGraphType);
 
+        // Add a horizontal line to the "g" div
         g.appendChild(UI.tag('hr'));
         
+        // Create a select element for the graph columns and add it to the "g" div
+        // The options for the select element are the numbers from 1 to 16
         selectGraphCols = UI.tag('select',{'id':'graphCols'});
         for (let i=1; i<17; i++ ) {
             selectGraphCols.appendChild(UI.option(i,i));
@@ -6114,6 +6759,8 @@ sgv.dlgCreateGraph = new function() {
         g.appendChild(UI.tag('label',{'for':'graphCols'},{'innerHTML':' columns: '}));
         g.appendChild(selectGraphCols);
 
+        // Create a select element for the graph rows and add it to the "g" div
+        // The options for the select element are the numbers from 1 to 16
         selectGraphRows = UI.tag('select',{'id':'graphRows'});
         for (let i=1; i<17; i++ ) {
             selectGraphRows.appendChild(UI.option(i,i));
@@ -6123,6 +6770,9 @@ sgv.dlgCreateGraph = new function() {
         g.appendChild(UI.tag('label',{'for':'graphRows'},{'innerHTML':' rows: '}));
         g.appendChild(selectGraphRows);
 
+        // Create a select element for the graph layers and add it to the "g" div
+        // The options for the select element are the numbers from 1 to 5
+        // The select element is initially disabled
         selectGraphLays = UI.tag('select',{'id':'graphLays'});
         for (let i=1; i<6; i++ ) {
             selectGraphLays.appendChild(UI.option(i,i));
@@ -6132,8 +6782,11 @@ sgv.dlgCreateGraph = new function() {
         g.appendChild(UI.tag('label',{'for':'graphLays'},{'innerHTML':' layers: '}));
         g.appendChild(selectGraphLays);
 
+        // Add a horizontal line to the "g" div
         g.appendChild(UI.tag('hr'));
 
+        // Create a select element for the graph module size KL and add it to the "g" div
+        // The options for the select element are the numbers from 1 to 4
         selectGraphKL = UI.tag('select',{'id':'graphKL'});
         selectGraphKL.appendChild(UI.option('1','1'));
         selectGraphKL.appendChild(UI.option('2','2'));
@@ -6143,6 +6796,8 @@ sgv.dlgCreateGraph = new function() {
         g.appendChild(UI.tag('label',{'for':'graphKL'},{'innerHTML':'module size: K = '}));
         g.appendChild(selectGraphKL);
 
+        // Create a select element for the graph module size KR and add it to the "g" div
+        // The options for the select element are the numbers from 1 to 4
         selectGraphKR = UI.tag('select',{'id':'graphKR'});
         selectGraphKR.appendChild(UI.option('1','1'));
         selectGraphKR.appendChild(UI.option('2','2'));
@@ -6152,27 +6807,41 @@ sgv.dlgCreateGraph = new function() {
         g.appendChild(UI.tag('label',{'for':'graphKR'},{'innerHTML':', '}));
         g.appendChild(selectGraphKR);
 
+        // Add the "g" div to the divSel element
         divSel.appendChild(g);
 
+        // Create a div for the buttons and add it to the divSel element
         let btns = UI.tag('div',{'id':'buttons'});
 
+        // Create a "Cancel" button and add it to the buttons div
+        // Also add an event listener that hides the dialog when the button is clicked
         let cancelButton = UI.tag('input',{'type':'button', 'class':'actionbutton', 'id':'cplCancelButton', 'name':'cancelButton', 'value':'Cancel'});
         cancelButton.addEventListener('click', ()=>{hideDialog();});
         btns.appendChild(cancelButton);
         
+        // Create a "Create" button and add it to the buttons div
+        // Also add an event listener that calls the onCreateButton function when the button is clicked
         let createButton = UI.tag('input',{'type':'button', 'class':'actionbutton', 'id':'cplCreateButton', 'name':'createButton', 'value':'Create'});
         createButton.addEventListener('click', ()=>{onCreateButton();});
         btns.appendChild(createButton);
 
+        // Add the buttons div to the divSel element
         divSel.appendChild(btns);
 
+        // Append the divSel to the ui element
         ui.appendChild(divSel);
 
+        // Initially, hide the ui element by setting its display to "none"
         ui.style.display = "none";
         
+        // Return the created ui element
         return ui;
     };
     
+    /**
+     * Gets the graph description from the current values of the select elements.
+     * @returns {GraphDescr} The graph description.
+     */
     function getGraphDescr() {
         let gD = new GraphDescr();
         gD.setType(selectGraphType.value);
@@ -6186,6 +6855,10 @@ sgv.dlgCreateGraph = new function() {
         return gD;
     };
 
+    /**
+     * Suggests graph size based on maximum node in the graph data.
+     * @returns {undefined}
+     */
     function sugestSize() {
         let maxNode = 0;
         graphData.nodes.forEach((n)=>{if (maxNode<n.id) maxNode=n.id;});
@@ -6223,6 +6896,10 @@ sgv.dlgCreateGraph = new function() {
         else selectGraphLays.disabled='';
     }
     
+    /**
+     * Creates a graph with the selected description when "Create" button is clicked.
+     * @returns {undefined}
+     */
     function onCreateButton() {
         let gDesc = getGraphDescr();
         
@@ -6234,6 +6911,12 @@ sgv.dlgCreateGraph = new function() {
             },true);
     }
     
+    /**
+     * Shows the dialog for creating a graph.
+     * @param {string} type - Type of the graph.
+     * @param {Object} struct - Temporary graph structure.
+     * @returns {undefined}
+     */
     function showDialog( type, struct ) {
         if (type==='load') {
             ui.querySelector('#cplCreateButton').value = 'Load';
@@ -6255,24 +6938,46 @@ sgv.dlgCreateGraph = new function() {
         ui.showModal();
     };
 
+    /**
+     * Hides the dialog for creating a graph.
+     * @returns {undefined}
+     */
     function hideDialog() {
         ui.close();
         ui.style.display = "none";
     };
     
         
+    // Return an object with references to the showDialog and hideDialog functions
     return {
         d: graphData,
         show: showDialog,
         hide: hideDialog
     };
-};
+});
 
 
+/**
+ * Represents the static instance of DlgCreateGraph in the sgv namespace.
+ * @type {DlgCreateGraph}
+ * @memberof sgv
+ * @static
+ */
+sgv.dlgCreateGraph = new DlgCreateGraph();
 
 
 /* global sgv, UI, Dispatcher */
 
+/**
+ * @fileoverview This script handles edge properties and provides dialog functionality.
+ */
+
+/**
+ * @property {function} show - Function to show the dialog
+ * @property {function} hide - Function to hide the dialog
+ * @property {function} refresh - Function to refresh the dialog
+ * @property {function} isVisible - Function to check if the dialog is visible
+ */
 sgv.dlgEdgeProperties = new function() {
     var precontent, content, zeroInfo;
     var hidEdgeId;
@@ -6292,6 +6997,11 @@ sgv.dlgEdgeProperties = new function() {
         hideDialog();
     });
 
+    /**
+     * Function to create UI for the dialog.
+     *
+     * @returns {Object} - Returns the UI object for the dialog
+     */
     function createUI() {
         let ui = UI.createEmptyWindow("sgvUIwindow", "sgvEdgeProperties", "Edge properties", true);
         
@@ -6349,6 +7059,13 @@ sgv.dlgEdgeProperties = new function() {
         return ui;
     };
 
+    /**
+     * Function to show the dialog.
+     *
+     * @param {?string} edgeId - The ID of the edge
+     * @param {?number} x - The x position to show the dialog
+     * @param {?number} y - The y position to show the dialog
+     */
     function showDialog(edgeId, x, y) {
         if (typeof edgeId !== 'undefined') {
             edgeId = edgeId.toString();
@@ -6401,6 +7118,11 @@ sgv.dlgEdgeProperties = new function() {
         ui.focus({focusVisible: false});
     };
 
+    /**
+     * Function to handle keydown events in the dialog.
+     *
+     * @param {Object} event - The keydown event
+     */
     function onKeyDownX(event) {
 //        if (!ui.contains(document.activeElement)) return;
 
@@ -6411,20 +7133,32 @@ sgv.dlgEdgeProperties = new function() {
         }
     }
 
+    /**
+     * Function to hide the dialog.
+     */
     function hideDialog() {
         if (prevFocused!==null) prevFocused.focus({focusVisible: false});
         if (ui!==null) ui.style.display = "none";
     };
 
+    /**
+     * Function to handle selection change in the edge ID dropdown.
+     */
     function selectedEdgeId() {
         showDialog(event.target.value);
     }
 
+    /**
+     * Function to handle the Delete button click event.
+     */
     function onDeleteEdgeButton() {
         hideDialog();
         sgv.graf.delEdge(hidEdgeId.value);
     };
 
+    /**
+     * Function to handle the Set button click event.
+     */
     function onSetEdgeValueButton() {
         let val = parseFloat(editWagaE.value.replace(/,/g, '.'));
         let scope = selectScope.getScope();
@@ -6438,6 +7172,9 @@ sgv.dlgEdgeProperties = new function() {
         Dispatcher.graphChanged();
     };
 
+    /**
+     * Function to handle the value enable checkbox click event.
+     */
     function onValueEnableCheckbox() {
         let isActive = checkValueE.checked;
         let scope = selectScope.getScope();
@@ -6454,10 +7191,14 @@ sgv.dlgEdgeProperties = new function() {
         Dispatcher.graphChanged();
     };
 
+    /**
+     * Function to refresh the dialog.
+     */
     function refreshX() {
         if (ui.style.display === "block") showDialog();
     };
 
+    // The API exposed by this module
     return {
         show: showDialog,
         hide: hideDialog,
@@ -6471,8 +7212,7 @@ sgv.dlgEdgeProperties = new function() {
 /* global UI, sgv, Edge, Dispatcher, SVG */
 
 /**
- * Represents a value panel component.
- * @returns An object with properties and methods related to the value panel component.
+ * @class Represents an object with properties and methods related to the value panel component.
  */
 const ValuePanel = (function() {
     var btnSetN, checkValueN, editWagaN;
@@ -6594,10 +7334,11 @@ const ValuePanel = (function() {
 });
 
 /**
- * Represents a dialog for displaying and editing properties of a node in a graph.
- * @returns An object with methods for showing, hiding, refreshing, and checking visibility of the dialog.
+ * @class
+ * @classdesc Represents a dialog for displaying and editing properties of a node in a graph.
+ * @memberof sgv
  */
-sgv.dlgNodeProperties = new function() {
+const DlgNodeProperties = (function() {
    
     var hidNodeId;
     var selectNodeId, selectScope;
@@ -6919,20 +7660,42 @@ sgv.dlgNodeProperties = new function() {
         }
     };
     
-};
+});
 
+/**
+ * Represents the static instance of DlgNodeProperties in the sgv namespace.
+ * @type {DlgNodeProperties}
+ * @memberof sgv
+ * @static
+ */
+sgv.dlgNodeProperties = new DlgNodeProperties();
 /* global sgv, UI, FileIO */
 
-sgv.dlgAlternateFileSave = new function() {
+
+/**
+ * @class
+ * @classdesc Represents the DlgAbout class. This class provides functionality related to handling the alternative save file dialog if the browser does not allow to open the system window for selecting a file to save.
+ * @memberof sgv
+ */
+const DlgAlternateFileSave = (function() {
     var selectType, selectName, spanExt;
     var btnCancel, btnSave;
     
+    /**
+     * @type {HTMLElement}
+     * @description User interface element for the dialog
+     */
     var ui = createUI();
 
     window.addEventListener('load',()=>{
         window.document.body.appendChild(ui);
     });
 
+    /**
+     * @function
+     * @description Creates the user interface for the dialog.
+     * @returns {HTMLElement} The created user interface
+     */
     function createUI() {
         //let ui = UI.createEmptyWindow("sgvUIwindow sgvModalDialog", "sgvSaveGraphDlg", "Save graph", true);
         let ui = UI.tag( "dialog", { "class": "sgvUIwindow sgvModalDialog", "id": "sgvDlgAltSaveGraph" });
@@ -6991,113 +7754,289 @@ the default location (usually: Downloads) or a selection window will appear."
         return ui;
     };
     
+    /**
+     * @function
+     * @description Hides the dialog.
+     */
     function hideDialog() {
         ui.close();
         ui.style.display = "none";
     };
     
+    /**
+     * @function
+     * @description Shows the dialog.
+     */
     function showDialog() {
         ui.style.display = "block";
         ui.showModal();
     };
     
+    // Public interface
     return {
         show: showDialog,
         hide: hideDialog
     };
-};
+});
 
 
+/**
+ * Represents the static instance of DlgAlternateFileSave in the sgv namespace.
+ * @type {DlgAlternateFileSave}
+ * @memberof sgv
+ * @static
+ */
+sgv.dlgAlternateFileSave = new DlgAlternateFileSave();
 /* global sgv, UI */
 
-sgv.dlgMissingNodes = new function() {
+/**
+ * @class
+ * @classdesc Represents the DlgMissingNodes class.
+ * @memberof sgv
+ */
+class DlgMissingNodes {
+    constructor() {
+        /**
+         * @property {HTMLElement} misN - Container for displaying missing nodes.
+         * @property {HTMLElement} ui - The user interface element for the dialog.
+         */
+        //this.misN = null;
+        this.ui = this.createUI('sgvMissingNodes');
+
+        // Append UI to the body once the window has loaded.
+        window.addEventListener('load',()=>{
+            window.document.body.appendChild(this.ui);
+        });
+    }
     
-    var misN;
-    var ui = createUI('sgvMissingNodes');
-
-    window.addEventListener('load',()=>{
-        window.document.body.appendChild(ui);
-    });
-
-
-    function createUI(id) {
+    /**
+     * Function to create user interface for the missing nodes dialog.
+     * 
+     * @param {string} id - The id for the UI element.
+     * @returns {HTMLElement} - The created UI element.
+     */
+    createUI(id) {
         let o = UI.createEmptyWindow("sgvUIwindow", id, "removed nodes", true);
 
         var content = UI.tag("div", {'class':'content'});
-        misN = UI.tag("div", {'id':'misN'});
-        content.appendChild(misN);
+        this.misN = UI.tag("div", {'id':'misN'});
+        content.appendChild(this.misN);
 
         var del = UI.newInput("button", "clear history", "delbutton", "");
-        del.addEventListener('click', function () {
-            delMissingX();
+        del.addEventListener('click', () => {
+            this.delAll();
         });
         content.appendChild(del);
 
         o.appendChild(content);
         return o;
-    };
+    }
 
-    function addNodeX(nodeId) {
+    /**
+     * Function to add a missing node.
+     * 
+     * @param {string} nodeId - The id of the missing node.
+     */
+    addNode(nodeId) {
         let i = UI.newInput("button", " q" + nodeId + " ", "", "rest" + nodeId );
 
-        i.addEventListener('click', function () {
-            restoreNodeX(nodeId);
+        i.addEventListener('click', () => {
+            this.restoreNode(nodeId);
         });
         
-        misN.appendChild(i);
+        this.misN.appendChild(i);
         
-        ui.style.display = "block";
-    };
+        this.ui.style.display = "block";
+    }
     
-    function restoreNodeX(nodeId) {
+    /**
+     * Function to restore a missing node.
+     * 
+     * @param {string} nodeId - The id of the node to restore.
+     * @returns {boolean} - Returns true if node is restored, else false.
+     */
+    restoreNode(nodeId) {
         if (sgv.graf.restoreNode(nodeId)) {
-            let but = ui.querySelector("#rest" + nodeId);
+            let but = this.ui.querySelector("#rest" + nodeId);
             but.parentNode.removeChild(but);
             
             return true;
         }
         return false;
-    };
+    }
     
-    function delMissingX() {
-        misN.innerHTML = "";
+    /**
+     * Function to delete all missing nodes.
+     */
+    delAll() {
+        this.misN.innerHTML = "";
 
         if (sgv.graf !== null) {
             sgv.graf.missing = {};
         }
 
-        ui.style.display = "none";
-    };
+        this.hide();
+    }
 
     
-    return {
-        show: ()=>{ui.style.display = "block";},
-        hide: ()=>{ui.style.display = "none";},
-        addNode: addNodeX,
-        restoreNode: restoreNodeX,
-        delAll: delMissingX
-    };
+    show() {
+        this.ui.style.display = "block";
+    }
+    
+    hide() {
+        this.ui.style.display = "none";
+    }
+    
+}
 
-};
+/**
+ * Represents the static instance of DlgMissingNodes in the sgv namespace.
+ * @type {DlgMissingNodes}
+ * @memberof sgv
+ * @static
+ */
+sgv.dlgMissingNodes = new DlgMissingNodes;
 
 
-sgv.dlgAbout = new function() {
-    var ui = null;
+///**
+// * @description This object provides functionality related to the dialog for missing nodes.
+// */
+//sgv.dlgMissingNodes = new function() {
+//    
+//    /**
+//     * @property {HTMLElement} misN - Container for displaying missing nodes.
+//     * @property {HTMLElement} ui - The user interface element for the dialog.
+//     */
+//    var misN;
+//    var ui = createUI('sgvMissingNodes');
+//
+//    // Append UI to the body once the window has loaded.
+//    window.addEventListener('load',()=>{
+//        window.document.body.appendChild(ui);
+//    });
+//
+//
+//    /**
+//     * Function to create user interface for the missing nodes dialog.
+//     * 
+//     * @param {string} id - The id for the UI element.
+//     * @returns {HTMLElement} - The created UI element.
+//     */
+//    function createUI(id) {
+//        let o = UI.createEmptyWindow("sgvUIwindow", id, "removed nodes", true);
+//
+//        var content = UI.tag("div", {'class':'content'});
+//        misN = UI.tag("div", {'id':'misN'});
+//        content.appendChild(misN);
+//
+//        var del = UI.newInput("button", "clear history", "delbutton", "");
+//        del.addEventListener('click', function () {
+//            delMissingX();
+//        });
+//        content.appendChild(del);
+//
+//        o.appendChild(content);
+//        return o;
+//    };
+//
+//    /**
+//     * Function to add a missing node.
+//     * 
+//     * @param {string} nodeId - The id of the missing node.
+//     */
+//    function addNodeX(nodeId) {
+//        let i = UI.newInput("button", " q" + nodeId + " ", "", "rest" + nodeId );
+//
+//        i.addEventListener('click', function () {
+//            restoreNodeX(nodeId);
+//        });
+//        
+//        misN.appendChild(i);
+//        
+//        ui.style.display = "block";
+//    };
+//    
+//    /**
+//     * Function to restore a missing node.
+//     * 
+//     * @param {string} nodeId - The id of the node to restore.
+//     * @returns {boolean} - Returns true if node is restored, else false.
+//     */
+//    function restoreNodeX(nodeId) {
+//        if (sgv.graf.restoreNode(nodeId)) {
+//            let but = ui.querySelector("#rest" + nodeId);
+//            but.parentNode.removeChild(but);
+//            
+//            return true;
+//        }
+//        return false;
+//    };
+//    
+//    /**
+//     * Function to delete all missing nodes.
+//     */
+//    function delMissingX() {
+//        misN.innerHTML = "";
+//
+//        if (sgv.graf !== null) {
+//            sgv.graf.missing = {};
+//        }
+//
+//        ui.style.display = "none";
+//    };
+//
+//    
+//    /**
+//     * Returns an object containing methods for showing, hiding, adding, restoring, and deleting nodes.
+//     */
+//    return {
+//        show: ()=>{ui.style.display = "block";},
+//        hide: ()=>{ui.style.display = "none";},
+//        addNode: addNodeX,
+//        restoreNode: restoreNodeX,
+//        delAll: delMissingX
+//    };
+//
+//};
 
-    function createDialog() {
-        if (ui===null) {
-            ui = UI.tag( "dialog", { "class": "sgvUIwindow sgvModalDialog", "id": "sgvDlgAbout" });
+/* global UI, sgv */
+
+/**
+ * @class
+ * @classdesc Represents the DlgAbout class.
+ * @memberof sgv
+ */
+class DlgAbout {
+    constructor() {
+        this.ui = null;
+        
+    }
+
+    /**
+     * Creates the About Dialog if it hasn't been created yet.
+     * Adds the necessary elements and styles to the dialog.
+     * @public
+     */
+    create() {
+        if (this.ui===null) {
+            // Create the UI element for the dialog.
+            this.ui = UI.tag( "dialog", { "class": "sgvUIwindow sgvModalDialog", "id": "sgvDlgAbout" });
         }
         
+        // Create a div to contain the content.
         var content = UI.tag( "div", { "class": "content" });
 
+        // Apply styles to the content.
         content.style['text-align'] = 'center';
         content.style.width = 'fit-content';
+
+        // Add HTML content to the div.
         content.innerHTML += '<div><img src="pics/EuroHPC.jpg"></div>';
         content.innerHTML += '<div>Narodowa Infrastruktura Superkomputerowa dla EuroHPC - EuroHPC PL</div>';
         content.innerHTML += '<div class="info">simGraphVisualizer v.1.0</div>';
         content.innerHTML += '<div><img src="pics/Flagi.jpg"></div>';
 
+        // Create and append the close button.
         let btn = UI.tag( "input", {
             'type':     "button",
             'value':    "Close",
@@ -7107,107 +8046,175 @@ sgv.dlgAbout = new function() {
         });
         content.appendChild(btn);
 
-        btn.addEventListener('click', function () {
-            hideDialog();
+        // Add event listener to close the dialog when the button is clicked.
+        btn.addEventListener('click', () => {
+            this.hide();
         });
 
+        // Create and append the title bar.
         let t = UI.createTitlebar("About", false);
-        ui.appendChild(t);
-        ui.appendChild(content);
+        this.ui.appendChild(t);
 
-        ui.style.display = "none";
-        window.document.body.appendChild(ui);
-    };
+        // Append the content to the UI element.
+        this.ui.appendChild(content);
 
-    function showDialog() {
-        if (ui===null) {
-            createDialog();
+        // Initially hide the dialog.
+        this.ui.style.display = "none";
+
+        // Append the dialog to the body of the document.
+        window.document.body.appendChild(this.ui);
+    }
+
+    /**
+     * Shows the About Dialog.
+     * Creates it first if it hasn't been created yet.
+     * @public
+     */
+    show() {
+        if (this.ui===null) {
+            this.create();
         }
-        ui.style.display = "block";
+        this.ui.style.display = "block";
 
-        ui.showModal();
-    };
+        // Show the dialog.
+        this.ui.showModal();
+    }
 
-    function hideDialog() {
-        ui.close();
-        ui.style.display = "none";
-    };
+    /**
+     * Hides the About Dialog.
+     * @public
+     */
+    hide() {
+        // Close the dialog and hide it.
+        this.ui.close();
+        this.ui.style.display = "none";
+    }
+}
 
-
-    return {
-        //ui: ui,
-        create: createDialog,
-        show: showDialog,
-        hide: hideDialog
-    };
-};
-
-
+/**
+ * Represents the static instance of DlgAbout in the sgv namespace.
+ * @type {DlgAbout}
+ * @memberof sgv
+ * @static
+ */
+sgv.dlgAbout = new DlgAbout();
 
 
 /* global sgv, UI */
 
-sgv.dlgLoaderSplash = new function() {
-    var ui = null;
-    var info;
-    
-    function createDialog() {
-        if (ui===null) {
-            ui = UI.tag( "dialog", { "class": "sgvModalDialog", "id": "loaderSplash" });
+/**
+ * @class
+ * @classdesc Represents the DlgLoaderSplash class.
+ * @memberof sgv
+ */
+class DlgLoaderSplash {
+    constructor() {
+        // UI element that will contain the splash screen
+        this.ui = null;
+        // Information element that will display messages on the splash screen
+        this.info;
+    }
+
+    /**
+     * Creates the splash screen dialog.
+     * @returns {undefined}
+     */
+    createDialog() {
+        // If the ui element is not already created
+        if (this.ui===null) {
+            // Create a new "dialog" HTML element with the specified properties and assign it to "ui"
+            this.ui = UI.tag( "dialog", { "class": "sgvModalDialog", "id": "loaderSplash" });
         }
+
+        // Append several child elements to the ui element
+        this.ui.appendChild(UI.tag('span',{},{'textContent':'working hard for you'}));
+        this.ui.appendChild(UI.tag('div',{'class':'loader'}));
+        this.ui.appendChild(UI.tag('span',{},{'textContent':'... please wait ...'}));
         
-        ui.appendChild(UI.tag('span',{},{'textContent':'working hard for you'}));
-        ui.appendChild(UI.tag('div',{'class':'loader'}));
-        ui.appendChild(UI.tag('span',{},{'textContent':'... please wait ...'}));
-        ui.appendChild(info = UI.tag('div',{'id':'infoBlock'}));
+        // Append child element and assign the 'info' variable to a new 'div' HTML element with the specified properties
+        this.ui.appendChild(this.info = UI.tag('div',{'id':'infoBlock'}));
 
-        ui.style.display = "none";
-        window.document.body.appendChild(ui);
-    };
+        // Set the display property of the ui element to "none"
+        this.ui.style.display = "none";
+        // Append the ui element to the body of the window document
+        window.document.body.appendChild(this.ui);
+    }
 
-    function showDialog() {
-        if (ui===null) createDialog();
-        if (ui.open) ui.close();
-        info.innerHTML = "";
-        ui.style.display = "block";
-        ui.showModal();
-    };
+    /**
+     * Displays the splash screen dialog.
+     * @returns {undefined}
+     */
+    show() {
+        if (this.ui===null) this.createDialog();
+        if (this.ui.open) this.ui.close();
+        this.info.innerHTML = "";
+        this.ui.style.display = "block";
+        this.ui.showModal();
+    }
 
-    function hideDialog() {
-        ui.close();
-        ui.style.display = "none";
-    };
+    /**
+     * Hides the splash screen dialog.
+     * @returns {undefined}
+     */
+    hide() {
+        this.ui.close();
+        this.ui.style.display = "none";
+    }
 
-    function setInfoX(text,action) {
-        if (ui.open) ui.close();
-            ui.style.display = "block";
-        ui.showModal();
-        info.innerHTML = text;
+    /**
+     * Sets information text to display in the splash screen and optionally runs a function.
+     * @param {string} text - The information text to display.
+     * @param {Function} action - The function to run after setting the information text.
+     * @returns {undefined}
+     */
+    setInfo(text,action) {
+        if (this.ui.open) this.ui.close();
+            this.ui.style.display = "block";
+        this.ui.showModal();
+        this.info.innerHTML = text;
+        // If the action parameter is a function
         if (typeof action==='function'){
+            // Set a timeout to run the function after a delay of 100 milliseconds
             setTimeout( ()=>{
                 action();
             }, 100);
         }
     };
-    
-    return {
-        setInfo: setInfoX,
-        show: showDialog,
-        hide: hideDialog
-    };
-};
+}
+
+/**
+ * Represents the static instance of DlgLoaderSplash in the sgv namespace.
+ * @type {DlgLoaderSplash}
+ * @memberof sgv
+ * @static
+ */
+sgv.dlgLoaderSplash = new DlgLoaderSplash();
 
 
+/**
+ * Shows the splash screen.
+ * @returns {undefined}
+ */
 function  showSplash() {
     sgv.dlgLoaderSplash.show();
 };
 
+/**
+ * Hides the splash screen after a delay of 200 milliseconds.
+ * @returns {undefined}
+ */
 function hideSplash() {
     setTimeout(function () {
         sgv.dlgLoaderSplash.hide();
     }, 200);
 };
 
+/**
+ * Shows the splash screen, runs a specified function after a delay of 100 milliseconds, and optionally hides the splash screen.
+ * @param {Function} f - The function to run.
+ * @param {boolean} [noHide=false] - Whether to not hide the splash screen after running the function.
+ * @returns {undefined}
+ */
 function showSplashAndRun(f,noHide) {
     if (typeof noHide==='undefined')
         noHide = false;
@@ -7222,7 +8229,8 @@ function showSplashAndRun(f,noHide) {
 /* global sgv, UI, Graph, TempGraphStructure, Settings */
 
 /**
- * Creates a new instance of the SingleFilePanel.
+ * @class
+ * @classdesc Creates a new instance of the SingleFilePanel.
  * @constructor
  * @param {number} _id - The unique ID of the panel.
  * @param {string} _label - The displayable name of the external file.
@@ -7307,9 +8315,11 @@ SingleFilePanel.create = function(_id,_label,_path,_params){
 };
 
 /**
- * dlgEditSettings module for managing the edit settings dialog.
+ * @class
+ * @classdesc Represents the DlgEditSettings class.
+ * @memberof sgv
  */
-sgv.dlgEditSettings = new function() {
+const DlgEditSettings = (function() {
     var files;
     var workingDir;
     
@@ -7474,24 +8484,15 @@ sgv.dlgEditSettings = new function() {
          */        
         hide: hideDialog
     };
-};
+});
 
-
-/* 
- * Copyright 2022 Dariusz Pojda.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+/**
+ * Represents the static instance of DlgEditSettings in the sgv namespace.
+ * @type {DlgEditSettings}
+ * @memberof sgv
+ * @static
  */
+sgv.dlgEditSettings = new DlgEditSettings();
 
 //================================================
 // Short description of communication:
@@ -7516,13 +8517,25 @@ sgv.dlgEditSettings = new function() {
    // Electron-specific code
 //}
 
+/**
+ * Check if running inside Electron environment
+ */
 if (typeof window.api!=='undefined') {
     console.log("desktopApp!");
 
+    /**
+     * Event listener to show loader splash
+     */
     window.api.on( "showLoaderSplash", ()=>showSplash() );
 
+    /**
+     * Event listener to hide loader splash
+     */
     window.api.on( "hideLoaderSplash", ()=>hideSplash() );
 
+    /**
+     * Event listener to set display mode of the graph
+     */
     window.api.on( "setDisplayMode", (mode) => {
         if (sgv.graf !== null) {
             Graph.currentDisplayMode = mode;
@@ -7535,6 +8548,9 @@ if (typeof window.api!=='undefined') {
         hideSplash();
     });
 
+    /**
+     * Event listener to clear the graph
+     */
     window.api.on( "clearGraph", ()=>Graph.remove() );
 
     window.api.on( "showAbout", ()=>sgv.dlgAbout.show() );
@@ -7586,12 +8602,22 @@ if (typeof window.api!=='undefined') {
 
     /*==========================================================================*/
 
+    /**
+     * Initialization for desktop mode
+     * @function
+     */
     desktopInit = () => {
         setTimeout(function () {
             sgv.dlgCPL.hidePanel();
         }, 200);
     };
 
+    /**
+     * Enable menu item
+     * @function
+     * @param {string} id - The id of the menu item to enable or disable
+     * @param {boolean} [enabled=true] - The new state of the menu item
+     */
     enableMenu = (id, enabled) => {
         if (typeof enabled==='undefined')
         enabled=true;
@@ -7600,10 +8626,17 @@ if (typeof window.api!=='undefined') {
     };
 
 } else {
-    desktopInit = ()=>{
-    //        sgv.dlgCPL.addButton( "settings window", "cplElectronTestButton", ()=>{
-    //            sgv.dlgEditSettings.show();
-    //        } );
-    };
+    /**
+     * Initialization for web mode
+     * @function
+     */
+    desktopInit = ()=>{};
+
+    /**
+     * Stub for enableMenu when not in Electron environment
+     * @function
+     * @param {string} id - The id of the menu item to enable or disable
+     * @param {boolean} [enabled=true] - The new state of the menu item
+     */
     enableMenu = (id, enabled)=>{};
 }

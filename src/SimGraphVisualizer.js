@@ -20,6 +20,10 @@
 
 const DEFAULT_SCOPE = 'default';
 
+/**
+ * Global namespace for SimGraphVisualizer.
+ * @namespace
+ */
 var sgv = (typeof exports === "undefined") ? (function sgv() {}) : (exports);
 if (typeof global !== "undefined") {
     global.sgv = sgv;

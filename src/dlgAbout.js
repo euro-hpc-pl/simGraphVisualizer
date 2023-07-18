@@ -1,20 +1,25 @@
+/* global UI, sgv */
+
 /**
- * Singleton object for handling About Dialog.
- * @constructor
+ * @class
+ * @classdesc Represents the DlgAbout class.
+ * @memberof sgv
  */
-sgv.dlgAbout = new function() {
-    /** @type {Element} Represents the UI element of the dialog. */
-    var ui = null;
+class DlgAbout {
+    constructor() {
+        this.ui = null;
+        
+    }
 
     /**
      * Creates the About Dialog if it hasn't been created yet.
      * Adds the necessary elements and styles to the dialog.
-     * @private
+     * @public
      */
-    function createDialog() {
-        if (ui===null) {
+    create() {
+        if (this.ui===null) {
             // Create the UI element for the dialog.
-            ui = UI.tag( "dialog", { "class": "sgvUIwindow sgvModalDialog", "id": "sgvDlgAbout" });
+            this.ui = UI.tag( "dialog", { "class": "sgvUIwindow sgvModalDialog", "id": "sgvDlgAbout" });
         }
         
         // Create a div to contain the content.
@@ -41,55 +46,55 @@ sgv.dlgAbout = new function() {
         content.appendChild(btn);
 
         // Add event listener to close the dialog when the button is clicked.
-        btn.addEventListener('click', function () {
-            hideDialog();
+        btn.addEventListener('click', () => {
+            this.hide();
         });
 
         // Create and append the title bar.
         let t = UI.createTitlebar("About", false);
-        ui.appendChild(t);
+        this.ui.appendChild(t);
 
         // Append the content to the UI element.
-        ui.appendChild(content);
+        this.ui.appendChild(content);
 
         // Initially hide the dialog.
-        ui.style.display = "none";
+        this.ui.style.display = "none";
 
         // Append the dialog to the body of the document.
-        window.document.body.appendChild(ui);
-    };
+        window.document.body.appendChild(this.ui);
+    }
 
     /**
      * Shows the About Dialog.
      * Creates it first if it hasn't been created yet.
      * @public
      */
-    function showDialog() {
-        if (ui===null) {
-            createDialog();
+    show() {
+        if (this.ui===null) {
+            this.create();
         }
-        ui.style.display = "block";
+        this.ui.style.display = "block";
 
         // Show the dialog.
-        ui.showModal();
-    };
+        this.ui.showModal();
+    }
 
     /**
      * Hides the About Dialog.
      * @public
      */
-    function hideDialog() {
+    hide() {
         // Close the dialog and hide it.
-        ui.close();
-        ui.style.display = "none";
-    };
+        this.ui.close();
+        this.ui.style.display = "none";
+    }
+}
 
+/**
+ * Represents the static instance of DlgAbout in the sgv namespace.
+ * @type {DlgAbout}
+ * @memberof sgv
+ * @static
+ */
+sgv.dlgAbout = new DlgAbout();
 
-    // Expose public methods.
-    return {
-        //ui: ui,  // Uncomment if you want to expose the ui object.
-        create: createDialog,
-        show: showDialog,
-        hide: hideDialog
-    };
-};

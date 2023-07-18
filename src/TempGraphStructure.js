@@ -1,8 +1,5 @@
 /**
- * @class
- * 
- * @description
- * This class represents a temporary structure for storing graph data. It provides methods
+ * @class This class represents a temporary structure for storing graph data. It provides methods
  * for adding edges and nodes to the structure.
  */
 var TempGraphStructure = (function() {

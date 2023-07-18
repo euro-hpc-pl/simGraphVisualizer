@@ -1,7 +1,8 @@
 /* global sgv, UI, Graph, TempGraphStructure, Settings */
 
 /**
- * Creates a new instance of the SingleFilePanel.
+ * @class
+ * @classdesc Creates a new instance of the SingleFilePanel.
  * @constructor
  * @param {number} _id - The unique ID of the panel.
  * @param {string} _label - The displayable name of the external file.
@@ -86,9 +87,11 @@ SingleFilePanel.create = function(_id,_label,_path,_params){
 };
 
 /**
- * dlgEditSettings module for managing the edit settings dialog.
+ * @class
+ * @classdesc Represents the DlgEditSettings class.
+ * @memberof sgv
  */
-sgv.dlgEditSettings = new function() {
+const DlgEditSettings = (function() {
     var files;
     var workingDir;
     
@@ -243,6 +246,7 @@ sgv.dlgEditSettings = new function() {
     return {
         /**
          * Shows the edit settings dialog.
+         * @memberof DlgEditSettings
          * @param {Object[]} _externApps - Array of external applications.
          * @param {string} _workingDir - The working directory.
          */
@@ -250,7 +254,16 @@ sgv.dlgEditSettings = new function() {
         
         /**
          * Hides the edit settings dialog.
+         * @memberof DlgEditSettings
          */        
         hide: hideDialog
     };
-};
+});
+
+/**
+ * Represents the static instance of DlgEditSettings in the sgv namespace.
+ * @type {DlgEditSettings}
+ * @memberof sgv
+ * @static
+ */
+sgv.dlgEditSettings = new DlgEditSettings();

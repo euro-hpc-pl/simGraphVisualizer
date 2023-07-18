@@ -25,10 +25,6 @@
  * @param {number|string} e - The identifier of the ending node of the edge.
  */
 var Edge = /** @class */ (function (graf, b, e) {
-    /**
-     * Creates an instance of the Edge class.
-     * @constructor
-     */
     this.parentGraph = graf;
 
     this.values = {

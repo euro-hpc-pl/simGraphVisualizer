@@ -1,52 +1,33 @@
-
-/* 
- * Copyright 2022 Dariusz Pojda.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/**
- * Dialog Console module for managing a console dialog.
- * @module dlgConsole
- */
-
 "use strict";
 /* global scene, sgv, Chimera, Pegasus, UI, Graph */
 
-/**
- * Creates a new instance of the Dialog Console.
- * @constructor
- */
-sgv.dlgConsole = new function () {
-    var isDown;
-    var cmdHistory = [];
-    var cmdHistoryPtr = -1;
-    var movable = false;
-    
-    /**
-    * User interface element representing the console.
-    * @type {HTMLElement}
-    */    
-    var ui = createUI("sgvConsole");
-    
-    /**
-    * Initializes the console.
-    */
-    initConsole();
 
-    window.addEventListener('load',()=>{
-        window.document.body.appendChild(ui);
-    });
+/**
+ * @class
+ * @classdesc Represents the DlgConsole class.
+ * @memberof sgv
+ */
+class DlgConsole {
+    constructor () {
+        this.cmdHistory = [];
+        this.cmdHistoryPtr = -1;
+        this.movable = false;
+
+        /**
+        * User interface element representing the console.
+        * @type {HTMLElement}
+        */    
+        this.ui = this.createUI("sgvConsole");
+
+        /**
+        * Initializes the console.
+        */
+        this.initConsole();
+
+        window.addEventListener('load',()=>{
+            window.document.body.appendChild(this.ui);
+        });
+    }
 
     /**
      * Initializes the console by setting up event listeners for the command line input field.
@@ -55,43 +36,43 @@ sgv.dlgConsole = new function () {
      * "Enter" executes the command written in the input field. 
      * "Up" and "Down" navigate through the command history.
      */
-    function initConsole() {
-        let domCmdline = ui.querySelector("#commandline");
+    initConsole() {
+        let domCmdline = this.ui.querySelector("#commandline");
 
-        domCmdline.addEventListener("keydown", function(event) {
+        domCmdline.addEventListener("keydown", (event) => {
             if (event.key === "Enter") {
                 let txtarea = document.getElementById("consoleHistory");
                 //txtarea.disabled = false;
                 txtarea.textContent += "> " + domCmdline.value + "\n";
 
-                txtarea.textContent += parseCommand(domCmdline.value) + "\n";
+                txtarea.textContent += this.parseCommand(domCmdline.value) + "\n";
 
                 txtarea.scrollTop = txtarea.scrollHeight;
                 //txtarea.disabled = true;
 
-                if (cmdHistory.length > 10)
-                    cmdHistory.shift();
-                cmdHistory.push(domCmdline.value);
-                cmdHistoryPtr = cmdHistory.length;
+                if (this.cmdHistory.length > 10)
+                    this.cmdHistory.shift();
+                this.cmdHistory.push(domCmdline.value);
+                this.cmdHistoryPtr = this.cmdHistory.length;
 
                 domCmdline.value = "";
             } else if (event.keyCode === 38) {
-                if (cmdHistoryPtr > 0) {
-                    cmdHistoryPtr--;
-                    domCmdline.value = cmdHistory[cmdHistoryPtr];
+                if (this.cmdHistoryPtr > 0) {
+                    this.cmdHistoryPtr--;
+                    domCmdline.value = this.cmdHistory[this.cmdHistoryPtr];
                 }
             } else if (event.keyCode === 40) {
-                if (cmdHistoryPtr < cmdHistory.length) {
-                    domCmdline.value = cmdHistory[cmdHistoryPtr];
-                    cmdHistoryPtr++;
+                if (this.cmdHistoryPtr < this.cmdHistory.length) {
+                    domCmdline.value = this.cmdHistory[this.cmdHistoryPtr];
+                    this.cmdHistoryPtr++;
                 } else {
                     domCmdline.value = "";
                 }
             }
         });
 
-        ui.querySelector(".hidebutton").addEventListener('click', function() { sgv.dlgConsole.hideConsole(); });
-    };
+        this.ui.querySelector(".hidebutton").addEventListener('click', () => { this.hideConsole(); });
+    }
 
     /**
      * Creates a new UI window for a console with a specified ID.
@@ -100,7 +81,7 @@ sgv.dlgConsole = new function () {
      * 
      * @returns {HTMLElement} The created UI window element. The window includes a read-only textarea for the console history and a text input field for the command line.
      */
-    function createUI(id) {
+    createUI(id) {
         var o = UI.createEmptyWindow("sgvUIwindow", id, "console", true);
 
         o.innerHTML += '<div class="content"> \
@@ -117,7 +98,7 @@ sgv.dlgConsole = new function () {
      * 
      * @returns {string} A string message indicating the result of the operation. The exact message depends on the command and its arguments.
      */
-    function parseCommand(line) {
+    parseCommand(line) {
 
         /**
         * Sets the value of a specified node in the graph, if the node exists.
@@ -636,36 +617,44 @@ sgv.dlgConsole = new function () {
 
         return result;
     }
+    
+    /**
+     * 
+     * @public
+     * @return {none}
+     */
+    switchConsole() {
+        if (this.ui.style.display !== "block") {
+            this.ui.style.display = "block";
+        } else {
+            this.ui.style.display = "none";
+        }
+    }
 
     /**
-    * Public interface for the console.
-    * @returns {Object} Object containing public methods.
-    */
-    return {
-        
-        /**
-        * Toggles the visibility of the console. If the console is visible, it hides it. If the console is hidden, it shows it.
-        */
-        switchConsole: function () {
-            if (ui.style.display !== "block") {
-                ui.style.display = "block";
-            } else {
-                ui.style.display = "none";
-            }
-        },
+     * Shows the console.
+     * @public
+     * @return {none}
+     */
+    showConsole() {
+        this.ui.style.display = "block";
+    }
 
-        /**
-         * Shows the console.
-         */
-        showConsole: function () {
-            ui.style.display = "block";
-        },
+    /**
+     * Hides the console.
+     * @public
+     * @return {none}
+     */
+    hideConsole() {
+        this.ui.style.display = "none";
+    }
+    
+}
 
-        /**
-         * Hides the console.
-         */
-        hideConsole: function () {
-            ui.style.display = "none";
-        }
-    };
-};
+/**
+ * Represents the static instance of DlgConsole in the sgv namespace.
+ * @type {DlgConsole}
+ * @memberof sgv
+ * @static
+ */
+sgv.dlgConsole = new DlgConsole();

@@ -1,8 +1,12 @@
 
 /* global sgv, UI, Graph, TempGraphStructure */
 
-// The object sgv.dlgCreateGraph handles the display and functionality of a dialog for creating a graph
-sgv.dlgCreateGraph = new function() {
+/**
+ * @class
+ * @classdesc Represents the DlgCreateGraph class. Handles the display and functionality of a dialog for creating a graph
+ * @memberof sgv
+ */
+const DlgCreateGraph = (function() {
     var selectGraphType;
     var selectGraphCols, selectGraphRows, selectGraphLays;
     var selectGraphKL, selectGraphKR;
@@ -266,6 +270,13 @@ sgv.dlgCreateGraph = new function() {
         show: showDialog,
         hide: hideDialog
     };
-};
+});
 
 
+/**
+ * Represents the static instance of DlgCreateGraph in the sgv namespace.
+ * @type {DlgCreateGraph}
+ * @memberof sgv
+ * @static
+ */
+sgv.dlgCreateGraph = new DlgCreateGraph();

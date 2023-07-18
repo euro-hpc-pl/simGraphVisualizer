@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: SVG.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: SVG.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* 
+ * Copyright 2022 darek.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * Namespace for SVG elements drawing.
+ * @namespace SVG
+ */
+const SVG = {};
+
+/**
+ * SVG XML namespace.
+ * @type {string}
+ */
+SVG.NS = "http://www.w3.org/2000/svg";
+
+/**
+ * Creates an SVG element with the specified ID, width, height, and click event handler.
+ * @param {string} _id - The ID of the SVG element.
+ * @param {number} _width - The width of the SVG element.
+ * @param {number} _height - The height of the SVG element.
+ * @param {Function} _onClick - The click event handler function.
+ * @returns {SVGSVGElement} The created SVG element.
+ */
+SVG.createSVG = (_id, _width, _height, _onClick ) => {
+    let svgView = document.createElementNS(SVG.NS, "svg");
+    svgView.setAttributeNS(null, "id", _id);
+    svgView.setAttributeNS(null, "height", _height);
+    svgView.setAttributeNS(null, "width", _width);
+    //svgView.setAttributeNS(null, "viewBox", "0 0 250 250");
+    
+    if (typeof _onClick === 'function') {
+        svgView.addEventListener('click', _onClick);
+    }
+
+    svgView.style.display = 'block';
+    return svgView;
+};
+
+/**
+ * Creates an SVG element with the specified ID, viewBox, and click event handler.
+ * @param {string} _id - The ID of the SVG element.
+ * @param {number} _width - The width of the SVG element.
+ * @param {number} _height - The height of the SVG element.
+ * @param {Function} _onClick - The click event handler function.
+ * @returns {SVGSVGElement} The created SVG element.
+ */
+SVG.createSVG2 = (_id, _width, _height, _onClick ) => {
+    let svgView = document.createElementNS(SVG.NS, "svg");
+    svgView.setAttributeNS(null, "id", _id);
+    //svgView.setAttributeNS(null, "height", _height);
+    //svgView.setAttributeNS(null, "width", _width);
+    svgView.setAttributeNS(null, "viewBox", "0 0 "+_width+" "+_height);
+    
+    if (typeof _onClick === 'function') {
+        svgView.addEventListener('click', _onClick);
+    }
+
+    svgView.style.display = 'block';
+    return svgView;
+};
+
+/**
+ * Draws a text element in the SVG with the specified attributes and click event handler.
+ * @param {SVGSVGElement} svgView - The SVG element to draw the text in.
+ * @param {string} id - The ID of the text element.
+ * @param {number} x - The x-coordinate of the text element.
+ * @param {number} y - The y-coordinate of the text element.
+ * @param {string} txt - The text content.
+ * @param {string} txtColor - The color of the text.
+ * @param {string} bgColor - The background color of the text.
+ * @param {Function} onClick - The click event handler function.
+ */
+SVG.drawSvgText = (svgView, id, x, y, txt, txtColor, bgColor, onClick) => {
+    var text = document.createElementNS(SVG.NS, 'text');
+    text.setAttributeNS(null, 'id', 'text_' + id);
+    text.setAttributeNS(null, 'x', x);
+    text.setAttributeNS(null, 'y', y);
+    text.setAttributeNS(null, 'text-anchor', 'middle');
+    text.setAttributeNS(null, 'alignment-baseline', 'middle');
+    //text.setAttributeNS(null, 'stroke', txtColor);
+    //text.setAttributeNS(null, 'stroke-width', '0');
+    text.setAttributeNS(null, 'font-size', '12px');
+    text.setAttributeNS(null, 'font-family', 'Arial, Helvetica, sans-serif');
+    text.setAttributeNS(null, 'fill', txtColor);
+    //text.setAttributeNS(null, 'fill-opacity', '1');
+    text.textContent = txt;
+    svgView.appendChild(text);
+
+    text.addEventListener('click', onClick);
+
+    if (bgColor !== '') {
+        //let bbox = text.getBBox();
+        //let bbox = text.getComputedTextLength();
+        let w = 24; //bbox.width + 4;
+        let h = 12; //bbox.height + 4;
+        var rect = document.createElementNS(SVG.NS, 'rect');
+        rect.setAttributeNS(null, 'id', 'textBG_' + id);
+        rect.setAttributeNS(null, "x", x - w/2);
+        rect.setAttributeNS(null, "y", y - (1 + h/2));
+        rect.setAttributeNS(null, "width", w);
+        rect.setAttributeNS(null, "height", h);
+        rect.setAttributeNS(null, "fill", bgColor);
+        svgView.insertBefore(rect, text);
+
+        rect.addEventListener('click', onClick);
+    }
+};
+
+
+/**
+ * Draws a circle element in the SVG with the specified attributes and click event handler.
+ * @param {SVGSVGElement} svgView - The SVG element to draw the circle in.
+ * @param {string} nodeId - The ID of the circle element.
+ * @param {number} x - The x-coordinate of the center of the circle.
+ * @param {number} y - The y-coordinate of the center of the circle.
+ * @param {number} r - The radius of the circle.
+ * @param {string} color - The fill color of the circle.
+ * @param {Function} onClick - The click event handler function.
+ */
+SVG.drawSvgNode = (svgView, nodeId, x, y, r, color, onClick) => {
+    var circle = document.createElementNS(SVG.NS, 'circle');
+    circle.setAttributeNS(null, 'id', 'node_' + nodeId);
+    circle.setAttributeNS(null, 'cx', x);
+    circle.setAttributeNS(null, 'cy', y);
+    circle.setAttributeNS(null, 'r', r);
+    //circle.setAttributeNS(null, 'style', 'fill: ' + color + '; stroke: black; stroke-width: 1px;');
+    circle.setAttributeNS(null, 'fill', color);
+    circle.setAttributeNS(null, 'stroke', 'black');
+    circle.setAttributeNS(null, 'stroke-width', '1');
+    svgView.appendChild(circle);
+
+    circle.addEventListener('click', onClick);
+};
+
+
+/**
+ * Draws a line element in the SVG with the specified attributes and click event handler.
+ * @param {SVGSVGElement} svgView - The SVG element to draw the line in.
+ * @param {string} eid - The ID of the line element.
+ * @param {number} bX - The x-coordinate of the starting point of the line.
+ * @param {number} bY - The y-coordinate of the starting point of the line.
+ * @param {number} eX - The x-coordinate of the ending point of the line.
+ * @param {number} eY - The y-coordinate of the ending point of the line.
+ * @param {string} color - The color of the line.
+ * @param {number} wth - The width of the line.
+ * @param {Function} onClick - The click event handler function.
+ */
+SVG.drawSvgEdge = (svgView, eid, bX, bY, eX, eY, color, wth, onClick) => {
+    var newLine = document.createElementNS(SVG.NS, 'line');
+    newLine.setAttributeNS(null, 'id', 'edge_' + eid);
+    newLine.setAttributeNS(null, 'x1', bX);
+    newLine.setAttributeNS(null, 'y1', bY);
+    newLine.setAttributeNS(null, 'x2', eX);
+    newLine.setAttributeNS(null, 'y2', eY);
+    //newLine.setAttributeNS(null, 'style', 'stroke: ' + color + '; stroke-width: ' + wth + 'px;');
+    newLine.setAttributeNS(null, 'stroke', color);
+    newLine.setAttributeNS(null, 'stroke-width', wth);
+    svgView.appendChild(newLine);
+
+    newLine.addEventListener('click', onClick);
+};
+
+
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="Cookie.html">Cookie</a></li><li><a href="Dispatcher.html">Dispatcher</a></li><li><a href="FileIO.html">FileIO</a></li><li><a href="ParserGEXF.html">ParserGEXF</a></li><li><a href="ParserTXT.html">ParserTXT</a></li><li><a href="SVG.html">SVG</a></li><li><a href="Settings.html">Settings</a></li><li><a href="UI.html">UI</a></li><li><a href="sgv.html">sgv</a></li></ul><h3>Classes</h3><ul><li><a href="Chimera.html">Chimera</a></li><li><a href="Edge.html">Edge</a></li><li><a href="GenericWindow.html">GenericWindow</a></li><li><a href="Graph.html">Graph</a></li><li><a href="GraphDescr.html">GraphDescr</a></li><li><a href="GraphSize.html">GraphSize</a></li><li><a href="Label.html">Label</a></li><li><a href="Node.html">Node</a></li><li><a href="Pegasus.html">Pegasus</a></li><li><a href="QbDescr.html">QbDescr</a></li><li><a href="SPS.html">SPS</a></li><li><a href="ScopePanel.html">ScopePanel</a></li><li><a href="SingleFilePanel.html">SingleFilePanel</a></li><li><a href="SlidersPanel.html">SlidersPanel</a></li><li><a href="TempGraphStructure.html">TempGraphStructure</a></li><li><a href="ValuePanel.html">ValuePanel</a></li><li><a href="sgv.DlgAbout.html">DlgAbout</a></li><li><a href="sgv.DlgAlternateFileSave.html">DlgAlternateFileSave</a></li><li><a href="sgv.DlgCPL.html">DlgCPL</a></li><li><a href="sgv.DlgCellView.html">DlgCellView</a></li><li><a href="sgv.DlgConsole.html">DlgConsole</a></li><li><a href="sgv.DlgCreateGraph.html">DlgCreateGraph</a></li><li><a href="sgv.DlgEdgeProperties.html">DlgEdgeProperties</a></li><li><a href="sgv.DlgEditSettings.html">DlgEditSettings</a></li><li><a href="sgv.DlgLoaderSplash.html">DlgLoaderSplash</a></li><li><a href="sgv.DlgMissingNodes.html">DlgMissingNodes</a></li><li><a href="sgv.DlgNodeProperties.html">DlgNodeProperties</a></li></ul><h3>Global</h3><ul><li><a href="global.html#DEMO_MODE">DEMO_MODE</a></li><li><a href="global.html#createLabel">createLabel</a></li><li><a href="global.html#desktopInit">desktopInit</a></li><li><a href="global.html#detectClient">detectClient</a></li><li><a href="global.html#enableMenu">enableMenu</a></li><li><a href="global.html#getRandom">getRandom</a></li><li><a href="global.html#hideSplash">hideSplash</a></li><li><a href="global.html#qD">qD</a></li><li><a href="global.html#showSplash">showSplash</a></li><li><a href="global.html#showSplashAndRun">showSplashAndRun</a></li><li><a href="global.html#valueToColor">valueToColor</a></li><li><a href="global.html#valueToColorBAK">valueToColorBAK</a></li><li><a href="global.html#valueToEdgeWidth">valueToEdgeWidth</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Tue Jul 18 2023 14:28:39 GMT+0200 (czas środkowoeuropejski letni)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

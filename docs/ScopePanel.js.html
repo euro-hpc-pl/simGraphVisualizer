@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: ScopePanel.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: ScopePanel.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* global UI, sgv, Dispatcher */
+
+/**
+ * @class ScopePanel module for managing scope-related operations in a user interface.
+ * @param {boolean} [addButtons=true] - Flag indicating whether to add buttons to the panel.
+ * @param {string} [lbl] - Label for the scope display.
+ * @returns {Object} ScopePanel instance.
+ */
+const ScopePanel = (function(addButtons,lbl) {
+    let divNS, divDS;
+
+    /**
+     * Adds a scope to the select element.
+     * @param {string} scope - The scope to add.
+     * @param {number} idx - The index of the added scope.
+     */
+    this.addScope = (scope, idx) => {
+        selectScope.add(UI.option(scope, scope));
+        selectScope.selectedIndex = idx;
+    };
+    
+    /**
+     * Deletes a scope from the select element.
+     * @param {string} scope - The scope to delete.
+     * @param {number} idx2 - The index of the selected scope.
+     */
+    this.delScope = (scope, idx2) => {
+        let i = UI.findOption(selectScope, scope);
+        if (i > -1) {
+            selectScope.remove(i);
+        }
+        selectScope.selectedIndex = idx2;
+    };
+
+    /**
+     * Selects a scope in the select element.
+     * @param {string} scope - The scope to select.
+     */
+    this.selScope = (scope)=>{
+        let i = UI.findOption(selectScope, scope);
+        if (i > -1) {
+            selectScope.selectedIndex = i;
+        }
+    };
+    
+    /**
+     * Gets the value of the selected scope.
+     * @returns {string} The value of the selected scope.
+     */
+    this.getScope = ()=> {
+        return selectScope.value;
+    };
+
+    /**
+     * Gets the index of the selected scope.
+     * @returns {number} The index of the selected scope.
+     */
+    this.getScopeIndex = ()=> {
+        return selectScope.selectedIndex;
+    };
+    
+    /**
+     * Refreshes the scope panel by updating the select element with available scopes.
+     */
+    this.refresh = () => {
+        if (sgv.graf !== null) {
+            UI.clearSelect(selectScope, true);
+            for (const key in sgv.graf.scopeOfValues) {
+                let scope = sgv.graf.scopeOfValues[key];
+                let opt = UI.option(scope, scope);
+                if (sgv.graf.currentScope === sgv.graf.scopeOfValues[key]) {
+                    opt.selected = "selected";
+                }
+                selectScope.appendChild(opt);
+            }
+        }
+    };
+    
+    
+    /**
+     * EditPanel constructor function for creating an edit panel for adding or editing a scope.
+     * @param {string} [scopeToEdit] - The scope to edit. If provided, it's an edit operation; otherwise, it's an add operation.
+     * @returns {Object} EditPanel instance.
+     */
+    function EditPanel(scopeToEdit) {
+        let createNew = true;
+        if ((typeof scopeToEdit === 'string')&amp;&amp;(scopeToEdit!=='')) createNew = false;
+        
+        let divNS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivNS"}, {'textContent': isMobile?'':(createNew)?"add new scope: ":"edit scope: "});
+        
+        let editAddScope = UI.tag("input", {'type': "text", 'id': "cplAddScopeInput", 'value': (createNew)?"newScope":scopeToEdit});
+        divNS.appendChild(editAddScope);
+
+        let btnAcceptAddScope = UI.tag("input", {'type': "button", 'class': "toolButton", 'id': "cplAcceptAddScope", 'value': ''});
+        btnAcceptAddScope.addEventListener('click', ()=>{
+            if (createNew){
+                let scope = editAddScope.value;
+                let idx = sgv.graf.addScopeOfValues(scope);
+                
+                Dispatcher.graphChanged();
+            }
+            else {
+                //edit existing
+            }
+            
+            divNS.style.display = "none";
+            divDS.style.display = "inline";
+        });
+        divNS.appendChild(btnAcceptAddScope);
+
+        let btnSkipAddScope = UI.tag("input", {'type': "button", 'class': "toolButton", 'id': "cplSkipAddScope", 'value': ''});
+        btnSkipAddScope.addEventListener('click', ()=>{
+                    divNS.style.display = "none";
+                    divDS.style.display = "block";
+                });
+        divNS.appendChild(btnSkipAddScope);
+
+
+        divNS.style.display = "none";
+        
+        return {
+            ui: divNS,
+            show: ()=>(divNS.style.display = "block"),
+            hide: ()=>(divNS.style.display = "none")
+        };
+    }
+    
+    if (typeof addButtons!=='boolean') addButtons = true;
+    
+    /**
+     * The UI element representing the ScopePanel.
+     * @type {HTMLElement}
+     */
+    this.ui = UI.tag("div", {'class': "sgvSelectBox", 'id': "ScopePanel"});
+    
+    //divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"}, {'textContent': isMobile?'':"current scope: "});
+    divDS = UI.tag("div", {'class': "sgvD1", 'id': "cplDivDS"});
+    this.ui.appendChild(divDS);
+
+    if (typeof lbl==='string') {
+        divDS.appendChild(UI.tag("label", {'for': "cplDispValues"}, {'innerHTML':lbl}));
+    }
+    
+    let selectScope = UI.tag("select", {'id': "cplDispValues"});
+    selectScope.addEventListener('change', () => {
+        sgv.graf.displayValues(selectScope.value);
+    });
+    divDS.appendChild(selectScope);
+
+    if (addButtons) {
+//        let btnEditScope = UI.tag("input", {'type': "button", 'class': "toolButton", 'id': "cplEditScope", 'value': ''});
+//        btnEditScope.addEventListener('click',()=>{
+//                });
+//        divDS.appendChild(btnEditScope);
+
+
+        let btnDelScope = UI.tag("input", {'type': "button", 'class': "toolButton", 'id': "cplDelScope", 'value': ''});
+        btnDelScope.addEventListener('click',()=>{
+            let idx = sgv.graf.delScopeOfValues(this.getScope());
+            Dispatcher.graphChanged();
+        });
+
+        divDS.appendChild(btnDelScope);
+
+        let btnAddScope = UI.tag("input", {'type': "button", 'class': "toolButton", 'id': "cplAddScope", 'value': ''});
+        btnAddScope.addEventListener('click',()=>{
+                    divNS.show();
+                    divDS.style.display = "none";
+                });
+        divDS.appendChild(btnAddScope);
+
+        this.ui.appendChild((divNS = EditPanel()).ui);
+    }    
+
+
+});
+
+
+
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="Cookie.html">Cookie</a></li><li><a href="Dispatcher.html">Dispatcher</a></li><li><a href="FileIO.html">FileIO</a></li><li><a href="ParserGEXF.html">ParserGEXF</a></li><li><a href="ParserTXT.html">ParserTXT</a></li><li><a href="SVG.html">SVG</a></li><li><a href="Settings.html">Settings</a></li><li><a href="UI.html">UI</a></li><li><a href="sgv.html">sgv</a></li></ul><h3>Classes</h3><ul><li><a href="Chimera.html">Chimera</a></li><li><a href="Edge.html">Edge</a></li><li><a href="GenericWindow.html">GenericWindow</a></li><li><a href="Graph.html">Graph</a></li><li><a href="GraphDescr.html">GraphDescr</a></li><li><a href="GraphSize.html">GraphSize</a></li><li><a href="Label.html">Label</a></li><li><a href="Node.html">Node</a></li><li><a href="Pegasus.html">Pegasus</a></li><li><a href="QbDescr.html">QbDescr</a></li><li><a href="SPS.html">SPS</a></li><li><a href="ScopePanel.html">ScopePanel</a></li><li><a href="SingleFilePanel.html">SingleFilePanel</a></li><li><a href="SlidersPanel.html">SlidersPanel</a></li><li><a href="TempGraphStructure.html">TempGraphStructure</a></li><li><a href="ValuePanel.html">ValuePanel</a></li><li><a href="sgv.DlgAbout.html">DlgAbout</a></li><li><a href="sgv.DlgAlternateFileSave.html">DlgAlternateFileSave</a></li><li><a href="sgv.DlgCPL.html">DlgCPL</a></li><li><a href="sgv.DlgCellView.html">DlgCellView</a></li><li><a href="sgv.DlgConsole.html">DlgConsole</a></li><li><a href="sgv.DlgCreateGraph.html">DlgCreateGraph</a></li><li><a href="sgv.DlgEdgeProperties.html">DlgEdgeProperties</a></li><li><a href="sgv.DlgEditSettings.html">DlgEditSettings</a></li><li><a href="sgv.DlgLoaderSplash.html">DlgLoaderSplash</a></li><li><a href="sgv.DlgMissingNodes.html">DlgMissingNodes</a></li><li><a href="sgv.DlgNodeProperties.html">DlgNodeProperties</a></li></ul><h3>Global</h3><ul><li><a href="global.html#DEMO_MODE">DEMO_MODE</a></li><li><a href="global.html#createLabel">createLabel</a></li><li><a href="global.html#desktopInit">desktopInit</a></li><li><a href="global.html#detectClient">detectClient</a></li><li><a href="global.html#enableMenu">enableMenu</a></li><li><a href="global.html#getRandom">getRandom</a></li><li><a href="global.html#hideSplash">hideSplash</a></li><li><a href="global.html#qD">qD</a></li><li><a href="global.html#showSplash">showSplash</a></li><li><a href="global.html#showSplashAndRun">showSplashAndRun</a></li><li><a href="global.html#valueToColor">valueToColor</a></li><li><a href="global.html#valueToColorBAK">valueToColorBAK</a></li><li><a href="global.html#valueToEdgeWidth">valueToEdgeWidth</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Tue Jul 18 2023 14:28:39 GMT+0200 (czas środkowoeuropejski letni)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

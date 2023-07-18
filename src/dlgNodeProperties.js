@@ -1,8 +1,7 @@
 /* global UI, sgv, Edge, Dispatcher, SVG */
 
 /**
- * Represents a value panel component.
- * @returns An object with properties and methods related to the value panel component.
+ * @class Represents an object with properties and methods related to the value panel component.
  */
 const ValuePanel = (function() {
     var btnSetN, checkValueN, editWagaN;
@@ -124,10 +123,11 @@ const ValuePanel = (function() {
 });
 
 /**
- * Represents a dialog for displaying and editing properties of a node in a graph.
- * @returns An object with methods for showing, hiding, refreshing, and checking visibility of the dialog.
+ * @class
+ * @classdesc Represents a dialog for displaying and editing properties of a node in a graph.
+ * @memberof sgv
  */
-sgv.dlgNodeProperties = new function() {
+const DlgNodeProperties = (function() {
    
     var hidNodeId;
     var selectNodeId, selectScope;
@@ -449,4 +449,12 @@ sgv.dlgNodeProperties = new function() {
         }
     };
     
-};
+});
+
+/**
+ * Represents the static instance of DlgNodeProperties in the sgv namespace.
+ * @type {DlgNodeProperties}
+ * @memberof sgv
+ * @static
+ */
+sgv.dlgNodeProperties = new DlgNodeProperties();

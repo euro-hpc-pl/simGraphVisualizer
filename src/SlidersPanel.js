@@ -6,16 +6,24 @@
  * @classdesc Represents a panel for controlling sliders.
  */
 const SlidersPanel = (function() {
-    /** @type {HTMLElement} Represents the red limit slider. */
+    /**  Represents the red limit slider. 
+     * @type {HTMLElement}
+     */
     var sliderRedLimit;
 
-    /** @type {HTMLElement} Represents the green limit slider. */
+    /** Represents the green limit slider.
+     *  @type {HTMLElement}
+     */
     var sliderGreenLimit;
 
-    /** @type {HTMLElement} Represents the display span for red limit. */
+    /** Represents the display span for red limit.
+     * @type {HTMLElement}
+     */
     var spanRed;
 
-    /** @type {HTMLElement} Represents the display span for green limit. */
+    /** Represents the display span for green limit.
+     * @type {HTMLElement}
+     */
     var spanGreen;
 
     /**

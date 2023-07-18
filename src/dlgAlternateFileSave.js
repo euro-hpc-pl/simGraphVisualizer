@@ -1,10 +1,12 @@
 /* global sgv, UI, FileIO */
 
+
 /**
- * @namespace
- * @description This object provides functionality related to handling the alternative save file dialog if the browser does not allow to open the system window for selecting a file to save.
+ * @class
+ * @classdesc Represents the DlgAbout class. This class provides functionality related to handling the alternative save file dialog if the browser does not allow to open the system window for selecting a file to save.
+ * @memberof sgv
  */
-sgv.dlgAlternateFileSave = new function() {
+const DlgAlternateFileSave = (function() {
     var selectType, selectName, spanExt;
     var btnCancel, btnSave;
     
@@ -104,5 +106,13 @@ the default location (usually: Downloads) or a selection window will appear."
         show: showDialog,
         hide: hideDialog
     };
-};
+});
 
+
+/**
+ * Represents the static instance of DlgAlternateFileSave in the sgv namespace.
+ * @type {DlgAlternateFileSave}
+ * @memberof sgv
+ * @static
+ */
+sgv.dlgAlternateFileSave = new DlgAlternateFileSave();
