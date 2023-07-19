@@ -47,28 +47,48 @@
 /* global BABYLON, labelsVisible, sgv, Edge, Dispatcher, QbDescr, TempGraphStructure, GraphDescr */
 
 /**
- * @class Graph - Represents a graph with nodes and edges.
+ * @class
+ * @classdesc Represents a graph with nodes and edges.
+ * @memberOf sgv
  */
 const Graph = /** @class */ (function () {
-    /** Object that holds nodes of the graph. Keys are node IDs. */
+    /** Object that holds nodes of the graph. Keys are node IDs.
+     * @type {Object}
+     */
     this.nodes = {};
-    /** Object that holds edges of the graph. Keys are edge IDs. */
+    /** Object that holds edges of the graph. Keys are edge IDs.
+     * @type {Object}
+     */
     this.edges = {};
-    /** Object that holds nodes that have been deleted. Keys are node IDs. */
+    /** Object that holds nodes that have been deleted. Keys are node IDs.
+     * @type {Object}
+     */
     this.missing = {};
-    //this.delEdges = {};
-    /** Represents the type of graph. Default is 'generic'. */
+
+    /** Represents the type of graph. Default is 'generic'.
+     * @type {string}
+     */
     this.type = 'generic';
-    /** Array of value scopes available for this graph. Default is ['default']. */
+    /** Array of value scopes available for this graph. Default is ['default'].
+     * @type {string[]}
+     */
     this.scopeOfValues = ['default'];
-    /** Current scope of values to be shown on the graph. Default is 'default'. */
+    /** Current scope of values to be shown on the graph. Default is 'default'.
+     * @type {string}
+     */
     this.currentScope = 'default';
-    /** Limit of green color representation for values on the graph. Default is 1.0. */
+    /** Limit of green color representation for values on the graph. Default is 1.0.
+     * @type {number}
+     */
     this.greenLimit = 1.0;
-    /** Limit of red color representation for values on the graph. Default is -1.0. */
+    /** Limit of red color representation for values on the graph. Default is -1.0.
+     * @type {number}
+     */
     this.redLimit = -1.0;
 
-    /** Indicates whether node labels are visible or not. Default is false. */
+    /** Indicates whether node labels are visible or not. Default is false.
+     * @type {Bool}
+     */
     this.labelsVisible = false;
 
     /**
@@ -90,7 +110,6 @@ const Graph = /** @class */ (function () {
 
     /**
      * Alias for dispose function.
-     * @alias Graph.dispose
      */
     this.clear = function () {
         this.dispose();
@@ -128,9 +147,9 @@ const Graph = /** @class */ (function () {
 
     /**
      * Given an object and a value, it returns the key corresponding to the value.
-     * @param {object} object
-     * @param {*} value
-     * @returns {*}
+     * @param {Object} object
+     * @param {number|string} value
+     * @returns {Object.key}
      */
     this.getKeyByValue = function(object, value) {
         return Object.keys(object).find(key => object[key] === value);
@@ -799,18 +818,22 @@ const Graph = /** @class */ (function () {
 /**
  * Available display modes for the graph.
  * @type {string[]}
+ * @memberOf sgv.Graph
  */
 Graph.displayModes = [ 'classic', 'triangle', 'diamond' ];
 
 /**
  * Current display mode for the graph.
  * @type {string}
+ * @memberOf sgv.Graph
  */
 Graph.currentDisplayMode = 'classic';
 
 /**
  * Switch the display mode of the graph to the next available mode.
  * If the graph does not exist, a warning is logged and the function does nothing.
+ * @function
+ * @memberOf sgv.Graph
  */
 Graph.switchDisplayMode = ()=>{
     if (sgv.graf === null) {
@@ -825,20 +848,28 @@ Graph.switchDisplayMode = ()=>{
     sgv.graf.setDisplayMode();
 };
 
-// An object mapping known graph types to their corresponding constructor functions.
+/** An object mapping known graph types to their corresponding constructor functions.
+ * 
+ * @type Object
+ * @memberOf sgv.Graph
+ */
 Graph.knownGraphTypes = {};
 
 /**
  * Registers a new graph type.
+ * @function
  * @param {string} txt - The name of the graph type.
  * @param {Function} Type - The constructor function of the graph type.
+ * @memberOf sgv.Graph
  */
 Graph.registerType = (txt,Type)=>{Graph.knownGraphTypes[txt] = Type;};
 
 /**
  * Checks if a graph type is known.
+ * @function
  * @param {string} txt - The name of the graph type.
  * @returns {boolean} - True if the graph type is known, false otherwise.
+ * @memberOf sgv.Graph
  */
 Graph.knowType = (txt)=>(txt in Graph.knownGraphTypes);
 
@@ -847,8 +878,10 @@ Graph.knowType = (txt)=>(txt in Graph.knownGraphTypes);
  * Create a new graph from a GraphDescr and optionally a TempGraphStructure.
  * If a graph already exists, it is first removed.
  * If the graph type is not known or not a GraphDescr, an error is logged and the function does nothing.
+ * @function
  * @param {GraphDescr} gDesc - The description of the graph structure.
  * @param {TempGraphStructure} struct - Optional. The graph data.
+ * @memberOf sgv.Graph
  */
 Graph.create = (gDesc, struct)=>{
     Graph.remove();
@@ -876,6 +909,8 @@ Graph.create = (gDesc, struct)=>{
 
 /**
  * Removes the current graph if it exists.
+ * @function
+ * @memberOf sgv.Graph
  */
 Graph.remove = ()=>{
     if (sgv.graf !== null) {
@@ -895,13 +930,13 @@ Graph.remove = ()=>{
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="Cookie.html">Cookie</a></li><li><a href="Dispatcher.html">Dispatcher</a></li><li><a href="FileIO.html">FileIO</a></li><li><a href="ParserGEXF.html">ParserGEXF</a></li><li><a href="ParserTXT.html">ParserTXT</a></li><li><a href="SVG.html">SVG</a></li><li><a href="Settings.html">Settings</a></li><li><a href="UI.html">UI</a></li><li><a href="sgv.html">sgv</a></li></ul><h3>Classes</h3><ul><li><a href="Chimera.html">Chimera</a></li><li><a href="Edge.html">Edge</a></li><li><a href="GenericWindow.html">GenericWindow</a></li><li><a href="Graph.html">Graph</a></li><li><a href="GraphDescr.html">GraphDescr</a></li><li><a href="GraphSize.html">GraphSize</a></li><li><a href="Label.html">Label</a></li><li><a href="Node.html">Node</a></li><li><a href="Pegasus.html">Pegasus</a></li><li><a href="QbDescr.html">QbDescr</a></li><li><a href="SPS.html">SPS</a></li><li><a href="ScopePanel.html">ScopePanel</a></li><li><a href="SingleFilePanel.html">SingleFilePanel</a></li><li><a href="SlidersPanel.html">SlidersPanel</a></li><li><a href="TempGraphStructure.html">TempGraphStructure</a></li><li><a href="ValuePanel.html">ValuePanel</a></li><li><a href="sgv.DlgAbout.html">DlgAbout</a></li><li><a href="sgv.DlgAlternateFileSave.html">DlgAlternateFileSave</a></li><li><a href="sgv.DlgCPL.html">DlgCPL</a></li><li><a href="sgv.DlgCellView.html">DlgCellView</a></li><li><a href="sgv.DlgConsole.html">DlgConsole</a></li><li><a href="sgv.DlgCreateGraph.html">DlgCreateGraph</a></li><li><a href="sgv.DlgEdgeProperties.html">DlgEdgeProperties</a></li><li><a href="sgv.DlgEditSettings.html">DlgEditSettings</a></li><li><a href="sgv.DlgLoaderSplash.html">DlgLoaderSplash</a></li><li><a href="sgv.DlgMissingNodes.html">DlgMissingNodes</a></li><li><a href="sgv.DlgNodeProperties.html">DlgNodeProperties</a></li></ul><h3>Global</h3><ul><li><a href="global.html#DEMO_MODE">DEMO_MODE</a></li><li><a href="global.html#createLabel">createLabel</a></li><li><a href="global.html#desktopInit">desktopInit</a></li><li><a href="global.html#detectClient">detectClient</a></li><li><a href="global.html#enableMenu">enableMenu</a></li><li><a href="global.html#getRandom">getRandom</a></li><li><a href="global.html#hideSplash">hideSplash</a></li><li><a href="global.html#qD">qD</a></li><li><a href="global.html#showSplash">showSplash</a></li><li><a href="global.html#showSplashAndRun">showSplashAndRun</a></li><li><a href="global.html#valueToColor">valueToColor</a></li><li><a href="global.html#valueToColorBAK">valueToColorBAK</a></li><li><a href="global.html#valueToEdgeWidth">valueToEdgeWidth</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="Cookie.html">Cookie</a></li><li><a href="Dispatcher.html">Dispatcher</a></li><li><a href="FileIO.html">FileIO</a></li><li><a href="ParserGEXF.html">ParserGEXF</a></li><li><a href="ParserTXT.html">ParserTXT</a></li><li><a href="SVG.html">SVG</a></li><li><a href="Settings.html">Settings</a></li><li><a href="UI.html">UI</a></li><li><a href="sgv.html">sgv</a></li></ul><h3>Classes</h3><ul><li><a href="GraphDescr.html">GraphDescr</a></li><li><a href="GraphSize.html">GraphSize</a></li><li><a href="QbDescr.html">QbDescr</a></li><li><a href="TempGraphStructure.html">TempGraphStructure</a></li><li><a href="sgv.Chimera.html">Chimera</a></li><li><a href="sgv.DlgAbout.html">DlgAbout</a></li><li><a href="sgv.DlgAlternateFileSave.html">DlgAlternateFileSave</a></li><li><a href="sgv.DlgCPL.html">DlgCPL</a></li><li><a href="sgv.DlgCPL.SlidersPanel.html">SlidersPanel</a></li><li><a href="sgv.DlgCellView.html">DlgCellView</a></li><li><a href="sgv.DlgConsole.html">DlgConsole</a></li><li><a href="sgv.DlgCreateGraph.html">DlgCreateGraph</a></li><li><a href="sgv.DlgEdgeProperties.html">DlgEdgeProperties</a></li><li><a href="sgv.DlgEditSettings.html">DlgEditSettings</a></li><li><a href="sgv.DlgEditSettings.SingleFilePanel.html">SingleFilePanel</a></li><li><a href="sgv.DlgLoaderSplash.html">DlgLoaderSplash</a></li><li><a href="sgv.DlgMissingNodes.html">DlgMissingNodes</a></li><li><a href="sgv.DlgNodeProperties.html">DlgNodeProperties</a></li><li><a href="sgv.DlgNodeProperties.ValuePanel.html">ValuePanel</a></li><li><a href="sgv.GenericWindow.html">GenericWindow</a></li><li><a href="sgv.Graph.html">Graph</a></li><li><a href="sgv.Graph.Edge.html">Edge</a></li><li><a href="sgv.Graph.Node.html">Node</a></li><li><a href="sgv.Label.html">Label</a></li><li><a href="sgv.Pegasus.html">Pegasus</a></li><li><a href="sgv.ScopePanel.html">ScopePanel</a></li><li><a href="sgv.SolidPS.html">SolidPS</a></li></ul><h3>Global</h3><ul><li><a href="global.html#DEMO_MODE">DEMO_MODE</a></li><li><a href="global.html#createLabel">createLabel</a></li><li><a href="global.html#desktopInit">desktopInit</a></li><li><a href="global.html#detectClient">detectClient</a></li><li><a href="global.html#enableMenu">enableMenu</a></li><li><a href="global.html#getRandom">getRandom</a></li><li><a href="global.html#hideSplash">hideSplash</a></li><li><a href="global.html#qD">qD</a></li><li><a href="global.html#showSplash">showSplash</a></li><li><a href="global.html#showSplashAndRun">showSplashAndRun</a></li><li><a href="global.html#valueToColor">valueToColor</a></li><li><a href="global.html#valueToColorBAK">valueToColorBAK</a></li><li><a href="global.html#valueToEdgeWidth">valueToEdgeWidth</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Tue Jul 18 2023 14:28:39 GMT+0200 (czas środkowoeuropejski letni)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Wed Jul 19 2023 12:40:30 GMT+0200 (czas środkowoeuropejski letni)
 </footer>
 
 <script> prettyPrint(); </script>

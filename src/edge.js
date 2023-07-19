@@ -18,8 +18,11 @@
 /* global BABYLON, sgv */
 
 /**
- * Edge class representing an edge in a graph.
  * @class
+ * @classdesc Edge class representing an edge in a graph.
+ * @memberOf sgv.Graph
+ * 
+ * @constructor
  * @param {object} graf - The parent graph object.
  * @param {number|string} b - The identifier of the beginning node of the edge.
  * @param {number|string} e - The identifier of the ending node of the edge.

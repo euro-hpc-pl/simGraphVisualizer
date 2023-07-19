@@ -19,28 +19,48 @@
 /* global BABYLON, labelsVisible, sgv, Edge, Dispatcher, QbDescr, TempGraphStructure, GraphDescr */
 
 /**
- * @class Graph - Represents a graph with nodes and edges.
+ * @class
+ * @classdesc Represents a graph with nodes and edges.
+ * @memberOf sgv
  */
 const Graph = /** @class */ (function () {
-    /** Object that holds nodes of the graph. Keys are node IDs. */
+    /** Object that holds nodes of the graph. Keys are node IDs.
+     * @type {Object}
+     */
     this.nodes = {};
-    /** Object that holds edges of the graph. Keys are edge IDs. */
+    /** Object that holds edges of the graph. Keys are edge IDs.
+     * @type {Object}
+     */
     this.edges = {};
-    /** Object that holds nodes that have been deleted. Keys are node IDs. */
+    /** Object that holds nodes that have been deleted. Keys are node IDs.
+     * @type {Object}
+     */
     this.missing = {};
-    //this.delEdges = {};
-    /** Represents the type of graph. Default is 'generic'. */
+
+    /** Represents the type of graph. Default is 'generic'.
+     * @type {string}
+     */
     this.type = 'generic';
-    /** Array of value scopes available for this graph. Default is ['default']. */
+    /** Array of value scopes available for this graph. Default is ['default'].
+     * @type {string[]}
+     */
     this.scopeOfValues = ['default'];
-    /** Current scope of values to be shown on the graph. Default is 'default'. */
+    /** Current scope of values to be shown on the graph. Default is 'default'.
+     * @type {string}
+     */
     this.currentScope = 'default';
-    /** Limit of green color representation for values on the graph. Default is 1.0. */
+    /** Limit of green color representation for values on the graph. Default is 1.0.
+     * @type {number}
+     */
     this.greenLimit = 1.0;
-    /** Limit of red color representation for values on the graph. Default is -1.0. */
+    /** Limit of red color representation for values on the graph. Default is -1.0.
+     * @type {number}
+     */
     this.redLimit = -1.0;
 
-    /** Indicates whether node labels are visible or not. Default is false. */
+    /** Indicates whether node labels are visible or not. Default is false.
+     * @type {Bool}
+     */
     this.labelsVisible = false;
 
     /**
@@ -62,7 +82,6 @@ const Graph = /** @class */ (function () {
 
     /**
      * Alias for dispose function.
-     * @alias Graph.dispose
      */
     this.clear = function () {
         this.dispose();
@@ -100,9 +119,9 @@ const Graph = /** @class */ (function () {
 
     /**
      * Given an object and a value, it returns the key corresponding to the value.
-     * @param {object} object
-     * @param {*} value
-     * @returns {*}
+     * @param {Object} object
+     * @param {number|string} value
+     * @returns {Object.key}
      */
     this.getKeyByValue = function(object, value) {
         return Object.keys(object).find(key => object[key] === value);
@@ -771,18 +790,22 @@ const Graph = /** @class */ (function () {
 /**
  * Available display modes for the graph.
  * @type {string[]}
+ * @memberOf sgv.Graph
  */
 Graph.displayModes = [ 'classic', 'triangle', 'diamond' ];
 
 /**
  * Current display mode for the graph.
  * @type {string}
+ * @memberOf sgv.Graph
  */
 Graph.currentDisplayMode = 'classic';
 
 /**
  * Switch the display mode of the graph to the next available mode.
  * If the graph does not exist, a warning is logged and the function does nothing.
+ * @function
+ * @memberOf sgv.Graph
  */
 Graph.switchDisplayMode = ()=>{
     if (sgv.graf === null) {
@@ -797,20 +820,28 @@ Graph.switchDisplayMode = ()=>{
     sgv.graf.setDisplayMode();
 };
 
-// An object mapping known graph types to their corresponding constructor functions.
+/** An object mapping known graph types to their corresponding constructor functions.
+ * 
+ * @type Object
+ * @memberOf sgv.Graph
+ */
 Graph.knownGraphTypes = {};
 
 /**
  * Registers a new graph type.
+ * @function
  * @param {string} txt - The name of the graph type.
  * @param {Function} Type - The constructor function of the graph type.
+ * @memberOf sgv.Graph
  */
 Graph.registerType = (txt,Type)=>{Graph.knownGraphTypes[txt] = Type;};
 
 /**
  * Checks if a graph type is known.
+ * @function
  * @param {string} txt - The name of the graph type.
  * @returns {boolean} - True if the graph type is known, false otherwise.
+ * @memberOf sgv.Graph
  */
 Graph.knowType = (txt)=>(txt in Graph.knownGraphTypes);
 
@@ -819,8 +850,10 @@ Graph.knowType = (txt)=>(txt in Graph.knownGraphTypes);
  * Create a new graph from a GraphDescr and optionally a TempGraphStructure.
  * If a graph already exists, it is first removed.
  * If the graph type is not known or not a GraphDescr, an error is logged and the function does nothing.
+ * @function
  * @param {GraphDescr} gDesc - The description of the graph structure.
  * @param {TempGraphStructure} struct - Optional. The graph data.
+ * @memberOf sgv.Graph
  */
 Graph.create = (gDesc, struct)=>{
     Graph.remove();
@@ -848,6 +881,8 @@ Graph.create = (gDesc, struct)=>{
 
 /**
  * Removes the current graph if it exists.
+ * @function
+ * @memberOf sgv.Graph
  */
 Graph.remove = ()=>{
     if (sgv.graf !== null) {

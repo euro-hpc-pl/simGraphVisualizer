@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: QbDescr</title>
+    <title>JSDoc: Class: Pegasus</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Class: QbDescr</h1>
+    <h1 class="page-title">Class: Pegasus</h1>
 
     
 
@@ -28,9 +28,10 @@
 
 <header>
     
-        <h2><span class="attribs"><span class="type-signature"></span></span>QbDescr<span class="signature">(x, y, z, i, j, k)</span><span class="type-signature"></span></h2>
+        <h2><span class="attribs"><span class="type-signature"></span></span>
+            <span class="ancestors"><a href="sgv.html">sgv</a>.</span>Pegasus<span class="signature">(gSize)</span><span class="type-signature"></span></h2>
         
-            <div class="class-description">Represents the QbDescr.</div>
+            <div class="class-description">Represents a Pegasus graph structure.</div>
         
     
 </header>
@@ -45,12 +46,256 @@
     
 
     
-    <h4 class="name" id="QbDescr"><span class="type-signature"></span>new QbDescr<span class="signature">(x, y, z, i, j, k)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="Pegasus"><span class="type-signature"></span>new Pegasus<span class="signature">(gSize)</span><span class="type-signature"></span></h4>
     
 
     
 
 
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>gSize</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The size of the graph.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="pegasus.js.html">pegasus.js</a>, <a href="pegasus.js.html#line29">line 29</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    </div>
+
+    
+        <h3 class="subsection-title">Extends</h3>
+
+        
+
+
+    <ul>
+        <li>Chimera</li>
+    </ul>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id="type"><span class="type-signature"></span>type<span class="type-signature"> :string</span></h4>
+
+
+
+
+<div class="description">
+    The type of the graph.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">string</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="pegasus.js.html">pegasus.js</a>, <a href="pegasus.js.html#line36">line 36</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="connectExternalPegasusEdges"><span class="type-signature"></span>connectExternalPegasusEdges<span class="signature">(x, y, z)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Connects the external Pegasus edges.
+</div>
 
 
 
@@ -101,7 +346,7 @@
 
             
 
-            <td class="description last"></td>
+            <td class="description last">The x-coordinate of the node.</td>
         </tr>
 
     
@@ -124,7 +369,7 @@
 
             
 
-            <td class="description last"></td>
+            <td class="description last">The y-coordinate of the node.</td>
         </tr>
 
     
@@ -147,76 +392,7 @@
 
             
 
-            <td class="description last"></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>i</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Either 0 or 1</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>j</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Either 0 or 1</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>k</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Either 0 or 1</td>
+            <td class="description last">The z-coordinate of the node.</td>
         </tr>
 
     
@@ -257,7 +433,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="QbDescr.js.html">QbDescr.js</a>, <a href="QbDescr.js.html#line28">line 28</a>
+        <a href="pegasus.js.html">pegasus.js</a>, <a href="pegasus.js.html#line84">line 84</a>
     </li></ul></dd>
     
 
@@ -287,33 +463,13 @@
 
 
 
-    
-    </div>
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-        <h3 class="subsection-title">Methods</h3>
-
         
             
 
     
 
     
-    <h4 class="name" id="n0"><span class="type-signature"></span>n0<span class="signature">()</span><span class="type-signature"> &rarr; {number}</span></h4>
+    <h4 class="name" id="connectInternalPegasusEdges"><span class="type-signature"></span>connectInternalPegasusEdges<span class="signature">(x, y, z)</span><span class="type-signature"></span></h4>
     
 
     
@@ -321,219 +477,7 @@
 
 
 <div class="description">
-    Returns the value for n0.
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="QbDescr.js.html">QbDescr.js</a>, <a href="QbDescr.js.html#line40">line 40</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">number</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="n1"><span class="type-signature"></span>n1<span class="signature">()</span><span class="type-signature"> &rarr; {number}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Returns the value for n1.
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="QbDescr.js.html">QbDescr.js</a>, <a href="QbDescr.js.html#line48">line 48</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">number</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="toNodeId"><span class="type-signature"></span>toNodeId<span class="signature">(rows, cols)</span><span class="type-signature"> &rarr; {number}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Returns the node ID.
+    Connects the internal Pegasus edges.
 </div>
 
 
@@ -569,7 +513,7 @@
 
         <tr>
             
-                <td class="name"><code>rows</code></td>
+                <td class="name"><code>x</code></td>
             
 
             <td class="type">
@@ -585,14 +529,14 @@
 
             
 
-            <td class="description last">The number of rows.</td>
+            <td class="description last">The x-coordinate of the node.</td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>cols</code></td>
+                <td class="name"><code>y</code></td>
             
 
             <td class="type">
@@ -608,7 +552,30 @@
 
             
 
-            <td class="description last">The number of columns.</td>
+            <td class="description last">The y-coordinate of the node.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>z</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The z-coordinate of the node.</td>
         </tr>
 
     
@@ -649,7 +616,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="QbDescr.js.html">QbDescr.js</a>, <a href="QbDescr.js.html#line58">line 58</a>
+        <a href="pegasus.js.html">pegasus.js</a>, <a href="pegasus.js.html#line147">line 147</a>
     </li></ul></dd>
     
 
@@ -674,24 +641,6 @@
 
 
 
-<h5>Returns:</h5>
-
-        
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">number</span>
-
-
-    </dd>
-</dl>
-
-    
 
 
 
@@ -703,7 +652,7 @@
     
 
     
-    <h4 class="name" id=".fromNodeId"><span class="type-signature">(static) </span>fromNodeId<span class="signature">(nodeIdA, rows, cols)</span><span class="type-signature"> &rarr; {<a href="QbDescr.html">QbDescr</a>}</span></h4>
+    <h4 class="name" id="createDefaultStructure"><span class="type-signature"></span>createDefaultStructure<span class="signature">(then)</span><span class="type-signature"></span></h4>
     
 
     
@@ -711,7 +660,7 @@
 
 
 <div class="description">
-    Static method to create a QbDescr object from a given node ID, rows and columns.
+    Creates the default Pegasus graph structure.
 </div>
 
 
@@ -747,13 +696,13 @@
 
         <tr>
             
-                <td class="name"><code>nodeIdA</code></td>
+                <td class="name"><code>then</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">number</span>
+<span class="param-type">function</span>
 
 
             
@@ -763,53 +712,7 @@
 
             
 
-            <td class="description last">The node ID.</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>rows</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The number of rows.</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>cols</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The number of columns.</td>
+            <td class="description last">The callback function to be called after the structure is created.</td>
         </tr>
 
     
@@ -850,7 +753,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="QbDescr.js.html">QbDescr.js</a>, <a href="QbDescr.js.html#line73">line 73</a>
+        <a href="pegasus.js.html">pegasus.js</a>, <a href="pegasus.js.html#line56">line 56</a>
     </li></ul></dd>
     
 
@@ -875,24 +778,94 @@
 
 
 
-<h5>Returns:</h5>
+
+
+
+
 
         
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="QbDescr.html">QbDescr</a></span>
-
-
-    </dd>
-</dl>
+            
 
     
+
+    
+    <h4 class="name" id="pegasusConnections"><span class="type-signature"></span>pegasusConnections<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Connects the Pegasus edges.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="pegasus.js.html">pegasus.js</a>, <a href="pegasus.js.html#line41">line 41</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -920,7 +893,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Wed Jul 19 2023 12:40:30 GMT+0200 (czas środkowoeuropejski letni)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Wed Jul 19 2023 12:40:31 GMT+0200 (czas środkowoeuropejski letni)
 </footer>
 
 <script> prettyPrint(); </script>

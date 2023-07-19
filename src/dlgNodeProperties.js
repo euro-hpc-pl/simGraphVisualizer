@@ -2,6 +2,7 @@
 
 /**
  * @class Represents an object with properties and methods related to the value panel component.
+ * @memberof sgv.DlgNodeProperties
  */
 const ValuePanel = (function() {
     var btnSetN, checkValueN, editWagaN;

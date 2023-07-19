@@ -20,9 +20,12 @@
 "use strict";
 
 /**
- * Represents a Chimera graph structure.
  * @class
+ * @classdesc Represents a Chimera graph structure.
+ * @memberOf sgv
+ * 
  * @extends Graph
+ * @constructor
  * @param {GraphSize} gSize - The size of the graph.
  */
 const Chimera = /** @class */ (function (gSize) {

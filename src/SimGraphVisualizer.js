@@ -29,10 +29,39 @@ if (typeof global !== "undefined") {
     global.sgv = sgv;
 }
 
+/**
+ * Application build number
+ * @type {string}
+ * @memberof sgv
+ */
 sgv.version = "1.0.0";
+
+/**
+ * engine
+ * @type {BABYLON.Engine}
+ * @memberof sgv
+ */
 sgv.engine = null;
+
+/**
+ * scene
+ * @type {BABYLON.Scene}
+ * @memberof sgv
+ */
 sgv.scene = null;
+
+/**
+ * camera
+ * @type {BABYLON.Camera}
+ * @memberof sgv
+ */
 sgv.camera = null;
+
+/**
+ * current graph instance
+ * @type {Graph|Chimera|Pegasus}
+ * @memberof sgv
+ */
 sgv.graf = null;
 
 /**
@@ -46,9 +75,13 @@ sgv.createScene = function () {
     createLights();
 
 //====================================================================
-// creating Solid Particle System for nodes/edges visualisation
 //
-    sgv.SPS = new SPS(sgv.scene);
+    /**
+     * Solid Particle System for nodes/edges visualisation
+     * @type {SolidPS}
+     * @memberof sgv
+     */
+    sgv.SPS = new SolidPS(sgv.scene);
     sgv.SPS.init();
 //
 //====================================================================

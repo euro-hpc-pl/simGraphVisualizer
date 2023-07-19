@@ -1,7 +1,10 @@
 /* global UI */
 
 /**
- * @class Represents a generic window UI component.
+ * @class
+ * @classdesc Represents a generic window UI component.
+ * @memberOf sgv
+ * 
  * @constructor
  * @param {string} _id - The ID of the window.
  * @param {string} _title - The title of the window.

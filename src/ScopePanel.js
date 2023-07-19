@@ -5,6 +5,7 @@
  * @param {boolean} [addButtons=true] - Flag indicating whether to add buttons to the panel.
  * @param {string} [lbl] - Label for the scope display.
  * @returns {Object} ScopePanel instance.
+ * @memberof sgv
  */
 const ScopePanel = (function(addButtons,lbl) {
     let divNS, divDS;

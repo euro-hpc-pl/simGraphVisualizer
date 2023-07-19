@@ -10,7 +10,8 @@
         "start": "electron-forge start",
         "watch": "nodemon --exec electron .",
         "package": "electron-forge package",
-        "make": "electron-forge make"
+        "make": "electron-forge make",
+        "make-docs": "jsdoc src/ -R README.md -d docs"
     },
     "dependencies": {
         "axios": "^0.25.0",

@@ -19,9 +19,11 @@
 /* global BABYLON, sgv, Graph, QbDescr, Chimera, DEMO_MODE */
 
 /**
- * Represents a Pegasus graph structure.
  * @class
+ * @classdesc Represents a Pegasus graph structure.
+ * @memberOf sgv
  * @extends Chimera
+ * @constructor
  * @param {number} gSize - The size of the graph.
  */
 var Pegasus = /** @class */ (function (gSize) {

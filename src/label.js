@@ -1,7 +1,9 @@
 /* global BABYLON, sgv */
 
 /**
- * Represents a label that can be displayed in a 3D scene. It's attached to a plane, with the plane being displayed at a certain position.
+ * @class
+ * @classdesc Represents a label that can be displayed in a 3D scene. It's attached to a plane, with the plane being displayed at a certain position.
+ * @memberOf sgv
  * @constructor
  * @param {number|string} labelId - Usually Node.id. 
  * @param {string} txt - The text to be displayed on the label.

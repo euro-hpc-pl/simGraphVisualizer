@@ -13,7 +13,10 @@ const createLabel = function(id, position) {
 };
 
 /**
- * Represents a Node in the graph. Each Node has various properties including its id, position, label, etc.
+ * @class
+ * @classdesc Represents a Node in the graph. Each Node has various properties including its id, position, label, etc.
+ * @memberOf sgv.Graph
+ * 
  * @constructor
  * @param {object} graf - The parent graph this node belongs to.
  * @param {number|string} id - The id of the node.

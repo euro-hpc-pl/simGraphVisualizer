@@ -332,7 +332,7 @@ window.addEventListener('load', () => {
  */
 
 /**
- * Namespace object for SVG operations.
+ * Namespace for SVG elements drawing.
  * @namespace SVG
  */
 const SVG = {};
@@ -578,11 +578,15 @@ Dispatcher.viewModeChanged = ()=>{
 /* global sgv, BABYLON, Edge */
 
 /**
- * Solid Particle System module for creating and managing node and edge particles in a scene.
+ * @class
+ * @classdesc Solid Particle System module for creating and managing node and edge particles in a scene.
+ * @memberof sgv
+ * 
+ * @constructor
  * @param {BABYLON.Scene} scene - The Babylon.js scene.
  * @returns {Object} An object with functions for initializing, updating, and managing node and edge particles.
  */
-var SPS = (function(scene) {
+const SolidPS = (function(scene) {
     /**
      * Solid Particle System for nodes.
      * @type {BABYLON.SolidParticleSystem}
@@ -965,7 +969,8 @@ var SPS = (function(scene) {
 });
 
 /**
- * Constructs a GraphSize object.
+ * @class
+ * @classdesc Constructs a GraphSize object.
  * @constructor
  * @param {number} c - The number of columns.
  * @param {number} r - The number of rows.
@@ -982,7 +987,8 @@ var GraphSize = (function(c, r, l, kl, kr) {
 });
 
 /**
- * Constructs a GraphDescr object.
+ * @class
+ * @classdesc Constructs a GraphDescr object.
  * @constructor
  */
 var GraphDescr = (function() {
@@ -1024,10 +1030,7 @@ var GraphDescr = (function() {
 });
 
 /**
- * @class
- * 
- * @description
- * This class represents a temporary structure for storing graph data. It provides methods
+ * @class This class represents a temporary structure for storing graph data. It provides methods
  * for adding edges and nodes to the structure.
  */
 var TempGraphStructure = (function() {
@@ -3197,7 +3200,7 @@ Graph.registerType('pegasus', Pegasus);
 /* global sgv */
 
 /**
- * UI module for creating HTML elements and handling UI-related tasks.
+ * UI namespace for creating HTML elements and handling UI-related tasks.
  * @namespace
  */
 var UI = (function () {});
@@ -3479,28 +3482,11 @@ UI.createTransparentBtn1 = function (txt, id, onclick) {
     return btn;
 };
 
-/* 
- * Copyright 2022 pojdulos.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-
 /* global UI */
 
 /**
- * Represents a generic window UI component.
- * @class
+ * @class Represents a generic window UI component.
+ * @constructor
  * @param {string} _id - The ID of the window.
  * @param {string} _title - The title of the window.
  * @param {Object} args - Additional arguments.
@@ -3785,10 +3771,39 @@ if (typeof global !== "undefined") {
     global.sgv = sgv;
 }
 
+/**
+ * Application build number
+ * @type {string}
+ * @memberof sgv
+ */
 sgv.version = "1.0.0";
+
+/**
+ * engine
+ * @type {BABYLON.Engine}
+ * @memberof sgv
+ */
 sgv.engine = null;
+
+/**
+ * scene
+ * @type {BABYLON.Scene}
+ * @memberof sgv
+ */
 sgv.scene = null;
+
+/**
+ * camera
+ * @type {BABYLON.Camera}
+ * @memberof sgv
+ */
 sgv.camera = null;
+
+/**
+ * current graph instance
+ * @type {Graph|Chimera|Pegasus}
+ * @memberof sgv
+ */
 sgv.graf = null;
 
 /**
@@ -3802,9 +3817,13 @@ sgv.createScene = function () {
     createLights();
 
 //====================================================================
-// creating Solid Particle System for nodes/edges visualisation
 //
-    sgv.SPS = new SPS(sgv.scene);
+    /**
+     * Solid Particle System for nodes/edges visualisation
+     * @type {SolidPS}
+     * @memberof sgv
+     */
+    sgv.SPS = new SolidPS(sgv.scene);
     sgv.SPS.init();
 //
 //====================================================================
@@ -4144,7 +4163,9 @@ sgv.display = function(args) {
 
 "use strict";
 
-/** @type {Object} Module exporting TXT parsing functionality */
+/** TXT file parsing functionality
+ * @namespace
+ */
 var ParserTXT = {};
 
 /**
@@ -4277,7 +4298,9 @@ ParserTXT.exportGraph = (graph) => {
 
 "use strict";
 
-/** @type {Object} Module exporting GEXF parsing functionality */
+/** GEXF file parsing functionality
+ * @namespace
+ */
 var ParserGEXF = {};
 
 /**
@@ -4772,6 +4795,7 @@ FileIO.loadGraph2 = function(name,data) {
  * @param {boolean} [addButtons=true] - Flag indicating whether to add buttons to the panel.
  * @param {string} [lbl] - Label for the scope display.
  * @returns {Object} ScopePanel instance.
+ * @memberof sgv
  */
 const ScopePanel = (function(addButtons,lbl) {
     let divNS, divDS;
@@ -4951,18 +4975,27 @@ const ScopePanel = (function(addButtons,lbl) {
 /**
  * @class
  * @classdesc Represents a panel for controlling sliders.
+ * @memberof sgv.DlgCPL
  */
 const SlidersPanel = (function() {
-    /** @type {HTMLElement} Represents the red limit slider. */
+    /**  Represents the red limit slider. 
+     * @type {HTMLElement}
+     */
     var sliderRedLimit;
 
-    /** @type {HTMLElement} Represents the green limit slider. */
+    /** Represents the green limit slider.
+     *  @type {HTMLElement}
+     */
     var sliderGreenLimit;
 
-    /** @type {HTMLElement} Represents the display span for red limit. */
+    /** Represents the display span for red limit.
+     * @type {HTMLElement}
+     */
     var spanRed;
 
-    /** @type {HTMLElement} Represents the display span for green limit. */
+    /** Represents the display span for green limit.
+     * @type {HTMLElement}
+     */
     var spanGreen;
 
     /**
@@ -6969,16 +7002,15 @@ sgv.dlgCreateGraph = new DlgCreateGraph();
 /* global sgv, UI, Dispatcher */
 
 /**
- * @fileoverview This script handles edge properties and provides dialog functionality.
- */
-
-/**
+ * @class
+ * @classdesc Represents the DlgEdgeProperties class.
+ * @memberof sgv
  * @property {function} show - Function to show the dialog
  * @property {function} hide - Function to hide the dialog
  * @property {function} refresh - Function to refresh the dialog
  * @property {function} isVisible - Function to check if the dialog is visible
  */
-sgv.dlgEdgeProperties = new function() {
+const DlgEdgeProperties = (function() {
     var precontent, content, zeroInfo;
     var hidEdgeId;
     var selectEdgeId, selectScope;
@@ -7207,131 +7239,18 @@ sgv.dlgEdgeProperties = new function() {
             return (ui!==null)&&(ui.style.display === "block");
         }
     };
-};
+});
+
+/**
+ * Represents the static instance of DlgEdgeProperties in the sgv namespace.
+ * @type {DlgEdgeProperties}
+ * @memberof sgv
+ * @static
+ */
+sgv.dlgEdgeProperties = new DlgEdgeProperties();
 
 /* global UI, sgv, Edge, Dispatcher, SVG */
 
-/**
- * @class Represents an object with properties and methods related to the value panel component.
- */
-const ValuePanel = (function() {
-    var btnSetN, checkValueN, editWagaN;
-    var nodeId, scope;
-    
-    var valueBlock = UI.tag("div", {'id':'ValueBlock'});
-
-    checkValueN = UI.newInput("checkbox", "", "", "valueCheckN");
-    checkValueN.addEventListener('click', function (e) {
-        activateN(e.target.checked);
-    });
-    valueBlock.appendChild(checkValueN);
-
-    editWagaN = UI.newInput("number", "0", "", "wagaN");
-    editWagaN.addEventListener('change', function () {
-        edycjaN();
-    });
-    valueBlock.appendChild(editWagaN);
-
-    btnSetN = UI.newInput("button", "set", "setvaluebutton", "setN");
-    btnSetN.addEventListener('click', function () {
-        edycjaN();
-    });
-    valueBlock.appendChild(btnSetN);
-
-    /**
-     * Updates the value of a node in the graph based on the input from the user.
-     * @returns None
-     */
-    function edycjaN() {
-        let val = parseFloat(editWagaN.value.replace(/,/g, '.'));
-        sgv.graf.setNodeValue(nodeId, val, scope);
-        Dispatcher.graphChanged();
-    };
-
-    /**
-     * Activates or deactivates a feature based on the given isActive parameter.
-     * @param {boolean} isActive - Indicates whether the feature should be activated or deactivated.
-     * @returns None
-     */
-    function activateN(isActive) {
-        if (isActive) {
-            editWagaN.disabled = "";
-            btnSetN.disabled = "";
-            let val = parseFloat(editWagaN.value.replace(/,/g, '.'));
-            if (isNaN(val)) {
-                val=0;
-                editWagaN.value = val;
-            }
-            console.log(val);
-            sgv.graf.setNodeValue(nodeId, val, scope);
-        } else {
-            editWagaN.disabled = "disabled";
-            btnSetN.disabled = "disabled";
-            sgv.graf.delNodeValue(nodeId, scope);
-        }
-        Dispatcher.graphChanged();
-    };
-
-    /**
-     * Updates the UI to show the current value of a node.
-     * If the current value is null or NaN, the checkbox is unchecked and the input field and button are disabled.
-     * If the current value is not null or NaN, the checkbox is checked and the input field and button are enabled.
-     * @returns None
-     */
-    function showX() {
-        let currentValue = sgv.graf.nodeValue(nodeId, scope);
-        if ((currentValue===null)||isNaN(currentValue)) {
-            checkValueN.checked = "";
-            editWagaN.value = null;
-            editWagaN.disabled = "disabled";
-            btnSetN.disabled = "disabled";
-        } else {
-            checkValueN.checked = "checked";
-            editWagaN.value = currentValue;
-            editWagaN.disabled = "";
-            btnSetN.disabled = "";
-        }
-    }
-    
-    /**
-     * Sets the value of the nodeId variable to the given id and calls the showX function.
-     * @param {any} id - The id to set the nodeId variable to.
-     * @returns None
-     */
-    function setNodeX(id) {
-        nodeId = id;
-        showX();
-    }
-
-    /**
-     * Sets the scope to the given value and calls the showX() function.
-     * @param {any} sc - The scope.
-     * @returns None
-     */
-    function setScopeX(sc) {
-        scope = sc;
-        showX();
-    }
-
-    /**
-     * Sets the value of the nodeId in scope and calls the showX function.
-     * @param {any} id - The value to assign to the nodeId variable.
-     * @param {any} sc - The scope.
-     * @returns None
-     */
-    function setX(id, sc) {
-        nodeId = id;
-        scope = sc;
-        showX();
-    }
-
-    return {
-        ui: valueBlock,
-        setNode: setNodeX,
-        setScope: setScopeX,
-        show: setX
-    };
-});
 
 /**
  * @class
@@ -7339,6 +7258,128 @@ const ValuePanel = (function() {
  * @memberof sgv
  */
 const DlgNodeProperties = (function() {
+    /**
+     * @class Represents an object with properties and methods related to the value panel component.
+     * @memberof sgv.DlgNodeProperties
+     */
+    const ValuePanel = (function() {
+        var btnSetN, checkValueN, editWagaN;
+        var nodeId, scope;
+
+        var valueBlock = UI.tag("div", {'id':'ValueBlock'});
+
+        checkValueN = UI.newInput("checkbox", "", "", "valueCheckN");
+        checkValueN.addEventListener('click', function (e) {
+            activateN(e.target.checked);
+        });
+        valueBlock.appendChild(checkValueN);
+
+        editWagaN = UI.newInput("number", "0", "", "wagaN");
+        editWagaN.addEventListener('change', function () {
+            edycjaN();
+        });
+        valueBlock.appendChild(editWagaN);
+
+        btnSetN = UI.newInput("button", "set", "setvaluebutton", "setN");
+        btnSetN.addEventListener('click', function () {
+            edycjaN();
+        });
+        valueBlock.appendChild(btnSetN);
+
+        /**
+         * Updates the value of a node in the graph based on the input from the user.
+         * @returns None
+         */
+        function edycjaN() {
+            let val = parseFloat(editWagaN.value.replace(/,/g, '.'));
+            sgv.graf.setNodeValue(nodeId, val, scope);
+            Dispatcher.graphChanged();
+        };
+
+        /**
+         * Activates or deactivates a feature based on the given isActive parameter.
+         * @param {boolean} isActive - Indicates whether the feature should be activated or deactivated.
+         * @returns None
+         */
+        function activateN(isActive) {
+            if (isActive) {
+                editWagaN.disabled = "";
+                btnSetN.disabled = "";
+                let val = parseFloat(editWagaN.value.replace(/,/g, '.'));
+                if (isNaN(val)) {
+                    val=0;
+                    editWagaN.value = val;
+                }
+                console.log(val);
+                sgv.graf.setNodeValue(nodeId, val, scope);
+            } else {
+                editWagaN.disabled = "disabled";
+                btnSetN.disabled = "disabled";
+                sgv.graf.delNodeValue(nodeId, scope);
+            }
+            Dispatcher.graphChanged();
+        };
+
+        /**
+         * Updates the UI to show the current value of a node.
+         * If the current value is null or NaN, the checkbox is unchecked and the input field and button are disabled.
+         * If the current value is not null or NaN, the checkbox is checked and the input field and button are enabled.
+         * @returns None
+         */
+        function showX() {
+            let currentValue = sgv.graf.nodeValue(nodeId, scope);
+            if ((currentValue===null)||isNaN(currentValue)) {
+                checkValueN.checked = "";
+                editWagaN.value = null;
+                editWagaN.disabled = "disabled";
+                btnSetN.disabled = "disabled";
+            } else {
+                checkValueN.checked = "checked";
+                editWagaN.value = currentValue;
+                editWagaN.disabled = "";
+                btnSetN.disabled = "";
+            }
+        }
+
+        /**
+         * Sets the value of the nodeId variable to the given id and calls the showX function.
+         * @param {any} id - The id to set the nodeId variable to.
+         * @returns None
+         */
+        function setNodeX(id) {
+            nodeId = id;
+            showX();
+        }
+
+        /**
+         * Sets the scope to the given value and calls the showX() function.
+         * @param {any} sc - The scope.
+         * @returns None
+         */
+        function setScopeX(sc) {
+            scope = sc;
+            showX();
+        }
+
+        /**
+         * Sets the value of the nodeId in scope and calls the showX function.
+         * @param {any} id - The value to assign to the nodeId variable.
+         * @param {any} sc - The scope.
+         * @returns None
+         */
+        function setX(id, sc) {
+            nodeId = id;
+            scope = sc;
+            showX();
+        }
+
+        return {
+            ui: valueBlock,
+            setNode: setNodeX,
+            setScope: setScopeX,
+            show: setX
+        };
+    });
    
     var hidNodeId;
     var selectNodeId, selectScope;
@@ -8231,6 +8272,7 @@ function showSplashAndRun(f,noHide) {
 /**
  * @class
  * @classdesc Creates a new instance of the SingleFilePanel.
+ * @memberof sgv.DlgEditSettings
  * @constructor
  * @param {number} _id - The unique ID of the panel.
  * @param {string} _label - The displayable name of the external file.
@@ -8474,6 +8516,7 @@ const DlgEditSettings = (function() {
     return {
         /**
          * Shows the edit settings dialog.
+         * @memberof DlgEditSettings
          * @param {Object[]} _externApps - Array of external applications.
          * @param {string} _workingDir - The working directory.
          */
@@ -8481,6 +8524,7 @@ const DlgEditSettings = (function() {
         
         /**
          * Hides the edit settings dialog.
+         * @memberof DlgEditSettings
          */        
         hide: hideDialog
     };

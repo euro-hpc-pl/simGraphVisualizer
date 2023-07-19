@@ -1,3 +1,5 @@
+/* global Cookie */
+
 /**
  * Namespace object for application settings.
  * @namespace Settings

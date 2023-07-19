@@ -3,6 +3,7 @@
 /**
  * @class
  * @classdesc Creates a new instance of the SingleFilePanel.
+ * @memberof sgv.DlgEditSettings
  * @constructor
  * @param {number} _id - The unique ID of the panel.
  * @param {string} _label - The displayable name of the external file.

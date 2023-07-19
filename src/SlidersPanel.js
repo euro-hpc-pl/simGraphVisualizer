@@ -4,6 +4,7 @@
 /**
  * @class
  * @classdesc Represents a panel for controlling sliders.
+ * @memberof sgv.DlgCPL
  */
 const SlidersPanel = (function() {
     /**  Represents the red limit slider. 
