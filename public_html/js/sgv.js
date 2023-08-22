@@ -82,6 +82,8 @@ Cookie.delete = (name, options) => {
     document.cookie = cookieText;
 };
 
+/* global Cookie */
+
 /**
  * Namespace object for application settings.
  * @namespace Settings
@@ -1128,7 +1130,9 @@ var TempGraphStructure = (function() {
 /* global BABYLON, sgv */
 
 /**
- * Represents a label that can be displayed in a 3D scene. It's attached to a plane, with the plane being displayed at a certain position.
+ * @class
+ * @classdesc Represents a label that can be displayed in a 3D scene. It's attached to a plane, with the plane being displayed at a certain position.
+ * @memberOf sgv
  * @constructor
  * @param {number|string} labelId - Usually Node.id. 
  * @param {string} txt - The text to be displayed on the label.
@@ -1263,7 +1267,10 @@ const createLabel = function(id, position) {
 };
 
 /**
- * Represents a Node in the graph. Each Node has various properties including its id, position, label, etc.
+ * @class
+ * @classdesc Represents a Node in the graph. Each Node has various properties including its id, position, label, etc.
+ * @memberOf sgv.Graph
+ * 
  * @constructor
  * @param {object} graf - The parent graph this node belongs to.
  * @param {number|string} id - The id of the node.
@@ -1542,8 +1549,11 @@ Node.fromXYZIJK = (graf, x, y, z, i, j, k)=>{
 /* global BABYLON, sgv */
 
 /**
- * Edge class representing an edge in a graph.
  * @class
+ * @classdesc Edge class representing an edge in a graph.
+ * @memberOf sgv.Graph
+ * 
+ * @constructor
  * @param {object} graf - The parent graph object.
  * @param {number|string} b - The identifier of the beginning node of the edge.
  * @param {number|string} e - The identifier of the ending node of the edge.
@@ -1832,28 +1842,48 @@ QbDescr.fromNodeId = function (nodeIdA, rows, cols) {
 /* global BABYLON, labelsVisible, sgv, Edge, Dispatcher, QbDescr, TempGraphStructure, GraphDescr */
 
 /**
- * @class Graph - Represents a graph with nodes and edges.
+ * @class
+ * @classdesc Represents a graph with nodes and edges.
+ * @memberOf sgv
  */
 const Graph = /** @class */ (function () {
-    /** Object that holds nodes of the graph. Keys are node IDs. */
+    /** Object that holds nodes of the graph. Keys are node IDs.
+     * @type {Object}
+     */
     this.nodes = {};
-    /** Object that holds edges of the graph. Keys are edge IDs. */
+    /** Object that holds edges of the graph. Keys are edge IDs.
+     * @type {Object}
+     */
     this.edges = {};
-    /** Object that holds nodes that have been deleted. Keys are node IDs. */
+    /** Object that holds nodes that have been deleted. Keys are node IDs.
+     * @type {Object}
+     */
     this.missing = {};
-    //this.delEdges = {};
-    /** Represents the type of graph. Default is 'generic'. */
+
+    /** Represents the type of graph. Default is 'generic'.
+     * @type {string}
+     */
     this.type = 'generic';
-    /** Array of value scopes available for this graph. Default is ['default']. */
+    /** Array of value scopes available for this graph. Default is ['default'].
+     * @type {string[]}
+     */
     this.scopeOfValues = ['default'];
-    /** Current scope of values to be shown on the graph. Default is 'default'. */
+    /** Current scope of values to be shown on the graph. Default is 'default'.
+     * @type {string}
+     */
     this.currentScope = 'default';
-    /** Limit of green color representation for values on the graph. Default is 1.0. */
+    /** Limit of green color representation for values on the graph. Default is 1.0.
+     * @type {number}
+     */
     this.greenLimit = 1.0;
-    /** Limit of red color representation for values on the graph. Default is -1.0. */
+    /** Limit of red color representation for values on the graph. Default is -1.0.
+     * @type {number}
+     */
     this.redLimit = -1.0;
 
-    /** Indicates whether node labels are visible or not. Default is false. */
+    /** Indicates whether node labels are visible or not. Default is false.
+     * @type {Bool}
+     */
     this.labelsVisible = false;
 
     /**
@@ -1875,7 +1905,6 @@ const Graph = /** @class */ (function () {
 
     /**
      * Alias for dispose function.
-     * @alias Graph.dispose
      */
     this.clear = function () {
         this.dispose();
@@ -1913,9 +1942,9 @@ const Graph = /** @class */ (function () {
 
     /**
      * Given an object and a value, it returns the key corresponding to the value.
-     * @param {object} object
-     * @param {*} value
-     * @returns {*}
+     * @param {Object} object
+     * @param {number|string} value
+     * @returns {Object.key}
      */
     this.getKeyByValue = function(object, value) {
         return Object.keys(object).find(key => object[key] === value);
@@ -2584,18 +2613,22 @@ const Graph = /** @class */ (function () {
 /**
  * Available display modes for the graph.
  * @type {string[]}
+ * @memberOf sgv.Graph
  */
 Graph.displayModes = [ 'classic', 'triangle', 'diamond' ];
 
 /**
  * Current display mode for the graph.
  * @type {string}
+ * @memberOf sgv.Graph
  */
 Graph.currentDisplayMode = 'classic';
 
 /**
  * Switch the display mode of the graph to the next available mode.
  * If the graph does not exist, a warning is logged and the function does nothing.
+ * @function
+ * @memberOf sgv.Graph
  */
 Graph.switchDisplayMode = ()=>{
     if (sgv.graf === null) {
@@ -2610,20 +2643,28 @@ Graph.switchDisplayMode = ()=>{
     sgv.graf.setDisplayMode();
 };
 
-// An object mapping known graph types to their corresponding constructor functions.
+/** An object mapping known graph types to their corresponding constructor functions.
+ * 
+ * @type Object
+ * @memberOf sgv.Graph
+ */
 Graph.knownGraphTypes = {};
 
 /**
  * Registers a new graph type.
+ * @function
  * @param {string} txt - The name of the graph type.
  * @param {Function} Type - The constructor function of the graph type.
+ * @memberOf sgv.Graph
  */
 Graph.registerType = (txt,Type)=>{Graph.knownGraphTypes[txt] = Type;};
 
 /**
  * Checks if a graph type is known.
+ * @function
  * @param {string} txt - The name of the graph type.
  * @returns {boolean} - True if the graph type is known, false otherwise.
+ * @memberOf sgv.Graph
  */
 Graph.knowType = (txt)=>(txt in Graph.knownGraphTypes);
 
@@ -2632,8 +2673,10 @@ Graph.knowType = (txt)=>(txt in Graph.knownGraphTypes);
  * Create a new graph from a GraphDescr and optionally a TempGraphStructure.
  * If a graph already exists, it is first removed.
  * If the graph type is not known or not a GraphDescr, an error is logged and the function does nothing.
+ * @function
  * @param {GraphDescr} gDesc - The description of the graph structure.
  * @param {TempGraphStructure} struct - Optional. The graph data.
+ * @memberOf sgv.Graph
  */
 Graph.create = (gDesc, struct)=>{
     Graph.remove();
@@ -2661,6 +2704,8 @@ Graph.create = (gDesc, struct)=>{
 
 /**
  * Removes the current graph if it exists.
+ * @function
+ * @memberOf sgv.Graph
  */
 Graph.remove = ()=>{
     if (sgv.graf !== null) {
@@ -2693,9 +2738,12 @@ Graph.remove = ()=>{
 "use strict";
 
 /**
- * Represents a Chimera graph structure.
  * @class
+ * @classdesc Represents a Chimera graph structure.
+ * @memberOf sgv
+ * 
  * @extends Graph
+ * @constructor
  * @param {GraphSize} gSize - The size of the graph.
  */
 const Chimera = /** @class */ (function (gSize) {
@@ -3045,9 +3093,11 @@ Graph.registerType('chimera', Chimera);
 /* global BABYLON, sgv, Graph, QbDescr, Chimera, DEMO_MODE */
 
 /**
- * Represents a Pegasus graph structure.
  * @class
+ * @classdesc Represents a Pegasus graph structure.
+ * @memberOf sgv
  * @extends Chimera
+ * @constructor
  * @param {number} gSize - The size of the graph.
  */
 var Pegasus = /** @class */ (function (gSize) {
@@ -3485,7 +3535,10 @@ UI.createTransparentBtn1 = function (txt, id, onclick) {
 /* global UI */
 
 /**
- * @class Represents a generic window UI component.
+ * @class
+ * @classdesc Represents a generic window UI component.
+ * @memberOf sgv
+ * 
  * @constructor
  * @param {string} _id - The ID of the window.
  * @param {string} _title - The title of the window.
@@ -7251,6 +7304,128 @@ sgv.dlgEdgeProperties = new DlgEdgeProperties();
 
 /* global UI, sgv, Edge, Dispatcher, SVG */
 
+/**
+ * @class Represents an object with properties and methods related to the value panel component.
+ * @memberof sgv.DlgNodeProperties
+ */
+const ValuePanel = (function() {
+    var btnSetN, checkValueN, editWagaN;
+    var nodeId, scope;
+    
+    var valueBlock = UI.tag("div", {'id':'ValueBlock'});
+
+    checkValueN = UI.newInput("checkbox", "", "", "valueCheckN");
+    checkValueN.addEventListener('click', function (e) {
+        activateN(e.target.checked);
+    });
+    valueBlock.appendChild(checkValueN);
+
+    editWagaN = UI.newInput("number", "0", "", "wagaN");
+    editWagaN.addEventListener('change', function () {
+        edycjaN();
+    });
+    valueBlock.appendChild(editWagaN);
+
+    btnSetN = UI.newInput("button", "set", "setvaluebutton", "setN");
+    btnSetN.addEventListener('click', function () {
+        edycjaN();
+    });
+    valueBlock.appendChild(btnSetN);
+
+    /**
+     * Updates the value of a node in the graph based on the input from the user.
+     * @returns None
+     */
+    function edycjaN() {
+        let val = parseFloat(editWagaN.value.replace(/,/g, '.'));
+        sgv.graf.setNodeValue(nodeId, val, scope);
+        Dispatcher.graphChanged();
+    };
+
+    /**
+     * Activates or deactivates a feature based on the given isActive parameter.
+     * @param {boolean} isActive - Indicates whether the feature should be activated or deactivated.
+     * @returns None
+     */
+    function activateN(isActive) {
+        if (isActive) {
+            editWagaN.disabled = "";
+            btnSetN.disabled = "";
+            let val = parseFloat(editWagaN.value.replace(/,/g, '.'));
+            if (isNaN(val)) {
+                val=0;
+                editWagaN.value = val;
+            }
+            console.log(val);
+            sgv.graf.setNodeValue(nodeId, val, scope);
+        } else {
+            editWagaN.disabled = "disabled";
+            btnSetN.disabled = "disabled";
+            sgv.graf.delNodeValue(nodeId, scope);
+        }
+        Dispatcher.graphChanged();
+    };
+
+    /**
+     * Updates the UI to show the current value of a node.
+     * If the current value is null or NaN, the checkbox is unchecked and the input field and button are disabled.
+     * If the current value is not null or NaN, the checkbox is checked and the input field and button are enabled.
+     * @returns None
+     */
+    function showX() {
+        let currentValue = sgv.graf.nodeValue(nodeId, scope);
+        if ((currentValue===null)||isNaN(currentValue)) {
+            checkValueN.checked = "";
+            editWagaN.value = null;
+            editWagaN.disabled = "disabled";
+            btnSetN.disabled = "disabled";
+        } else {
+            checkValueN.checked = "checked";
+            editWagaN.value = currentValue;
+            editWagaN.disabled = "";
+            btnSetN.disabled = "";
+        }
+    }
+    
+    /**
+     * Sets the value of the nodeId variable to the given id and calls the showX function.
+     * @param {any} id - The id to set the nodeId variable to.
+     * @returns None
+     */
+    function setNodeX(id) {
+        nodeId = id;
+        showX();
+    }
+
+    /**
+     * Sets the scope to the given value and calls the showX() function.
+     * @param {any} sc - The scope.
+     * @returns None
+     */
+    function setScopeX(sc) {
+        scope = sc;
+        showX();
+    }
+
+    /**
+     * Sets the value of the nodeId in scope and calls the showX function.
+     * @param {any} id - The value to assign to the nodeId variable.
+     * @param {any} sc - The scope.
+     * @returns None
+     */
+    function setX(id, sc) {
+        nodeId = id;
+        scope = sc;
+        showX();
+    }
+
+    return {
+        ui: valueBlock,
+        setNode: setNodeX,
+        setScope: setScopeX,
+        show: setX
+    };
+});
 
 /**
  * @class
@@ -7258,128 +7433,6 @@ sgv.dlgEdgeProperties = new DlgEdgeProperties();
  * @memberof sgv
  */
 const DlgNodeProperties = (function() {
-    /**
-     * @class Represents an object with properties and methods related to the value panel component.
-     * @memberof sgv.DlgNodeProperties
-     */
-    const ValuePanel = (function() {
-        var btnSetN, checkValueN, editWagaN;
-        var nodeId, scope;
-
-        var valueBlock = UI.tag("div", {'id':'ValueBlock'});
-
-        checkValueN = UI.newInput("checkbox", "", "", "valueCheckN");
-        checkValueN.addEventListener('click', function (e) {
-            activateN(e.target.checked);
-        });
-        valueBlock.appendChild(checkValueN);
-
-        editWagaN = UI.newInput("number", "0", "", "wagaN");
-        editWagaN.addEventListener('change', function () {
-            edycjaN();
-        });
-        valueBlock.appendChild(editWagaN);
-
-        btnSetN = UI.newInput("button", "set", "setvaluebutton", "setN");
-        btnSetN.addEventListener('click', function () {
-            edycjaN();
-        });
-        valueBlock.appendChild(btnSetN);
-
-        /**
-         * Updates the value of a node in the graph based on the input from the user.
-         * @returns None
-         */
-        function edycjaN() {
-            let val = parseFloat(editWagaN.value.replace(/,/g, '.'));
-            sgv.graf.setNodeValue(nodeId, val, scope);
-            Dispatcher.graphChanged();
-        };
-
-        /**
-         * Activates or deactivates a feature based on the given isActive parameter.
-         * @param {boolean} isActive - Indicates whether the feature should be activated or deactivated.
-         * @returns None
-         */
-        function activateN(isActive) {
-            if (isActive) {
-                editWagaN.disabled = "";
-                btnSetN.disabled = "";
-                let val = parseFloat(editWagaN.value.replace(/,/g, '.'));
-                if (isNaN(val)) {
-                    val=0;
-                    editWagaN.value = val;
-                }
-                console.log(val);
-                sgv.graf.setNodeValue(nodeId, val, scope);
-            } else {
-                editWagaN.disabled = "disabled";
-                btnSetN.disabled = "disabled";
-                sgv.graf.delNodeValue(nodeId, scope);
-            }
-            Dispatcher.graphChanged();
-        };
-
-        /**
-         * Updates the UI to show the current value of a node.
-         * If the current value is null or NaN, the checkbox is unchecked and the input field and button are disabled.
-         * If the current value is not null or NaN, the checkbox is checked and the input field and button are enabled.
-         * @returns None
-         */
-        function showX() {
-            let currentValue = sgv.graf.nodeValue(nodeId, scope);
-            if ((currentValue===null)||isNaN(currentValue)) {
-                checkValueN.checked = "";
-                editWagaN.value = null;
-                editWagaN.disabled = "disabled";
-                btnSetN.disabled = "disabled";
-            } else {
-                checkValueN.checked = "checked";
-                editWagaN.value = currentValue;
-                editWagaN.disabled = "";
-                btnSetN.disabled = "";
-            }
-        }
-
-        /**
-         * Sets the value of the nodeId variable to the given id and calls the showX function.
-         * @param {any} id - The id to set the nodeId variable to.
-         * @returns None
-         */
-        function setNodeX(id) {
-            nodeId = id;
-            showX();
-        }
-
-        /**
-         * Sets the scope to the given value and calls the showX() function.
-         * @param {any} sc - The scope.
-         * @returns None
-         */
-        function setScopeX(sc) {
-            scope = sc;
-            showX();
-        }
-
-        /**
-         * Sets the value of the nodeId in scope and calls the showX function.
-         * @param {any} id - The value to assign to the nodeId variable.
-         * @param {any} sc - The scope.
-         * @returns None
-         */
-        function setX(id, sc) {
-            nodeId = id;
-            scope = sc;
-            showX();
-        }
-
-        return {
-            ui: valueBlock,
-            setNode: setNodeX,
-            setScope: setScopeX,
-            show: setX
-        };
-    });
    
     var hidNodeId;
     var selectNodeId, selectScope;
