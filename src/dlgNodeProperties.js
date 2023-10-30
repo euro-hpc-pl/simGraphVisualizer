@@ -361,6 +361,19 @@ const DlgNodeProperties = (function() {
         selectScope.refresh();
         valuePanel.show(nodeId, sgv.graf.currentScope);
 
+        checkLabelN.checked = ""; 
+        editLabelN.value = sgv.graf.nodeLabel(nodeId);
+        if (sgv.graf.isNodeLabelVisible(nodeId))
+        {
+            checkLabelN.checked = "checked";
+            editLabelN.disabled = "";
+        }
+        else
+        {
+            editLabelN.disabled = "disabled";
+        }
+        
+        
         UI.clearSelect(selectDestN, true);
         UI.clearSelect(selectNodeId, false);
 

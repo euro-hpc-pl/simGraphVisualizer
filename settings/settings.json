@@ -1,1 +1,1 @@
-{"workingDir":"C:/Users/darek/AppData/Local/Temp/","externApps":[{"label":"Demo","path":"python bin/externalProg.py","params":"-i {graph} -o {result}"},{"label":"Calculator","path":"c:/Windows/System32/calc.exe","params":""}]}
+{"workingDir":"C:/Users/darek/AppData/Local/Temp/NetBeans_PortableTemp/","externApps":[{"label":"Demo","path":"python bin/externalProg.py","params":"-i {graph} -o {result}"},{"label":"Calculator","path":"c:/Windows/System32/calc.exe","params":""}]}

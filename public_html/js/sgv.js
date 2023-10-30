@@ -2307,6 +2307,24 @@ const Graph = /** @class */ (function () {
 
 
     /**
+     * returns the label visibility
+     * @param {number} nodeId
+     * @returns {boolean}
+     */
+    this.isNodeLabelVisible = function (nodeId) {
+        return this.nodes[nodeId].isLabelVisible();
+    };
+
+    /**
+     * Get the label of a node in the graph.
+     * @param {number} nodeId
+     * @returns {string}
+     */
+    this.nodeLabel = function (nodeId) {
+        return this.nodes[nodeId].getLabel();
+    };
+
+    /**
      * Get the position of a node in the graph.
      * @param {number} nodeId
      * @returns {BABYLON.Vector3}
@@ -7665,6 +7683,19 @@ const DlgNodeProperties = (function() {
         selectScope.refresh();
         valuePanel.show(nodeId, sgv.graf.currentScope);
 
+        checkLabelN.checked = ""; 
+        editLabelN.value = sgv.graf.nodeLabel(nodeId);
+        if (sgv.graf.isNodeLabelVisible(nodeId))
+        {
+            checkLabelN.checked = "checked";
+            editLabelN.disabled = "";
+        }
+        else
+        {
+            editLabelN.disabled = "disabled";
+        }
+        
+        
         UI.clearSelect(selectDestN, true);
         UI.clearSelect(selectNodeId, false);
 

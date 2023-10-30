@@ -484,6 +484,24 @@ const Graph = /** @class */ (function () {
 
 
     /**
+     * returns the label visibility
+     * @param {number} nodeId
+     * @returns {boolean}
+     */
+    this.isNodeLabelVisible = function (nodeId) {
+        return this.nodes[nodeId].isLabelVisible();
+    };
+
+    /**
+     * Get the label of a node in the graph.
+     * @param {number} nodeId
+     * @returns {string}
+     */
+    this.nodeLabel = function (nodeId) {
+        return this.nodes[nodeId].getLabel();
+    };
+
+    /**
      * Get the position of a node in the graph.
      * @param {number} nodeId
      * @returns {BABYLON.Vector3}
