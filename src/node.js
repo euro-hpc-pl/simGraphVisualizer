@@ -71,9 +71,8 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         
         if ((label!==null) && (label.plane!==null)) {
             label.plane.dispose();
-//            delete this.label.plane;
         }
-        delete this.label;
+        delete label;
     };
 
     /**
@@ -210,6 +209,18 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         }
 
         let color = valueToColor( (scope in this.values)?this.values[scope]:Number.NaN );
+        
+        if (scope in this.values) {
+            if (this.values[scope] < 0) {
+                label.setColors({r:255,g:0,b:0,a:0.8}, this.isLabelVisible());
+            }
+            else if (this.values[scope] > 0) {
+                label.setColors({r:0,g:128,b:0,a:0.8}, this.isLabelVisible());
+            }
+            else {
+                label.setColors({r:0,g:0,b:255,a:0.8}, this.isLabelVisible());
+            }
+        }
         
         sgv.SPS.updateNodeValue(this, color);
     };

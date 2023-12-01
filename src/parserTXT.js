@@ -72,9 +72,18 @@ ParserTXT.importGraph = (string) => {
         let _n1 = parseInt(line[0], 10);
         let _n2 = parseInt(line[1], 10);
         let _val = parseFloat(line[2], 10);
+        
+        let _lbl = null;
+        if (line.length > 3)
+        {
+            _lbl = line[3];
+        }
+            
 
-        if (isNaN(_n1)||isNaN(_n2)) return null;    
-        else return { n1: _n1, n2: _n2, val: _val };
+        if (isNaN(_n1)||isNaN(_n2))
+            return null;    
+        else
+            return { n1: _n1, n2: _n2, val: _val, lbl: _lbl };
     };
 
     // Process each line of the input string
@@ -85,7 +94,10 @@ ParserTXT.importGraph = (string) => {
             if (d !== null) {
                 res.push(d);
                 if (d.n1 === d.n2) {
-                    struct.addNode1(d.n1, d.val);
+                    if (d.lbl===null)
+                        struct.addNode1(d.n1, d.val);
+                    else
+                        struct.addNode1(d.n1, d.val, d.lbl);
                 } else {
                     struct.addEdge1(d.n1, d.n2, d.val);
                 }

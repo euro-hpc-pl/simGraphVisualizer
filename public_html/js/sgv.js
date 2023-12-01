@@ -1172,6 +1172,14 @@ var Label = (function (labelId, txt, position) {
         this.createMe(this.position, enabled);
     };
     
+    this.setColors = function(_bgcolor, enabled) {
+        this.bgcolor = _bgcolor;
+        if (this.plane!==null)
+            this.plane.dispose();
+        
+        this.createMe(this.position, enabled);
+    };
+    
     /**
      * Gets the text for the label.
      * @returns {string} - The text of the label.
@@ -1195,11 +1203,14 @@ var Label = (function (labelId, txt, position) {
     /**
      * Creates the plane on which the label is displayed.
      * @returns {BABYLON.Plane} - The plane created.
+     * @param bgcolor - should be object: { r:ubyte, g:ubyte, b:ubyte, a:float }
      */
     this.createPlane = function() {
         let font_size = 64;
         let font = "normal " + font_size + "px Arial,Helvetica,sans-serif";
 
+        let str_bgcol = 'rgba('+String(this.bgcolor.r)+','+String(this.bgcolor.g)+','+String(this.bgcolor.b)+','+String(this.bgcolor.a)+')';
+        
         let ratio = 0.05;
 
         let tmpTex = new BABYLON.DynamicTexture("DynamicTexture", 64, sgv.scene);
@@ -1224,7 +1235,7 @@ var Label = (function (labelId, txt, position) {
         plane.material.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND;
         plane.material.alpha = 1;
         
-        plane.material.diffuseTexture.drawText(this.text, null, null, font, '#ffff00', 'rgba(0,0,255,0.7)', true);
+        plane.material.diffuseTexture.drawText(this.text, null, null, font, '#ffff00', str_bgcol, true);
         
         //plane.material.specularColor = new BABYLON.Color3(1, 1, 0);
         //plane.material.ambientColor = new BABYLON.Color3(1, 1, 0);
@@ -1241,10 +1252,11 @@ var Label = (function (labelId, txt, position) {
         if (this.plane!==null)
             this.plane.setEnabled(b);
         else if (b) {
-            this.createMe(this.position, true);
+            this.createMe(this.position, true );
         }
     };
 
+    this.bgcolor = { r:0, g:0, b:255, a:0.7 };
     this.text = txt;
     this.planeOffset = new BABYLON.Vector3(0.0, 5.0, 0.0);
     this.position = position;
@@ -1325,9 +1337,8 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         
         if ((label!==null) && (label.plane!==null)) {
             label.plane.dispose();
-//            delete this.label.plane;
         }
-        delete this.label;
+        delete label;
     };
 
     /**
@@ -1464,6 +1475,18 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
         }
 
         let color = valueToColor( (scope in this.values)?this.values[scope]:Number.NaN );
+        
+        if (scope in this.values) {
+            if (this.values[scope] < 0) {
+                label.setColors({r:255,g:0,b:0,a:0.8}, this.isLabelVisible());
+            }
+            else if (this.values[scope] > 0) {
+                label.setColors({r:0,g:128,b:0,a:0.8}, this.isLabelVisible());
+            }
+            else {
+                label.setColors({r:0,g:0,b:255,a:0.8}, this.isLabelVisible());
+            }
+        }
         
         sgv.SPS.updateNodeValue(this, color);
     };
@@ -4297,9 +4320,18 @@ ParserTXT.importGraph = (string) => {
         let _n1 = parseInt(line[0], 10);
         let _n2 = parseInt(line[1], 10);
         let _val = parseFloat(line[2], 10);
+        
+        let _lbl = null;
+        if (line.length > 3)
+        {
+            _lbl = line[3];
+        }
+            
 
-        if (isNaN(_n1)||isNaN(_n2)) return null;    
-        else return { n1: _n1, n2: _n2, val: _val };
+        if (isNaN(_n1)||isNaN(_n2))
+            return null;    
+        else
+            return { n1: _n1, n2: _n2, val: _val, lbl: _lbl };
     };
 
     // Process each line of the input string
@@ -4310,7 +4342,10 @@ ParserTXT.importGraph = (string) => {
             if (d !== null) {
                 res.push(d);
                 if (d.n1 === d.n2) {
-                    struct.addNode1(d.n1, d.val);
+                    if (d.lbl===null)
+                        struct.addNode1(d.n1, d.val);
+                    else
+                        struct.addNode1(d.n1, d.val, d.lbl);
                 } else {
                     struct.addEdge1(d.n1, d.n2, d.val);
                 }

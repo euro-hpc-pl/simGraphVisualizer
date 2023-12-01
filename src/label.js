@@ -43,6 +43,14 @@ var Label = (function (labelId, txt, position) {
         this.createMe(this.position, enabled);
     };
     
+    this.setColors = function(_bgcolor, enabled) {
+        this.bgcolor = _bgcolor;
+        if (this.plane!==null)
+            this.plane.dispose();
+        
+        this.createMe(this.position, enabled);
+    };
+    
     /**
      * Gets the text for the label.
      * @returns {string} - The text of the label.
@@ -66,11 +74,14 @@ var Label = (function (labelId, txt, position) {
     /**
      * Creates the plane on which the label is displayed.
      * @returns {BABYLON.Plane} - The plane created.
+     * @param bgcolor - should be object: { r:ubyte, g:ubyte, b:ubyte, a:float }
      */
     this.createPlane = function() {
         let font_size = 64;
         let font = "normal " + font_size + "px Arial,Helvetica,sans-serif";
 
+        let str_bgcol = 'rgba('+String(this.bgcolor.r)+','+String(this.bgcolor.g)+','+String(this.bgcolor.b)+','+String(this.bgcolor.a)+')';
+        
         let ratio = 0.05;
 
         let tmpTex = new BABYLON.DynamicTexture("DynamicTexture", 64, sgv.scene);
@@ -95,7 +106,7 @@ var Label = (function (labelId, txt, position) {
         plane.material.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND;
         plane.material.alpha = 1;
         
-        plane.material.diffuseTexture.drawText(this.text, null, null, font, '#ffff00', 'rgba(0,0,255,0.7)', true);
+        plane.material.diffuseTexture.drawText(this.text, null, null, font, '#ffff00', str_bgcol, true);
         
         //plane.material.specularColor = new BABYLON.Color3(1, 1, 0);
         //plane.material.ambientColor = new BABYLON.Color3(1, 1, 0);
@@ -112,10 +123,11 @@ var Label = (function (labelId, txt, position) {
         if (this.plane!==null)
             this.plane.setEnabled(b);
         else if (b) {
-            this.createMe(this.position, true);
+            this.createMe(this.position, true );
         }
     };
 
+    this.bgcolor = { r:0, g:0, b:255, a:0.7 };
     this.text = txt;
     this.planeOffset = new BABYLON.Vector3(0.0, 5.0, 0.0);
     this.position = position;
