@@ -1487,6 +1487,10 @@ var Node = /** @class */ (function(graf, id, x, y, z, _values) {
                 label.setColors({r:0,g:0,b:255,a:0.8}, this.isLabelVisible());
             }
         }
+        else {
+            label.setColors({r:40,g:40,b:40,a:0.5}, this.isLabelVisible());    
+        }
+        
         
         sgv.SPS.updateNodeValue(this, color);
     };
