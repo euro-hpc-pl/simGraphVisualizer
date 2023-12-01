@@ -1173,7 +1173,11 @@ var Label = (function (labelId, txt, position) {
     };
     
     this.setColors = function(_bgcolor, enabled) {
-        this.bgcolor = _bgcolor;
+        if (this.text.charAt(0)==='&')
+            this.bgcolor = _bgcolor;
+        else
+            this.bgcolor = this.defbgcolor;
+        
         if (this.plane!==null)
             this.plane.dispose();
         
@@ -1206,6 +1210,10 @@ var Label = (function (labelId, txt, position) {
      * @param bgcolor - should be object: { r:ubyte, g:ubyte, b:ubyte, a:float }
      */
     this.createPlane = function() {
+        let txt = this.text;
+        if (txt.charAt(0)==='&')
+            txt = txt.substring(1);
+
         let font_size = 64;
         let font = "normal " + font_size + "px Arial,Helvetica,sans-serif";
 
@@ -1218,7 +1226,7 @@ var Label = (function (labelId, txt, position) {
 
         tmpCTX.font = font;
         
-        let DTWidth = tmpCTX.measureText(this.text).width + 8;
+        let DTWidth = tmpCTX.measureText(txt).width + 8;
         let DTHeight = font_size + 8;
 
         var planeWidth = DTWidth * ratio;
@@ -1235,7 +1243,7 @@ var Label = (function (labelId, txt, position) {
         plane.material.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND;
         plane.material.alpha = 1;
         
-        plane.material.diffuseTexture.drawText(this.text, null, null, font, '#ffff00', str_bgcol, true);
+        plane.material.diffuseTexture.drawText(txt, null, null, font, '#ffff00', str_bgcol, true);
         
         //plane.material.specularColor = new BABYLON.Color3(1, 1, 0);
         //plane.material.ambientColor = new BABYLON.Color3(1, 1, 0);
@@ -1256,7 +1264,8 @@ var Label = (function (labelId, txt, position) {
         }
     };
 
-    this.bgcolor = { r:0, g:0, b:255, a:0.7 };
+    this.defbgcolor = { r:40, g:40, b:40, a:0.5 };
+    this.bgcolor = this.defbgcolor;
     this.text = txt;
     this.planeOffset = new BABYLON.Vector3(0.0, 5.0, 0.0);
     this.position = position;
