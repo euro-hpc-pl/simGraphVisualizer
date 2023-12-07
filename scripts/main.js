@@ -31,7 +31,7 @@ const menu = require(path.join(app.getAppPath(), 'scripts/workers/mainMenu.js'))
 const isMac = process.platform === 'darwin';
 
 // Specify whether the application is in development mode
-const DEVELOPEMENT_MODE = true;
+const DEVELOPEMENT_MODE = false;
 
 // Settings object for storing external application configurations and working directory
 var appSettings = {
