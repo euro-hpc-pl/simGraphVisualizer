@@ -78,8 +78,8 @@ gulp.task('merge', function () {
 //        .pipe(gulp.dest('./public_html/css/'));
 //});
 
-//gulp.task('build', gulp.series('merge', 'minimize', 'copyToElectron'));
-gulp.task('build', gulp.series('merge', 'minimize'));
+//gulp.task('build', gulp.series('merge', 'minimize'));
+gulp.task('build', gulp.series('merge'));
 
 gulp.task('clean', function() {
     return del([dstdir+"*.*"]);
