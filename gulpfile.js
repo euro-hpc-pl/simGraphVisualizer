@@ -7,7 +7,8 @@
 const gulp = require('gulp');
 const less = require('gulp-less');
 const path = require('path');
-const uglify = require('gulp-uglify');
+//const uglify = import('gulp-uglify');
+const uglify = require('gulp-uglify-es').default;
 const rename = require('gulp-rename');
 const concat = require('gulp-concat');
 const sass = require('gulp-sass')(require('sass'));
@@ -78,8 +79,7 @@ gulp.task('merge', function () {
 //        .pipe(gulp.dest('./public_html/css/'));
 //});
 
-//gulp.task('build', gulp.series('merge', 'minimize'));
-gulp.task('build', gulp.series('merge'));
+gulp.task('build', gulp.series('merge', 'minimize'));
 
 gulp.task('clean', function() {
     return del([dstdir+"*.*"]);
